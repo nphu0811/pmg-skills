@@ -1,0 +1,47 @@
+# PowerPoint Motion Graphics (PMG) AI Skills Index
+
+> Modular AI Skills for creating broadcast-grade Motion Graphics PowerPoint presentations (.pptx).
+> Modeled after Agent Skills standard (agentskills.io). Compatible with Claude Code, Cursor, Copilot, Antigravity, Windsurf.
+
+## Skills
+
+### pmg-core
+- **Summary:** Core 16:9 widescreen canvas (13.333" x 7.5"), obsidian dark palettes, typographic hierarchy, and anti-overlap bounding box geometry.
+- **Triggers:** "create powerpoint", "pptx setup", "presentation canvas", "pptx layout", "typography scale", "pptx colors"
+- **Path:** skills/pmg-core/SKILL.md
+
+### pmg-morph
+- **Summary:** Hardware-accelerated 60 FPS PowerPoint Morph engine, OpenXML <p159:morph> injection, "!!" identifier naming invariants, and aspect-ratio locks.
+- **Triggers:** "morph transition", "smooth transition pptx", "!! naming", "openxml morph", "60fps animation", "shape transform"
+- **Path:** skills/pmg-morph/SKILL.md
+
+### pmg-glassmorphism
+- **Summary:** Authentic frosted glass scrims, OpenXML alpha blending (a:alpha), glowing hairline borders (0.75pt - 1.5pt), multi-tier translucent depth, and contrast systems.
+- **Triggers:** "glassmorphism", "frosted glass", "transparent card", "glowing border", "dark mode presentation", "hud card"
+- **Path:** skills/pmg-glassmorphism/SKILL.md
+
+### pmg-camera-parallax
+- **Summary:** Virtual multi-plane camera choreography, establishing wide shots, macro push-in zooms (100% -> 240%), 3-plane speed ratios (BG 0.7x, Mid 1.0x, FG 1.4x), and tracking pans.
+- **Triggers:** "camera zoom", "parallax", "push in zoom", "camera pan", "multi-plane", "spatial presentation"
+- **Path:** skills/pmg-camera-parallax/SKILL.md
+
+### pmg-3d-cinematic
+- **Summary:** Visual-First 3D explainer engine for technical, industrial, and scientific decks: cutaway models, ultra-minimal text (<= 25 words/slide), leader lines, and target dots.
+- **Triggers:** "3d cutaway", "industrial explainer", "visual first", "leader line callout", "target dot", "minimal text slide"
+- **Path:** skills/pmg-3d-cinematic/SKILL.md
+
+### pmg-choreography
+- **Summary:** Opening & ending cinematic choreography: Aperture Burst, hero title zoom lockup, kinetic typographic wave, convergence pull-back outro, and executive credits.
+- **Triggers:** "opening slide", "intro animation", "outro slide", "ending animation", "aperture burst", "credits showcase"
+- **Path:** skills/pmg-choreography/SKILL.md
+
+### pmg-qa-audit
+- **Summary:** Automated QA audit engine: slide inspection, 100% morph compliance, word count limits (<= 25 words in 3d mode), zero-overlap layout geometry, and slide image export.
+- **Triggers:** "inspect slide", "verify pptx", "qa audit", "check morph", "word count limit", "export slide png"
+- **Path:** skills/pmg-qa-audit/SKILL.md
+
+### pmg-review-validation
+- **Summary:** Automated deck review, validation, and self-healing engine: 3-loop auto-repair of missing transitions/anchors, fallback skill substitution, and mandatory delivery certification gate.
+- **Triggers:** "review pptx", "validate motion", "check animations", "auto repair slides", "quality gate", "final delivery check", "kiểm tra hiệu ứng", "sửa lỗi chuyển trang"
+- **Path:** skills/pmg-review-validation/SKILL.md
+

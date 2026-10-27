@@ -1,0 +1,24 @@
+{
+  "name": "pmg-skills",
+  "version": "1.0.0",
+  "description": "Official PowerPoint Motion Graphics (PMG) skills for Cursor, Claude and other AI agents — 60 FPS Morph transitions, 3D camera choreography, parallax, frosted glassmorphism, and native PPTX generation",
+  "author": {
+    "name": "Mergi (nphu0811)",
+    "email": "duongngocphu134@gmail.com",
+    "url": "https://github.com/nphu0811/pmg-skills"
+  },
+  "license": "MIT",
+  "keywords": [
+    "powerpoint",
+    "motion-graphics",
+    "presentation",
+    "morph-transition",
+    "openxml",
+    "glassmorphism",
+    "parallax",
+    "3d-cinematic",
+    "pptx",
+    "agent-skills"
+  ],
+  "skills": ["skills"]
+}

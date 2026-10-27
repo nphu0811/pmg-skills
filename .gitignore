@@ -1,0 +1,18 @@
+# Ignored folders
+DataPowerPoint/
+.agents/
+.agent/
+
+# Python cache & environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.venv/
+venv/
+env/
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

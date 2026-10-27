@@ -1,0 +1,13 @@
+{
+  "name": "pmg-skills",
+  "owner": {
+    "name": "Mergi (nphu0811)"
+  },
+  "plugins": [
+    {
+      "name": "pmg-skills",
+      "source": "./",
+      "description": "Official PowerPoint Motion Graphics (PMG) skills for Cursor, Claude and other AI agents — 60 FPS Morph transitions, 3D camera choreography, parallax, frosted glassmorphism, and native PPTX generation."
+    }
+  ]
+}
