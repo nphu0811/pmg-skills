@@ -36,6 +36,20 @@ Official modular AI skills for **PowerPoint Motion Graphics (PMG)**. They teach 
 
 ---
 
+## 🎬 Live Presentation Demo
+
+Broadcast-grade motion graphics running directly in **100% native Microsoft PowerPoint** (no proprietary plugins, web renderers, or external video layers):
+
+<p align="center">
+  <img src="demo/pmg_demo_preview.gif" alt="PowerPoint Motion Graphics Live Demo" width="100%" />
+</p>
+
+<p align="center">
+  ▶️ <b><a href="demo/pmg_presentation_demo.mp4">Watch Full Slide Show Recording (50s MP4)</a></b> — Showcases 3D Orbiting Carousels, OpenXML 60 FPS Morph transitions, thematic traveling nodes, and authentic frosted glassmorphism.
+</p>
+
+---
+
 ## Installing
 
 ### npx skills (recommended)
@@ -155,6 +169,9 @@ pmg-skills/
     pmg-qa-audit/    SKILL.md
     pmg-review-validation/ SKILL.md
   examples/          # High-definition 60 FPS MP4 video demos and visual showcases
+  demo/              # Live presentation screen recordings and animated previews
+    pmg_demo_preview.gif
+    pmg_presentation_demo.mp4
   assets/            # Background patterns, vector icons, and textures
 ```
 

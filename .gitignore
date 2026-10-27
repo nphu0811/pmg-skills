@@ -16,3 +16,8 @@ env/
 Thumbs.db
 .idea/
 .vscode/
+
+# Raw screen recordings
+demo/2026-*.mp4
+demo/*raw*.mp4
+
