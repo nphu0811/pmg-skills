@@ -1,5 +1,13 @@
 # Changelog — PMG Skills
 
+## [v1.3.0] - 2026-10-28
+### Added
+- **Professional Cinematic Motion Graphics Builder (`pmg.cinematic_builder`):**
+  - Implemented `CinematicMotionBuilder`, `MotionPresetRegistry`, and `MotionChoreographyDecision` to combine cross-slide Morph storytelling with intra-slide native PowerPoint Animation Pane timelines (`SlideAnimationTimeline`).
+  - Added reusable purposeful motion presets: `cinematic_title_reveal`, `multi_plane_parallax` (0.7x BG, 1.0x Mid, 1.4x FG), `camera_zoom_inspection` (macro push-in 100% -> 200%), `animated_infographic_bars` (proportional bar wipes + curved Bezier trend orb), `orbiting_carousel_3d` (3-slot depth carousel), and `animated_interface_mockup` (satellite telemetry HUD with rotating radar).
+- **10-Slide Cinematic Environmental Protection Builder (`build_v1_3_cinematic_environmental_deck`):**
+  - Combines editable multi-layered Earth globe, blue sky, multi-plane green meadow landscapes, recurring flying Kite (`!!Traveling_Kite`), camera zoom sequences (Slides 3 & 7), animated infographics (Slides 4 & 8), 3D orbiting carousel (Slide 5), satellite HUD interface mockup (Slide 6), and 75 native Animation Pane effects across 10 slides.
+
 ## [v1.2.0] - 2026-10-28
 ### Added
 - **Native Intra-Slide Object Animation & Declarative Timeline Engine (`pmg.animations`):**

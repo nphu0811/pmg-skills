@@ -1,5 +1,5 @@
 """
-PMG Skills — Native PowerPoint Motion Graphics Engine (v1.2.0)
+PMG Skills — Native PowerPoint Motion Graphics Engine (v1.3.0)
 ==============================================================
 Canonical Python API and Orchestration Engine for PowerPoint Motion Graphics.
 """
@@ -38,6 +38,12 @@ from pmg.engine import (
     add_editable_kite,
     build_environmental_protection_deck,
     build_v1_2_single_slide_animation_showcase,
+)
+from pmg.cinematic_builder import (
+    MotionChoreographyDecision,
+    MotionPresetRegistry,
+    CinematicMotionBuilder,
+    build_v1_3_cinematic_environmental_deck,
 )
 from pmg.validator import StaticValidator, extract_expected_timeline
 from pmg.video_pipeline import (
@@ -85,6 +91,10 @@ __all__ = [
     "add_editable_kite",
     "build_environmental_protection_deck",
     "build_v1_2_single_slide_animation_showcase",
+    "MotionChoreographyDecision",
+    "MotionPresetRegistry",
+    "CinematicMotionBuilder",
+    "build_v1_3_cinematic_environmental_deck",
     "StaticValidator",
     "extract_expected_timeline",
     "is_powerpoint_available",

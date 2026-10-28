@@ -27,6 +27,7 @@ from pmg.engine import (
     MotionDeck,
     Themes,
 )
+from pmg.cinematic_builder import build_v1_3_cinematic_environmental_deck
 from pmg.validator import StaticValidator, extract_expected_timeline
 from pmg.video_pipeline import (
     export_video_with_powerpoint,
@@ -41,8 +42,10 @@ def cmd_build(args: argparse.Namespace) -> int:
     orchestrator = PMGOrchestrator()
 
     def _builder(target_path: str) -> str:
-        preset = (args.preset or "environment").lower()
-        if preset in ("v1_2_showcase", "timeline", "animation"):
+        preset = (args.preset or "v1_3_cinematic").lower()
+        if preset in ("v1_3_cinematic", "cinematic"):
+            return build_v1_3_cinematic_environmental_deck(target_path, num_slides=args.slides)
+        elif preset in ("v1_2_showcase", "timeline", "animation"):
             return build_v1_2_single_slide_animation_showcase(target_path)
         elif preset in ("environment", "eco", "kite", "earth"):
             return build_environmental_protection_deck(target_path, num_slides=args.slides)
@@ -225,8 +228,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_build.add_argument("-o", "--output", required=True, help="Output .pptx file path")
     p_build.add_argument(
         "--preset",
-        default="environment",
-        choices=["environment", "eco", "kite", "earth", "camau", "craft", "v1_2_showcase", "timeline", "animation"],
+        default="v1_3_cinematic",
+        choices=[
+            "environment",
+            "eco",
+            "kite",
+            "earth",
+            "camau",
+            "craft",
+            "v1_2_showcase",
+            "timeline",
+            "animation",
+            "v1_3_cinematic",
+            "cinematic",
+        ],
         help="Presentation preset",
     )
     p_build.add_argument("--title", default="Protecting Our Living Earth", help="Presentation title")
