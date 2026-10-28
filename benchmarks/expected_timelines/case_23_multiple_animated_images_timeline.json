@@ -1,0 +1,442 @@
+{
+  "deck_title": "case_23_multiple_animated_images_input",
+  "engine_version": "1.5.1",
+  "total_slides": 1,
+  "total_duration_ms": 1860,
+  "slides": [
+    {
+      "slide_number": 1,
+      "transition_type": "none",
+      "transition_duration_ms": 0,
+      "hold_duration_ms": 850,
+      "absolute_start_ms": 0,
+      "absolute_end_ms": 1860,
+      "objects": [
+        {
+          "object_id": "!!Canvas_BG",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.0,
+            0.0
+          ],
+          "final_position": [
+            0.0,
+            0.0
+          ],
+          "initial_size": [
+            13.333,
+            7.5
+          ],
+          "final_size": [
+            13.333,
+            7.5
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "background",
+          "is_required_content": false,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Slide_Title",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.8,
+            0.6
+          ],
+          "final_position": [
+            0.8,
+            0.6
+          ],
+          "initial_size": [
+            10.5,
+            1.0
+          ],
+          "final_size": [
+            10.5,
+            1.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "title",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 450,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Planet_Alpha",
+          "slide_number": 1,
+          "object_type": "picture",
+          "initial_position": [
+            1.0,
+            2.4
+          ],
+          "final_position": [
+            1.0,
+            2.4
+          ],
+          "initial_size": [
+            3.2,
+            3.2
+          ],
+          "final_size": [
+            3.2,
+            3.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 650,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Planet_Beta",
+          "slide_number": 1,
+          "object_type": "picture",
+          "initial_position": [
+            5.0,
+            2.4
+          ],
+          "final_position": [
+            5.0,
+            2.4
+          ],
+          "initial_size": [
+            3.2,
+            3.2
+          ],
+          "final_size": [
+            3.2,
+            3.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 830,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Planet_Gamma",
+          "slide_number": 1,
+          "object_type": "picture",
+          "initial_position": [
+            9.0,
+            2.4
+          ],
+          "final_position": [
+            9.0,
+            2.4
+          ],
+          "initial_size": [
+            3.2,
+            3.2
+          ],
+          "final_size": [
+            3.2,
+            3.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 1010,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Slide_Title",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.8,
+            0.6
+          ],
+          "final_position": [
+            0.8,
+            0.6
+          ],
+          "initial_size": [
+            10.5,
+            1.0
+          ],
+          "final_size": [
+            10.5,
+            1.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 0.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 450,
+          "delay_ms": 0,
+          "trigger_type": "with_previous",
+          "animation_sequence": 1,
+          "easing": "entr_10",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 450,
+          "semantic_role": "title",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 450,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Planet_Alpha",
+          "slide_number": 1,
+          "object_type": "picture",
+          "initial_position": [
+            1.0,
+            2.4
+          ],
+          "final_position": [
+            1.0,
+            2.4
+          ],
+          "initial_size": [
+            3.2,
+            3.2
+          ],
+          "final_size": [
+            3.2,
+            3.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 0.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 100,
+          "duration_ms": 550,
+          "delay_ms": 100,
+          "trigger_type": "with_previous",
+          "animation_sequence": 2,
+          "easing": "entr_10",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 100,
+          "absolute_end_ms": 650,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 650,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Planet_Beta",
+          "slide_number": 1,
+          "object_type": "picture",
+          "initial_position": [
+            5.0,
+            2.4
+          ],
+          "final_position": [
+            5.0,
+            2.4
+          ],
+          "initial_size": [
+            3.2,
+            3.2
+          ],
+          "final_size": [
+            3.2,
+            3.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 0.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 280,
+          "duration_ms": 550,
+          "delay_ms": 280,
+          "trigger_type": "with_previous",
+          "animation_sequence": 3,
+          "easing": "entr_23",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 280,
+          "absolute_end_ms": 830,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 830,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Planet_Gamma",
+          "slide_number": 1,
+          "object_type": "picture",
+          "initial_position": [
+            9.0,
+            2.4
+          ],
+          "final_position": [
+            9.0,
+            2.4
+          ],
+          "initial_size": [
+            3.2,
+            3.2
+          ],
+          "final_size": [
+            3.2,
+            3.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 0.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 460,
+          "duration_ms": 550,
+          "delay_ms": 460,
+          "trigger_type": "with_previous",
+          "animation_sequence": 4,
+          "easing": "entr_2",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 460,
+          "absolute_end_ms": 1010,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 1010,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        }
+      ],
+      "clicks": []
+    }
+  ],
+  "playback_script": [
+    {
+      "event": "start_slideshow",
+      "slide_number": 1,
+      "time_ms": 0
+    },
+    {
+      "event": "hold_slide",
+      "slide_number": 1,
+      "start_ms": 1010,
+      "end_ms": 1860,
+      "hold_duration_ms": 850
+    },
+    {
+      "event": "end_slideshow",
+      "time_ms": 1860
+    }
+  ]
+}

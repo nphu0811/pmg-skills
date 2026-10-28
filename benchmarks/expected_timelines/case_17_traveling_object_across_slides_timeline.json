@@ -1,0 +1,494 @@
+{
+  "deck_title": "case_17_traveling_object_across_slides_input",
+  "engine_version": "1.5.1",
+  "total_slides": 3,
+  "total_duration_ms": 4950,
+  "slides": [
+    {
+      "slide_number": 1,
+      "transition_type": "none",
+      "transition_duration_ms": 0,
+      "hold_duration_ms": 850,
+      "absolute_start_ms": 0,
+      "absolute_end_ms": 850,
+      "objects": [
+        {
+          "object_id": "!!Canvas_BG",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.0,
+            0.0
+          ],
+          "final_position": [
+            0.0,
+            0.0
+          ],
+          "initial_size": [
+            13.333,
+            7.5
+          ],
+          "final_size": [
+            13.333,
+            7.5
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "background",
+          "is_required_content": false,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Slide_Title",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.8,
+            0.6
+          ],
+          "final_position": [
+            0.8,
+            0.6
+          ],
+          "initial_size": [
+            10.5,
+            1.0
+          ],
+          "final_size": [
+            10.5,
+            1.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "title",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Traveling_Satellite",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            1.2,
+            4.2
+          ],
+          "final_position": [
+            1.2,
+            4.2
+          ],
+          "initial_size": [
+            1.4,
+            1.4
+          ],
+          "final_size": [
+            1.4,
+            1.4
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        }
+      ],
+      "clicks": []
+    },
+    {
+      "slide_number": 2,
+      "transition_type": "morph",
+      "transition_duration_ms": 1200,
+      "hold_duration_ms": 850,
+      "absolute_start_ms": 850,
+      "absolute_end_ms": 2900,
+      "objects": [
+        {
+          "object_id": "!!Canvas_BG",
+          "slide_number": 2,
+          "object_type": "shape",
+          "initial_position": [
+            0.0,
+            0.0
+          ],
+          "final_position": [
+            0.0,
+            0.0
+          ],
+          "initial_size": [
+            13.333,
+            7.5
+          ],
+          "final_size": [
+            13.333,
+            7.5
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": "morph_linear:(0.0,0.0)->(0.0,0.0)",
+          "start_time_ms": 0,
+          "duration_ms": 1200,
+          "delay_ms": 0,
+          "trigger_type": "slide_transition",
+          "animation_sequence": 1,
+          "easing": "smooth_morph",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 850,
+          "absolute_end_ms": 2050,
+          "semantic_role": "background",
+          "is_required_content": false,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Slide_Title",
+          "slide_number": 2,
+          "object_type": "shape",
+          "initial_position": [
+            0.8,
+            0.6
+          ],
+          "final_position": [
+            0.8,
+            0.6
+          ],
+          "initial_size": [
+            10.5,
+            1.0
+          ],
+          "final_size": [
+            10.5,
+            1.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": "morph_linear:(0.8,0.6)->(0.8,0.6)",
+          "start_time_ms": 0,
+          "duration_ms": 1200,
+          "delay_ms": 0,
+          "trigger_type": "slide_transition",
+          "animation_sequence": 2,
+          "easing": "smooth_morph",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 850,
+          "absolute_end_ms": 2050,
+          "semantic_role": "title",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Traveling_Satellite",
+          "slide_number": 2,
+          "object_type": "shape",
+          "initial_position": [
+            1.2,
+            4.2
+          ],
+          "final_position": [
+            5.4,
+            2.4
+          ],
+          "initial_size": [
+            1.4,
+            1.4
+          ],
+          "final_size": [
+            1.4,
+            1.4
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": "morph_linear:(1.2,4.2)->(5.4,2.4)",
+          "start_time_ms": 0,
+          "duration_ms": 1200,
+          "delay_ms": 0,
+          "trigger_type": "slide_transition",
+          "animation_sequence": 3,
+          "easing": "smooth_morph",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 850,
+          "absolute_end_ms": 2050,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        }
+      ],
+      "clicks": []
+    },
+    {
+      "slide_number": 3,
+      "transition_type": "morph",
+      "transition_duration_ms": 1200,
+      "hold_duration_ms": 850,
+      "absolute_start_ms": 2900,
+      "absolute_end_ms": 4950,
+      "objects": [
+        {
+          "object_id": "!!Canvas_BG",
+          "slide_number": 3,
+          "object_type": "shape",
+          "initial_position": [
+            0.0,
+            0.0
+          ],
+          "final_position": [
+            0.0,
+            0.0
+          ],
+          "initial_size": [
+            13.333,
+            7.5
+          ],
+          "final_size": [
+            13.333,
+            7.5
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": "morph_linear:(0.0,0.0)->(0.0,0.0)",
+          "start_time_ms": 0,
+          "duration_ms": 1200,
+          "delay_ms": 0,
+          "trigger_type": "slide_transition",
+          "animation_sequence": 1,
+          "easing": "smooth_morph",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 2900,
+          "absolute_end_ms": 4100,
+          "semantic_role": "background",
+          "is_required_content": false,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Slide_Title",
+          "slide_number": 3,
+          "object_type": "shape",
+          "initial_position": [
+            0.8,
+            0.6
+          ],
+          "final_position": [
+            0.8,
+            0.6
+          ],
+          "initial_size": [
+            10.5,
+            1.0
+          ],
+          "final_size": [
+            10.5,
+            1.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": "morph_linear:(0.8,0.6)->(0.8,0.6)",
+          "start_time_ms": 0,
+          "duration_ms": 1200,
+          "delay_ms": 0,
+          "trigger_type": "slide_transition",
+          "animation_sequence": 2,
+          "easing": "smooth_morph",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 2900,
+          "absolute_end_ms": 4100,
+          "semantic_role": "title",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Traveling_Satellite",
+          "slide_number": 3,
+          "object_type": "shape",
+          "initial_position": [
+            5.4,
+            2.4
+          ],
+          "final_position": [
+            9.2,
+            4.0
+          ],
+          "initial_size": [
+            1.4,
+            1.4
+          ],
+          "final_size": [
+            1.4,
+            1.4
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": "morph_linear:(5.4,2.4)->(9.2,4.0)",
+          "start_time_ms": 0,
+          "duration_ms": 1200,
+          "delay_ms": 0,
+          "trigger_type": "slide_transition",
+          "animation_sequence": 3,
+          "easing": "smooth_morph",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 2900,
+          "absolute_end_ms": 4100,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        }
+      ],
+      "clicks": []
+    }
+  ],
+  "playback_script": [
+    {
+      "event": "start_slideshow",
+      "slide_number": 1,
+      "time_ms": 0
+    },
+    {
+      "event": "hold_slide",
+      "slide_number": 1,
+      "start_ms": 0,
+      "end_ms": 850,
+      "hold_duration_ms": 850
+    },
+    {
+      "event": "advance_slide",
+      "from_slide": 1,
+      "to_slide": 2,
+      "time_ms": 850,
+      "transition_type": "morph",
+      "transition_duration_ms": 1200
+    },
+    {
+      "event": "hold_slide",
+      "slide_number": 2,
+      "start_ms": 2050,
+      "end_ms": 2900,
+      "hold_duration_ms": 850
+    },
+    {
+      "event": "advance_slide",
+      "from_slide": 2,
+      "to_slide": 3,
+      "time_ms": 2900,
+      "transition_type": "morph",
+      "transition_duration_ms": 1200
+    },
+    {
+      "event": "hold_slide",
+      "slide_number": 3,
+      "start_ms": 4100,
+      "end_ms": 4950,
+      "hold_duration_ms": 850
+    },
+    {
+      "event": "end_slideshow",
+      "time_ms": 4950
+    }
+  ]
+}

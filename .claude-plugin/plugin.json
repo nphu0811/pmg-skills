@@ -1,6 +1,6 @@
 {
   "name": "pmg-skills",
-  "description": "Official PMG skills for Claude, Cursor, and other AI agents — 60 FPS Morph transitions, virtual 3D camera choreography, parallax, frosted glassmorphism, and deck QA validation",
-  "version": "1.5.0",
+  "description": "Official PMG skills for Claude, Cursor, and other AI agents — 60 FPS Morph transitions, Windows PowerPoint QA Worker, 24-case animation benchmark suite, and visibility-aware self-healing",
+  "version": "1.5.1",
   "skills": "./skills/"
 }

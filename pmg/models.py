@@ -1,8 +1,9 @@
 """
 pmg.models
 ==========
-Data models for expected animation timelines, validation status, video metadata,
-AI visual review reports, repair history, and execution manifests.
+Data models for expected animation timelines, visibility-aware object tracking,
+validation status, video metadata, AI visual review reports, repair history,
+worker provenance, and execution manifests (v1.5.1).
 """
 
 import json
@@ -23,7 +24,7 @@ class ValidationStatus(str, Enum):
 class ObjectMotionSpec:
     object_id: str
     slide_number: int
-    object_type: str  # "shape", "textbox", "picture", "group", "connector", "svg"
+    object_type: str  # "shape", "textbox", "picture", "group", "connector", "svg", "diagram"
     initial_position: Tuple[float, float]  # (x_inches, y_inches)
     final_position: Tuple[float, float]    # (x_inches, y_inches)
     initial_size: Tuple[float, float]      # (w_inches, h_inches)
@@ -34,12 +35,19 @@ class ObjectMotionSpec:
     start_time_ms: int = 0
     duration_ms: int = 1600
     delay_ms: int = 0
-    trigger_type: str = "slide_transition"  # "slide_transition", "with_previous", "after_previous", "on_click"
+    trigger_type: str = "slide_transition"  # "slide_transition", "with_previous", "after_previous", "on_click", "static"
     animation_sequence: int = 0
     easing: str = "smooth_morph"
     time_reference: str = "slide_relative"  # "slide_relative", "absolute", "event_triggered"
     absolute_start_ms: int = 0
     absolute_end_ms: int = 1600
+    # v1.5.1 Visibility-Aware Animation Validation Fields
+    semantic_role: str = "content"  # "hero_image", "title", "subtitle", "diagram", "data_visualization", "card", "decorative_outline", "background", "content"
+    is_required_content: bool = False
+    expected_initial_visibility: bool = True
+    expected_appearance_time_ms: int = 0
+    expected_disappearance_time_ms: Optional[int] = None
+    expected_completion_state: str = "visible"  # "visible" or "hidden"
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -121,6 +129,12 @@ class ExpectedTimeline:
                     time_reference=o.get("time_reference", "slide_relative"),
                     absolute_start_ms=o.get("absolute_start_ms", 0),
                     absolute_end_ms=o.get("absolute_end_ms", 1600),
+                    semantic_role=o.get("semantic_role", "content"),
+                    is_required_content=o.get("is_required_content", False),
+                    expected_initial_visibility=o.get("expected_initial_visibility", True),
+                    expected_appearance_time_ms=o.get("expected_appearance_time_ms", 0),
+                    expected_disappearance_time_ms=o.get("expected_disappearance_time_ms"),
+                    expected_completion_state=o.get("expected_completion_state", "visible"),
                 )
                 for o in s.get("objects", [])
             ]
@@ -138,7 +152,7 @@ class ExpectedTimeline:
             )
         return cls(
             deck_title=data.get("deck_title", "PMG Presentation"),
-            engine_version=data.get("engine_version", "1.1.0"),
+            engine_version=data.get("engine_version", "1.5.1"),
             total_slides=data.get("total_slides", len(slides)),
             total_duration_ms=data.get("total_duration_ms", 0),
             slides=slides,
@@ -170,7 +184,7 @@ class VideoMetadata:
 
 @dataclass
 class ReviewDefect:
-    category: str       # "visual_quality", "animation_behavior", "temporal_quality", "video_capture_quality", "openxml_structure"
+    category: str       # "visual_quality", "animation_behavior", "temporal_quality", "video_capture_quality", "openxml_structure", "object_visibility"
     severity: str       # "critical", "major", "minor", "warning"
     slide_number: int
     object_id: Optional[str]
@@ -189,9 +203,11 @@ class ReviewReport:
     animation_behavior_passed: bool = False
     temporal_quality_passed: bool = False
     capture_quality_passed: bool = False
+    object_visibility_passed: bool = True
     slide_steady_states_verified: int = 0
     transitions_verified: int = 0
     tracked_entities: Dict[str, Any] = field(default_factory=dict)
+    object_visibility_checks: List[Dict[str, Any]] = field(default_factory=list)
     temporal_deviation_ms: float = 0.0
     geometric_deviation_pct: float = 0.0
     export_vs_recording_similarity: float = 0.0
@@ -207,9 +223,11 @@ class ReviewReport:
             "animation_behavior_passed": self.animation_behavior_passed,
             "temporal_quality_passed": self.temporal_quality_passed,
             "capture_quality_passed": self.capture_quality_passed,
+            "object_visibility_passed": self.object_visibility_passed,
             "slide_steady_states_verified": self.slide_steady_states_verified,
             "transitions_verified": self.transitions_verified,
             "tracked_entities": self.tracked_entities,
+            "object_visibility_checks": self.object_visibility_checks,
             "temporal_deviation_ms": round(self.temporal_deviation_ms, 2),
             "geometric_deviation_pct": round(self.geometric_deviation_pct, 2),
             "export_vs_recording_similarity": round(self.export_vs_recording_similarity, 4),
@@ -238,6 +256,8 @@ class ExecutionManifest:
     review_summary: Dict[str, Any] = field(default_factory=dict)
     repair_loops_executed: int = 0
     repair_history: List[Dict[str, Any]] = field(default_factory=list)
+    validation_method: str = "local_powerpoint"
+    worker_identity: str = "local"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -247,6 +267,8 @@ class ExecutionManifest:
             "delivered_pptx": self.delivered_pptx,
             "qa_dir": self.qa_dir,
             "status": self.status.value if isinstance(self.status, ValidationStatus) else self.status,
+            "validation_method": self.validation_method,
+            "worker_identity": self.worker_identity,
             "static_validation": self.static_validation,
             "export_video": self.export_video,
             "recording_video": self.recording_video,
@@ -260,4 +282,3 @@ class ExecutionManifest:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
         return path
-

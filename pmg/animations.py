@@ -116,6 +116,15 @@ class SlideAnimationTimeline:
         spid = self.register_shape(shape)
         trig_spid = trigger_shape.shape_id if trigger_shape is not None else None
         geom = self._shape_geom[spid]
+        alias_map = {
+            "fade_in": "fade",
+            "zoom_in": "zoom",
+            "spin": "rotate",
+            "grow_shrink": "scale",
+            "linear_motion_path": "motion_path",
+            "bezier_motion_path": "motion_path",
+        }
+        effect_type = alias_map.get((effect_type or "fade").lower(), (effect_type or "fade").lower())
         step = AnimationStep(
             target_shape_name=shape.name or f"Shape_{spid}",
             target_spid=spid,
@@ -847,6 +856,10 @@ def verify_animation_pane_com(pptx_path: str) -> Dict[str, Any]:
         "total_interactive_effects": 0,
         "error": None,
     }
+    import faulthandler
+    fh_enabled = faulthandler.is_enabled()
+    if fh_enabled:
+        faulthandler.disable()
     app = None
     pres = None
     try:
@@ -891,5 +904,6 @@ def verify_animation_pane_com(pptx_path: str) -> Dict[str, Any]:
                 pres.Close()
             except Exception:
                 pass
-        pass
+        if fh_enabled:
+            faulthandler.enable()
     return result

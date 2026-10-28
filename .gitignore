@@ -1,4 +1,6 @@
-# Ignored folders
+# Presentations
+*.pptx
+*.pptm
 DataPowerPoint/
 .agents/
 .agent/

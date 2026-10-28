@@ -685,8 +685,8 @@ def build_v1_2_single_slide_animation_showcase(output_path: str) -> str:
     tl.add_effect(sun, "scale", trigger="with_previous", scale_factor=(1.22, 1.22), duration_ms=350, auto_reverse=True)
 
     # Group 4: Timed entrance of transient load alert (2 parallel effects)
-    tl.add_effect(smog_alert, "fade", trigger="after_previous", duration_ms=250)
-    tl.add_effect(smog_alert, "fly_in", trigger="with_previous", direction="left", duration_ms=300)
+    tl.add_effect(smog_alert, "fly_in", trigger="after_previous", direction="left", duration_ms=350)
+    tl.add_effect(smog_alert, "pulse", trigger="with_previous", duration_ms=300, delay_ms=50)
 
     # Group 5: Energy packet dispatch along Curved Bezier Motion Path 1 (2 parallel effects)
     tl.add_effect(packet, "appear", trigger="after_previous", duration_ms=100)

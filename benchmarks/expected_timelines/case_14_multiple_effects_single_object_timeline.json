@@ -1,0 +1,307 @@
+{
+  "deck_title": "case_14_multiple_effects_single_object_input",
+  "engine_version": "1.5.1",
+  "total_slides": 1,
+  "total_duration_ms": 2200,
+  "slides": [
+    {
+      "slide_number": 1,
+      "transition_type": "none",
+      "transition_duration_ms": 0,
+      "hold_duration_ms": 850,
+      "absolute_start_ms": 0,
+      "absolute_end_ms": 2200,
+      "objects": [
+        {
+          "object_id": "!!Canvas_BG",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.0,
+            0.0
+          ],
+          "final_position": [
+            0.0,
+            0.0
+          ],
+          "initial_size": [
+            13.333,
+            7.5
+          ],
+          "final_size": [
+            13.333,
+            7.5
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "background",
+          "is_required_content": false,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Slide_Title",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.8,
+            0.6
+          ],
+          "final_position": [
+            0.8,
+            0.6
+          ],
+          "initial_size": [
+            10.5,
+            1.0
+          ],
+          "final_size": [
+            10.5,
+            1.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "title",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!MultiEffect_Hero",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            2.0,
+            2.8
+          ],
+          "final_position": [
+            2.0,
+            2.8
+          ],
+          "initial_size": [
+            3.4,
+            2.0
+          ],
+          "final_size": [
+            3.4,
+            2.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 400,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!MultiEffect_Hero",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            2.0,
+            2.8
+          ],
+          "final_position": [
+            2.0,
+            2.8
+          ],
+          "initial_size": [
+            3.4,
+            2.0
+          ],
+          "final_size": [
+            3.4,
+            2.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 0.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 400,
+          "delay_ms": 0,
+          "trigger_type": "with_previous",
+          "animation_sequence": 1,
+          "easing": "entr_10",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 400,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 400,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!MultiEffect_Hero",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            2.0,
+            2.8
+          ],
+          "final_position": [
+            6.267,
+            2.8
+          ],
+          "initial_size": [
+            3.4,
+            2.0
+          ],
+          "final_size": [
+            3.4,
+            2.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": "M 0 0 L 0.32 0 E",
+          "start_time_ms": 400,
+          "duration_ms": 550,
+          "delay_ms": 0,
+          "trigger_type": "after_previous",
+          "animation_sequence": 2,
+          "easing": "path_63",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 400,
+          "absolute_end_ms": 950,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!MultiEffect_Hero",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            2.0,
+            2.8
+          ],
+          "final_position": [
+            2.0,
+            2.8
+          ],
+          "initial_size": [
+            3.4,
+            2.0
+          ],
+          "final_size": [
+            4.08,
+            2.4
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 950,
+          "duration_ms": 400,
+          "delay_ms": 0,
+          "trigger_type": "after_previous",
+          "animation_sequence": 3,
+          "easing": "emph_6",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 950,
+          "absolute_end_ms": 1350,
+          "semantic_role": "hero_image",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        }
+      ],
+      "clicks": []
+    }
+  ],
+  "playback_script": [
+    {
+      "event": "start_slideshow",
+      "slide_number": 1,
+      "time_ms": 0
+    },
+    {
+      "event": "hold_slide",
+      "slide_number": 1,
+      "start_ms": 1350,
+      "end_ms": 2200,
+      "hold_duration_ms": 850
+    },
+    {
+      "event": "end_slideshow",
+      "time_ms": 2200
+    }
+  ]
+}

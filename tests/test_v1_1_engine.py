@@ -35,7 +35,7 @@ from pmg import (
 
 
 def test_version_and_provenance():
-    assert VERSION in ("1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0")
+    assert VERSION in ("1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.5.1")
     prov = get_engine_provenance("test_suite")
     assert prov["engine_name"] == "pmg-skills"
     assert prov["engine_version"] == VERSION

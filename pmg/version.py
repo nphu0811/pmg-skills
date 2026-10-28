@@ -1,17 +1,19 @@
 """
 pmg.version
 ===========
-Engine version and provenance tracking for PMG Skills.
+Engine version, runtime dependency verification, and provenance tracking for PMG Skills (v1.5.1).
 """
 
 import os
 import sys
+import shutil
 import platform
 import subprocess
+import importlib
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Dict, Any, List
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 
 
 def get_repo_root() -> str:
@@ -52,7 +54,61 @@ def get_git_branch() -> str:
     return "unknown"
 
 
-def get_engine_provenance(entrypoint: str = "pmg.orchestrator") -> Dict[str, Any]:
+def verify_runtime_dependencies(require_windows_com: bool = False) -> Dict[str, Any]:
+    """
+    Verifies required Python packages and system binaries at runtime (Upgrade C).
+    Returns a structured diagnostic report with actionable remediation instructions.
+    """
+    core_pkgs = {
+        "pptx": "python-pptx>=0.6.21",
+        "lxml": "lxml>=4.9.0",
+        "PIL": "Pillow>=10.0.0",
+        "numpy": "numpy>=1.24.0",
+        "cv2": "opencv-python>=4.8.0",
+    }
+    missing_pkgs: List[str] = []
+    installed_pkgs: Dict[str, bool] = {}
+
+    for mod_name, pip_spec in core_pkgs.items():
+        try:
+            importlib.import_module(mod_name)
+            installed_pkgs[mod_name] = True
+        except ImportError:
+            installed_pkgs[mod_name] = False
+            missing_pkgs.append(pip_spec)
+
+    win32_ok = False
+    if sys.platform == "win32":
+        try:
+            importlib.import_module("win32com.client")
+            win32_ok = True
+        except ImportError:
+            if require_windows_com:
+                missing_pkgs.append("pywin32>=306")
+
+    ffmpeg_ok = shutil.which("ffmpeg") is not None
+    ffprobe_ok = shutil.which("ffprobe") is not None
+
+    return {
+        "ok": len(missing_pkgs) == 0,
+        "engine_version": VERSION,
+        "platform": sys.platform,
+        "installed_packages": installed_pkgs,
+        "missing_packages": missing_pkgs,
+        "win32com_available": win32_ok,
+        "ffmpeg_available": ffmpeg_ok,
+        "ffprobe_available": ffprobe_ok,
+        "remediation": (
+            f"pip install {' '.join(missing_pkgs)}" if missing_pkgs else "All required Python dependencies are installed."
+        ),
+    }
+
+
+def get_engine_provenance(
+    entrypoint: str = "pmg.orchestrator",
+    validation_method: str = "local_powerpoint_com",
+    worker_identity: str = "local",
+) -> Dict[str, Any]:
     """Returns full provenance metadata for the PMG execution."""
     return {
         "engine_name": "pmg-skills",
@@ -60,6 +116,8 @@ def get_engine_provenance(entrypoint: str = "pmg.orchestrator") -> Dict[str, Any
         "git_commit": get_git_commit(),
         "git_branch": get_git_branch(),
         "canonical_entrypoint": entrypoint,
+        "validation_method": validation_method,
+        "worker_identity": worker_identity,
         "python_version": sys.version.split()[0],
         "platform": platform.platform(),
         "os_system": platform.system(),

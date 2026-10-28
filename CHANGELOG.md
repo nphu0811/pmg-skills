@@ -1,5 +1,23 @@
 # Changelog — PMG Skills
 
+## [v1.5.1] - 2026-10-28
+### Added
+- **Upgrade A — Windows PowerPoint Validation Worker (`pmg.worker`):**
+  - Implemented `pmg.worker` (`server.py`, `client.py`, `jobs.py`, `powerpoint_runner.py`, `video_capture.py`, `result_schema.py`, `security.py`) enabling AI agents running on Linux, macOS, cloud containers, or Windows to execute real Microsoft PowerPoint playback validation either locally or via a remote Windows worker.
+  - Added environment variable support (`PMG_QA_WORKER_URL`, `PMG_QA_WORKER_TOKEN`, `PMG_QA_MODE=local|remote|auto|static`) and CLI commands (`pmg worker doctor`, `pmg worker serve`, `pmg worker status`, `pmg validate <file.pptx> --worker auto|local|remote|static`).
+  - Added security controls: constant-time Bearer token authentication, max file size limits, ZIP bomb & path-traversal rejection, macro/OLE/executable payload rejection (`.pptm`, `vbaProject.bin`, `oleObject`), isolated per-job temporary workspaces, and secret redaction.
+  - Unconfigured or unreachable worker in `remote` mode (or `auto` mode without local PowerPoint) returns `ValidationStatus.BLOCKED` (never `PASS`).
+- **Upgrade B — 24-Case Animation Benchmark Suite (`benchmarks/`):**
+  - Implemented 24 canonical animation benchmark cases across Group A (Cases 01–08: Fade In, Fade Out, Fly In/Out, Wipe, Rotation, Scale/Grow-Shrink, Linear Motion Path, Curved Bezier Motion Path), Group B (Cases 09–14: Simultaneous, Sequential, With Previous, After Previous, On Click, Multiple effects on one object), Group C (Cases 15–20: Morph position, Morph scale/rotation, Traveling object across slides, Camera zoom, Multi-plane parallax, Complex overlapping timeline), and Group D (Cases 21–24: Hero image visibility with outline, Title/text visibility, Multiple animated images, Failure detection & automatic repair).
+  - Added CLI commands: `pmg benchmark run --all`, `pmg benchmark run --case <id>`, and `pmg benchmark report`, outputting `benchmarks/reports/benchmark_report.json` and `benchmarks/reports/benchmark_report.md`.
+- **Upgrade C — Engine Distribution, Runtime Dependency Verification & Embedded Provenance:**
+  - Added `verify_runtime_dependencies()` in `pmg.version` and embedded `ppt/pmg_execution_manifest.json` inside every delivered `.pptx` archive recording `engine_version`, `git_commit`, `canonical_entrypoint`, `validation_method`, `worker_identity`, `repair_loops_executed`, and `final_status`.
+- **Upgrade D — Visibility-Aware Animation Validation & Disappearing Object Self-Healing:**
+  - Reproduced and fixed the real-world regression from `Vu_tru_20_slide_PMG_inspired.pptx` where hero images (`!!Earth_Grand`) and animated titles (`!!HeroTitle`) vanished during Slide Show while sibling decorative outlines (`Oval 13`) remained visible.
+  - Exported static edit-mode slide reference PNGs (`edit_mode_refs/edit_slide_XX.png`) and implemented inner-core ROI visibility verification in `VisualAnimationReviewer` (insetting hero image ROIs by 18% so outer decorative rings like `Oval 13` never mask missing inner content).
+  - Enhanced `StaticValidator` and `_repair_disappearing_object_timing` in `pmg.self_healing` to detect and repair missing `<p:set>` (`style.visibility = "visible"`), missing `grpId` / `<p:bldLst>` bindings, untriggered `mainSeq` `<p:par>` siblings, and duplicate conflicting entrance animations while **preserving all legitimate Fade In, Wipe, Fly In, and Motion Path animations**.
+  - Added regression test suite `tests/regression/test_disappearing_hero_image.py` and the 20-slide flagship builder `pmg.space_builder.build_v1_5_1_space_exploration_20_slide_deck` (**"SPACE EXPLORATION — BEYOND THE HORIZON"**).
+
 ## [v1.5.0] - 2026-10-28
 ### Added
 - **Video-to-Editable-PowerPoint Motion Reconstruction Engine (`pmg.video_reconstructor`):**

@@ -154,6 +154,29 @@ deck.save("AI_Core_Cinematic.pptx")
 
 ---
 
+## v1.5.1 Canonical CLI, Windows Validation Worker & 24-Case Benchmark Suite
+
+```bash
+# 1. Build & validate the 20-slide Space Exploration presentation:
+python -m pmg build -o Space_Exploration_Beyond_The_Horizon_v1_5_1.pptx --preset space --slides 20
+
+# 2. Validate an existing PPTX (local PowerPoint COM, remote Windows worker, auto, or static):
+python -m pmg validate Input_Deck.pptx -o Validated_Deck.pptx --worker auto
+python -m pmg validate Input_Deck.pptx --worker remote --worker-url http://192.168.1.50:8765
+
+# 3. Windows PowerPoint Validation Worker (for Linux, macOS & Cloud AI agents):
+python -m pmg worker doctor
+python -m pmg worker serve --host 0.0.0.0 --port 8765 --token "$PMG_QA_WORKER_TOKEN"
+python -m pmg worker status --url http://192.168.1.50:8765
+
+# 4. Run the 24-Case Animation Benchmark Suite:
+python -m pmg benchmark run --all
+python -m pmg benchmark run --case 21
+python -m pmg benchmark report
+```
+
+---
+
 ## Structure
 
 ```

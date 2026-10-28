@@ -1,0 +1,397 @@
+{
+  "deck_title": "case_10_sequential_input",
+  "engine_version": "1.5.1",
+  "total_slides": 1,
+  "total_duration_ms": 1740,
+  "slides": [
+    {
+      "slide_number": 1,
+      "transition_type": "none",
+      "transition_duration_ms": 0,
+      "hold_duration_ms": 850,
+      "absolute_start_ms": 0,
+      "absolute_end_ms": 1740,
+      "objects": [
+        {
+          "object_id": "!!Canvas_BG",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.0,
+            0.0
+          ],
+          "final_position": [
+            0.0,
+            0.0
+          ],
+          "initial_size": [
+            13.333,
+            7.5
+          ],
+          "final_size": [
+            13.333,
+            7.5
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "background",
+          "is_required_content": false,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Slide_Title",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            0.8,
+            0.6
+          ],
+          "final_position": [
+            0.8,
+            0.6
+          ],
+          "initial_size": [
+            10.5,
+            1.0
+          ],
+          "final_size": [
+            10.5,
+            1.0
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "title",
+          "is_required_content": true,
+          "expected_initial_visibility": true,
+          "expected_appearance_time_ms": 0,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Seq_Card_1",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            1.2,
+            2.6
+          ],
+          "final_position": [
+            1.2,
+            2.6
+          ],
+          "initial_size": [
+            3.2,
+            2.2
+          ],
+          "final_size": [
+            3.2,
+            2.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "card",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 450,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Seq_Card_2",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            5.0,
+            2.6
+          ],
+          "final_position": [
+            5.0,
+            2.6
+          ],
+          "initial_size": [
+            3.2,
+            2.2
+          ],
+          "final_size": [
+            3.2,
+            2.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "card",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 670,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Seq_Card_3",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            8.8,
+            2.6
+          ],
+          "final_position": [
+            8.8,
+            2.6
+          ],
+          "initial_size": [
+            3.2,
+            2.2
+          ],
+          "final_size": [
+            3.2,
+            2.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 1.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 0,
+          "delay_ms": 0,
+          "trigger_type": "static",
+          "animation_sequence": 0,
+          "easing": "none",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 850,
+          "semantic_role": "card",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 890,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Seq_Card_1",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            1.2,
+            2.6
+          ],
+          "final_position": [
+            1.2,
+            2.6
+          ],
+          "initial_size": [
+            3.2,
+            2.2
+          ],
+          "final_size": [
+            3.2,
+            2.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 0.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 0,
+          "duration_ms": 450,
+          "delay_ms": 0,
+          "trigger_type": "with_previous",
+          "animation_sequence": 1,
+          "easing": "entr_2",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 0,
+          "absolute_end_ms": 450,
+          "semantic_role": "card",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 450,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Seq_Card_2",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            5.0,
+            2.6
+          ],
+          "final_position": [
+            5.0,
+            2.6
+          ],
+          "initial_size": [
+            3.2,
+            2.2
+          ],
+          "final_size": [
+            3.2,
+            2.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 0.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 220,
+          "duration_ms": 450,
+          "delay_ms": 220,
+          "trigger_type": "with_previous",
+          "animation_sequence": 2,
+          "easing": "entr_2",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 220,
+          "absolute_end_ms": 670,
+          "semantic_role": "card",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 670,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        },
+        {
+          "object_id": "!!Seq_Card_3",
+          "slide_number": 1,
+          "object_type": "shape",
+          "initial_position": [
+            8.8,
+            2.6
+          ],
+          "final_position": [
+            8.8,
+            2.6
+          ],
+          "initial_size": [
+            3.2,
+            2.2
+          ],
+          "final_size": [
+            3.2,
+            2.2
+          ],
+          "rotation_params": {
+            "start_deg": 0.0,
+            "end_deg": 0.0
+          },
+          "opacity_params": {
+            "start_alpha": 0.0,
+            "end_alpha": 1.0
+          },
+          "motion_path": null,
+          "start_time_ms": 440,
+          "duration_ms": 450,
+          "delay_ms": 440,
+          "trigger_type": "with_previous",
+          "animation_sequence": 3,
+          "easing": "entr_2",
+          "time_reference": "slide_relative",
+          "absolute_start_ms": 440,
+          "absolute_end_ms": 890,
+          "semantic_role": "card",
+          "is_required_content": true,
+          "expected_initial_visibility": false,
+          "expected_appearance_time_ms": 890,
+          "expected_disappearance_time_ms": null,
+          "expected_completion_state": "visible"
+        }
+      ],
+      "clicks": []
+    }
+  ],
+  "playback_script": [
+    {
+      "event": "start_slideshow",
+      "slide_number": 1,
+      "time_ms": 0
+    },
+    {
+      "event": "hold_slide",
+      "slide_number": 1,
+      "start_ms": 890,
+      "end_ms": 1740,
+      "hold_duration_ms": 850
+    },
+    {
+      "event": "end_slideshow",
+      "time_ms": 1740
+    }
+  ]
+}

@@ -2,7 +2,8 @@
 pmg.video_pipeline
 ==================
 Mandatory Step 3 (Native PowerPoint Video Export) and Step 4 (Actual Slideshow Recording)
-with FFprobe verification, process timeout guards, and safe COM process cleanup.
+with FFprobe verification, edit-mode slide reference image export, process timeout guards,
+and safe COM process cleanup.
 """
 
 import os
@@ -12,6 +13,7 @@ import time
 import ctypes
 import threading
 import subprocess
+import faulthandler
 from typing import Tuple, Dict, Any, Optional, List
 
 import cv2
@@ -112,6 +114,71 @@ def probe_video_metadata(video_path: str, requested_fps: int = 60, dropped_frame
     return meta
 
 
+def export_edit_mode_slide_images(
+    pptx_path: str,
+    output_dir: str,
+    width: int = 1920,
+    height: int = 1080,
+) -> List[str]:
+    """
+    Exports static edit-mode reference PNG images for every slide in the presentation
+    using PowerPoint COM (`Slide.Export`). Used to compare static edit-mode object visibility
+    against live Slide Show playback visibility.
+    """
+    abs_pptx = os.path.abspath(pptx_path)
+    abs_dir = os.path.abspath(output_dir)
+    os.makedirs(abs_dir, exist_ok=True)
+    exported: List[str] = []
+
+    if sys.platform != "win32":
+        return exported
+
+    import pythoncom
+    import win32com.client
+
+    was_enabled = faulthandler.is_enabled()
+    if was_enabled:
+        faulthandler.disable()
+
+    pythoncom.CoInitialize()
+    ppt = None
+    deck = None
+    try:
+        ppt = win32com.client.Dispatch("PowerPoint.Application")
+        try:
+            ppt.Visible = True
+        except Exception:
+            pass
+        deck = ppt.Presentations.Open(abs_pptx, ReadOnly=True, WithWindow=True)
+        for s_i in range(1, deck.Slides.Count + 1):
+            out_png = os.path.join(abs_dir, f"edit_slide_{s_i:02d}.png")
+            deck.Slides(s_i).Export(out_png, "PNG", width, height)
+            if os.path.exists(out_png):
+                exported.append(out_png)
+    except Exception:
+        pass
+    finally:
+        if deck is not None:
+            try:
+                deck.Close()
+            except Exception:
+                pass
+        if ppt is not None:
+            try:
+                if ppt.Presentations.Count == 0 and ppt.SlideShowWindows.Count == 0:
+                    ppt.Quit()
+            except Exception:
+                pass
+        try:
+            pythoncom.CoUninitialize()
+        except Exception:
+            pass
+        if was_enabled:
+            faulthandler.enable()
+
+    return exported
+
+
 def export_video_with_powerpoint(
     pptx_path: str,
     output_video_path: str,
@@ -121,9 +188,9 @@ def export_video_with_powerpoint(
     timeout_sec: int = 180,
 ) -> VideoMetadata:
     """
-    STEP 3 — Native PowerPoint Video Export.
-    Opens the PPTX in Microsoft PowerPoint Desktop and exports an MP4 video,
-    then verifies and records actual FPS, resolution, and duration via FFprobe.
+    STEP 3 — Native PowerPoint Video Export (plus Edit-Mode Slide Reference PNG Export).
+    Opens the PPTX in Microsoft PowerPoint Desktop, exports static edit-mode slide reference PNGs
+    for visibility comparison, exports an MP4 video, and verifies metadata via FFprobe.
     """
     abs_pptx = os.path.abspath(pptx_path)
     abs_video = os.path.abspath(output_video_path)
@@ -140,8 +207,14 @@ def export_video_with_powerpoint(
         meta.error = "BLOCKED: Native PowerPoint export requires Windows + Microsoft PowerPoint."
         return meta
 
+    import pythoncom
     import win32com.client
 
+    was_enabled = faulthandler.is_enabled()
+    if was_enabled:
+        faulthandler.disable()
+
+    pythoncom.CoInitialize()
     ppt = None
     deck = None
     try:
@@ -152,6 +225,17 @@ def export_video_with_powerpoint(
             pass
 
         deck = ppt.Presentations.Open(abs_pptx, ReadOnly=True, WithWindow=True)
+
+        # Export static edit-mode slide images for edit-mode vs slideshow visibility comparison
+        edit_refs_dir = os.path.join(os.path.dirname(abs_video), "edit_mode_refs")
+        os.makedirs(edit_refs_dir, exist_ok=True)
+        for s_i in range(1, deck.Slides.Count + 1):
+            try:
+                out_png = os.path.join(edit_refs_dir, f"edit_slide_{s_i:02d}.png")
+                deck.Slides(s_i).Export(out_png, "PNG", 1920, 1080)
+            except Exception:
+                pass
+
         default_dur = max(1, int(round(slide_duration)))
         deck.CreateVideo(abs_video, -1, default_dur, resolution, requested_fps, 90)
 
@@ -183,6 +267,12 @@ def export_video_with_powerpoint(
                     ppt.Quit()
             except Exception:
                 pass
+        try:
+            pythoncom.CoUninitialize()
+        except Exception:
+            pass
+        if was_enabled:
+            faulthandler.enable()
 
     return probe_video_metadata(abs_video, requested_fps=requested_fps)
 
@@ -241,6 +331,7 @@ def record_actual_slideshow(
     except Exception:
         pass
 
+    import pythoncom
     import win32com.client
     import win32gui
     import win32ui
@@ -251,6 +342,11 @@ def record_actual_slideshow(
         except Exception:
             pass
 
+    was_enabled = faulthandler.is_enabled()
+    if was_enabled:
+        faulthandler.disable()
+
+    pythoncom.CoInitialize()
     ppt = None
     pres = None
     ss_win = None
@@ -379,7 +475,14 @@ def record_actual_slideshow(
                     except Exception:
                         pass
             else:
-                ss_win.View.Next()
+                for _ in range(5):
+                    ss_win.View.Next()
+                    try:
+                        if int(ss_win.View.CurrentShowPosition) >= s_idx:
+                            break
+                    except Exception:
+                        break
+                    time.sleep(0.06)
 
             # Wait for transition duration
             trans_wait_sec = (slide_spec.transition_duration_ms / 1000.0) if s_idx > 1 else 0.0
@@ -466,6 +569,12 @@ def record_actual_slideshow(
                     ppt.Quit()
             except Exception:
                 pass
+        try:
+            pythoncom.CoUninitialize()
+        except Exception:
+            pass
+        if was_enabled:
+            faulthandler.enable()
 
     meta = probe_video_metadata(
         abs_video,

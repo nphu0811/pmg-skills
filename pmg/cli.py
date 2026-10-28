@@ -1,14 +1,16 @@
 """
 pmg.cli
 =======
-Canonical Command-Line Interface for PMG Skills:
+Canonical Command-Line Interface for PMG Skills (v1.5.1):
 - pmg build
-- pmg validate
+- pmg validate (supports --worker auto|local|remote|static and --no-video)
 - pmg render
 - pmg record
 - pmg review
 - pmg inspect
 - pmg reconstruct
+- pmg worker (doctor, serve, status)
+- pmg benchmark (run --all, run --case <id>, report)
 """
 
 import os
@@ -18,7 +20,7 @@ import shutil
 import argparse
 from typing import Optional, List
 
-from pmg.version import VERSION, get_engine_provenance
+from pmg.version import VERSION, get_engine_provenance, verify_runtime_dependencies
 from pmg.models import ValidationStatus
 from pmg.engine import (
     build_environmental_protection_deck,
@@ -41,6 +43,12 @@ from pmg.video_pipeline import (
 )
 from pmg.visual_reviewer import VisualAnimationReviewer
 from pmg.orchestrator import PMGOrchestrator
+from pmg.worker import (
+    check_worker_health,
+    PMGValidationWorkerServer,
+    PMGWorkerClient,
+)
+from benchmarks import BenchmarkRunner
 
 
 def cmd_build(args: argparse.Namespace) -> int:
@@ -48,7 +56,10 @@ def cmd_build(args: argparse.Namespace) -> int:
 
     def _builder(target_path: str) -> str:
         preset = (args.preset or "v1_3_cinematic").lower()
-        if preset in ("v1_3_cinematic", "cinematic"):
+        if preset in ("space", "v1_5_1_space", "beyond_the_horizon"):
+            from pmg.space_builder import build_v1_5_1_space_exploration_20_slide_deck
+            return build_v1_5_1_space_exploration_20_slide_deck(target_path, num_slides=args.slides)
+        elif preset in ("v1_3_cinematic", "cinematic"):
             return build_v1_3_cinematic_environmental_deck(target_path, num_slides=args.slides)
         elif preset in ("v1_4_reference", "smartphone"):
             return build_v1_4_reference_smartphone_slide(target_path)
@@ -77,6 +88,7 @@ def cmd_build(args: argparse.Namespace) -> int:
             builder_fn=_builder,
             hold_duration_ms=args.hold_ms,
             require_video_playback=False,
+            worker_mode="static",
         )
         shutil.copyfile(manifest.source_pptx, os.path.abspath(args.output))
         print(json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False))
@@ -88,6 +100,7 @@ def cmd_build(args: argparse.Namespace) -> int:
         hold_duration_ms=args.hold_ms,
         max_repair_loops=args.max_repairs,
         require_video_playback=True,
+        worker_mode=getattr(args, "worker", "auto"),
     )
     print(f"[*] PMG Build & Playback Validation Complete: Status = {manifest.status.value}")
     if manifest.delivered_pptx:
@@ -99,11 +112,20 @@ def cmd_build(args: argparse.Namespace) -> int:
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
-    if args.static_only:
-        validator = StaticValidator()
-        res = validator.validate(args.pptx)
-        print(json.dumps(res, indent=2, ensure_ascii=False))
-        return 0 if res.get("is_valid") else 1
+    worker_mode = getattr(args, "worker", "auto") or "auto"
+    if args.static_only or getattr(args, "no_video", False) or worker_mode == "static":
+        orchestrator = PMGOrchestrator()
+        out_path = args.output or args.pptx
+        manifest = orchestrator.run_pipeline(
+            output_pptx_path=out_path,
+            existing_pptx_path=args.pptx,
+            hold_duration_ms=args.hold_ms,
+            max_repair_loops=args.max_repairs,
+            require_video_playback=False,
+            worker_mode="static",
+        )
+        print(json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False))
+        return 0 if manifest.static_validation.get("is_valid") else 1
 
     orchestrator = PMGOrchestrator()
     out_path = args.output or args.pptx
@@ -113,6 +135,9 @@ def cmd_validate(args: argparse.Namespace) -> int:
         hold_duration_ms=args.hold_ms,
         max_repair_loops=args.max_repairs,
         require_video_playback=True,
+        worker_mode=worker_mode,
+        worker_url=getattr(args, "worker_url", None),
+        worker_token=getattr(args, "worker_token", None),
     )
     print(json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False))
     return 0 if manifest.status == ValidationStatus.PASS else 1
@@ -154,7 +179,16 @@ def cmd_review(args: argparse.Namespace) -> int:
     report, analysis = reviewer.review(
         export_meta=exp_meta,
         recording_meta=rec_meta,
-        recording_telemetry={"slide_events": [{"slide_number": s.slide_number, "actual_start_ms": s.absolute_start_ms, "actual_end_ms": s.absolute_end_ms} for s in timeline.slides]},
+        recording_telemetry={
+            "slide_events": [
+                {
+                    "slide_number": s.slide_number,
+                    "actual_start_ms": s.absolute_start_ms,
+                    "actual_end_ms": s.absolute_end_ms,
+                }
+                for s in timeline.slides
+            ]
+        },
         expected_timeline=timeline,
         static_validation=static_val,
         qa_dir=qa_dir,
@@ -183,11 +217,6 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
 
 def cmd_reconstruct(args: argparse.Namespace) -> int:
-    """
-    Reverse-engineers object hierarchy, geometry, z-order, transitions, and native <p:timing>
-    animations from a reference PPTX (v1.4) or reference MP4 video (v1.5) and reconstructs
-    an editable PowerPoint presentation.
-    """
     source = args.source
     output = args.output
     if not os.path.exists(source):
@@ -215,10 +244,7 @@ def cmd_reconstruct(args: argparse.Namespace) -> int:
             with open(args.compare_out, "w", encoding="utf-8") as f:
                 json.dump(comp, f, indent=2, ensure_ascii=False)
 
-        print(json.dumps({
-            "reconstructed_pptx": os.path.abspath(output),
-            "comparison": comp,
-        }, indent=2, ensure_ascii=False))
+        print(json.dumps({"reconstructed_pptx": os.path.abspath(output), "comparison": comp}, indent=2, ensure_ascii=False))
         return 0
 
     if source.lower().endswith((".mp4", ".mov", ".avi", ".mkv")):
@@ -229,17 +255,76 @@ def cmd_reconstruct(args: argparse.Namespace) -> int:
         rep = vid_recon.reconstruct_from_video(source, output)
         if getattr(args, "compare_out", None):
             rep.save(args.compare_out)
-        print(json.dumps({
-            "reconstructed_pptx": rep.reconstructed_pptx,
-            "scenes_detected": rep.scenes_detected,
-            "total_editable_objects_reconstructed": rep.total_editable_objects_reconstructed,
-            "total_native_animations_reconstructed": rep.total_native_animations_reconstructed,
-            "com_animation_pane_verified": rep.com_animation_pane_verified,
-            "com_animation_pane_count": rep.com_animation_pane_count,
-        }, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "reconstructed_pptx": rep.reconstructed_pptx,
+                    "scenes_detected": rep.scenes_detected,
+                    "total_editable_objects_reconstructed": rep.total_editable_objects_reconstructed,
+                    "total_native_animations_reconstructed": rep.total_native_animations_reconstructed,
+                    "com_animation_pane_verified": rep.com_animation_pane_verified,
+                    "com_animation_pane_count": rep.com_animation_pane_count,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
         return 0
 
     print(f"[!] Unsupported source format for reconstruct: {source}", file=sys.stderr)
+    return 1
+
+
+def cmd_worker(args: argparse.Namespace) -> int:
+    action = args.worker_action
+    if action == "doctor":
+        health = check_worker_health()
+        deps = verify_runtime_dependencies(require_windows_com=True)
+        payload = {"worker_health": health.to_dict(), "runtime_dependencies": deps}
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 0 if health.status == "healthy" else 1
+
+    if action == "status":
+        client = PMGWorkerClient(worker_url=args.url, worker_token=args.token)
+        status = client.get_remote_status()
+        print(json.dumps(status, indent=2, ensure_ascii=False))
+        return 0 if status.get("reachable") and status.get("status") == "healthy" else 1
+
+    if action == "serve":
+        srv = PMGValidationWorkerServer(
+            host=args.host,
+            port=args.port,
+            auth_token=args.token,
+        )
+        print(f"[*] PMG Windows PowerPoint Validation Worker listening on {srv.url} ...")
+        try:
+            srv.serve_forever()
+        except KeyboardInterrupt:
+            srv.shutdown()
+        return 0
+
+    return 1
+
+
+def cmd_benchmark(args: argparse.Namespace) -> int:
+    runner = BenchmarkRunner()
+    action = args.bench_action
+    if action == "report":
+        rep = runner.load_latest_report()
+        print(json.dumps(rep, indent=2, ensure_ascii=False))
+        return 0 if "error" not in rep else 1
+
+    if action == "run":
+        w_mode = args.worker or "auto"
+        if args.case is not None:
+            res = runner.run_all(case_ids=[args.case], worker_mode=w_mode, hold_duration_ms=args.hold_ms)
+            print(json.dumps(res, indent=2, ensure_ascii=False))
+            return 0 if res["summary"]["passed_cases"] == len(res["cases"]) else 1
+        else:
+            res = runner.run_all(case_ids=None, worker_mode=w_mode, hold_duration_ms=args.hold_ms)
+            print(json.dumps(res["summary"], indent=2, ensure_ascii=False))
+            return 0 if res["summary"]["passed_cases"] == res["summary"]["total_cases"] else 1
+
     return 1
 
 
@@ -258,6 +343,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--preset",
         default="v1_3_cinematic",
         choices=[
+            "space",
+            "v1_5_1_space",
+            "beyond_the_horizon",
             "environment",
             "eco",
             "kite",
@@ -278,7 +366,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_build.add_argument("--slides", type=int, default=10, help="Number of slides (default: 10)")
     p_build.add_argument("--hold-ms", type=int, default=1200, help="Per-slide hold duration in ms (default: 1200)")
     p_build.add_argument("--max-repairs", type=int, default=3, help="Max self-healing loops (default: 3)")
-    p_build.add_argument("--skip-playback", action="store_true", help="Skip live PowerPoint playback verification (marks NOT_VERIFIED)")
+    p_build.add_argument(
+        "--worker",
+        default="auto",
+        choices=["auto", "local", "remote", "static"],
+        help="Validation worker mode (default: auto)",
+    )
+    p_build.add_argument(
+        "--skip-playback",
+        action="store_true",
+        help="Skip live PowerPoint playback verification (marks NOT_VERIFIED)",
+    )
     p_build.set_defaults(func=cmd_build)
 
     # 2. pmg validate
@@ -287,7 +385,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_val.add_argument("-o", "--output", help="Path to output validated .pptx")
     p_val.add_argument("--hold-ms", type=int, default=1200, help="Hold duration per slide in ms")
     p_val.add_argument("--max-repairs", type=int, default=3, help="Max self-healing loops (default: 3)")
-    p_val.add_argument("--static-only", action="store_true", help="Run OpenXML static checks only")
+    p_val.add_argument(
+        "--worker",
+        default="auto",
+        choices=["auto", "local", "remote", "static"],
+        help="Validation worker mode (auto, local, remote, static)",
+    )
+    p_val.add_argument("--worker-url", help="Remote Windows worker URL (overrides PMG_QA_WORKER_URL)")
+    p_val.add_argument("--worker-token", help="Remote Windows worker token (overrides PMG_QA_WORKER_TOKEN)")
+    p_val.add_argument("--static-only", action="store_true", help="Run OpenXML static checks only (NOT_VERIFIED)")
+    p_val.add_argument("--no-video", action="store_true", help="Alias for --static-only (returns NOT_VERIFIED)")
     p_val.set_defaults(func=cmd_validate)
 
     # 3. pmg render
@@ -333,6 +440,35 @@ def build_parser() -> argparse.ArgumentParser:
     p_recon.add_argument("--max-duration-sec", type=float, default=8.0, help="Max video duration in sec to reconstruct (default: 8.0)")
     p_recon.add_argument("--max-scenes", type=int, default=2, help="Max scenes to reconstruct from video (default: 2)")
     p_recon.set_defaults(func=cmd_reconstruct)
+
+    # 8. pmg worker
+    p_wrk = sub.add_parser("worker", help="Manage the PMG Windows PowerPoint Validation Worker (doctor, serve, status)")
+    w_sub = p_wrk.add_subparsers(dest="worker_action", required=True)
+    w_sub.add_parser("doctor", help="Check Windows PowerPoint COM, FFmpeg, OpenCV, and runtime readiness")
+    w_srv = w_sub.add_parser("serve", help="Start the PMG Windows PowerPoint Validation Worker HTTP/HTTPS server")
+    w_srv.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    w_srv.add_argument("--port", type=int, default=8765, help="Bind port (default: 8765)")
+    w_srv.add_argument("--token", help="Bearer authentication token (default: PMG_QA_WORKER_TOKEN)")
+    w_st = w_sub.add_parser("status", help="Check remote Windows worker status via GET /health")
+    w_st.add_argument("--url", help="Remote worker URL (default: PMG_QA_WORKER_URL)")
+    w_st.add_argument("--token", help="Remote worker Bearer token (default: PMG_QA_WORKER_TOKEN)")
+    p_wrk.set_defaults(func=cmd_worker)
+
+    # 9. pmg benchmark
+    p_bnc = sub.add_parser("benchmark", help="Run the 24-case PMG Animation Benchmark Suite or print latest report")
+    b_sub = p_bnc.add_subparsers(dest="bench_action", required=True)
+    b_run = b_sub.add_parser("run", help="Execute benchmark suite cases")
+    b_run.add_argument("--all", action="store_true", help="Run all 24 benchmark cases")
+    b_run.add_argument("--case", type=int, help="Run a specific benchmark case ID (1..24)")
+    b_run.add_argument(
+        "--worker",
+        default="auto",
+        choices=["auto", "local", "remote", "static"],
+        help="Validation worker mode (default: auto)",
+    )
+    b_run.add_argument("--hold-ms", type=int, default=850, help="Hold duration per slide in ms (default: 850)")
+    b_sub.add_parser("report", help="Print the latest benchmark report JSON")
+    p_bnc.set_defaults(func=cmd_benchmark)
 
     return parser
 

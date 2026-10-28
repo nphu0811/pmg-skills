@@ -1,10 +1,16 @@
 """
-PMG Skills — Native PowerPoint Motion Graphics Engine (v1.5.0)
+PMG Skills — Native PowerPoint Motion Graphics Engine (v1.5.1)
 ==============================================================
-Canonical Python API and Orchestration Engine for PowerPoint Motion Graphics.
+Canonical Python API, Windows Validation Worker, Animation Benchmark Suite,
+and Orchestration Engine for PowerPoint Motion Graphics.
 """
 
-from pmg.version import VERSION, get_git_commit, get_engine_provenance
+from pmg.version import (
+    VERSION,
+    get_git_commit,
+    get_engine_provenance,
+    verify_runtime_dependencies,
+)
 from pmg.models import (
     ValidationStatus,
     ObjectMotionSpec,
@@ -64,12 +70,21 @@ from pmg.validator import StaticValidator, extract_expected_timeline
 from pmg.video_pipeline import (
     is_powerpoint_available,
     probe_video_metadata,
+    export_edit_mode_slide_images,
     export_video_with_powerpoint,
     record_actual_slideshow,
 )
 from pmg.visual_reviewer import VisualAnimationReviewer
 from pmg.self_healing import execute_repair_loop
 from pmg.orchestrator import PMGOrchestrator
+from pmg.worker import (
+    WorkerHealthStatus,
+    WorkerJobRequest,
+    WorkerJobResult,
+    PMGValidationWorkerServer,
+    PMGWorkerClient,
+    check_worker_health,
+)
 
 __version__ = VERSION
 
@@ -78,6 +93,7 @@ __all__ = [
     "VERSION",
     "get_git_commit",
     "get_engine_provenance",
+    "verify_runtime_dependencies",
     "ValidationStatus",
     "ObjectMotionSpec",
     "SlideTimelineSpec",
@@ -125,9 +141,16 @@ __all__ = [
     "extract_expected_timeline",
     "is_powerpoint_available",
     "probe_video_metadata",
+    "export_edit_mode_slide_images",
     "export_video_with_powerpoint",
     "record_actual_slideshow",
     "VisualAnimationReviewer",
     "execute_repair_loop",
     "PMGOrchestrator",
+    "WorkerHealthStatus",
+    "WorkerJobRequest",
+    "WorkerJobResult",
+    "PMGValidationWorkerServer",
+    "PMGWorkerClient",
+    "check_worker_health",
 ]

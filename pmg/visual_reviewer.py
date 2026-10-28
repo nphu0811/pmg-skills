@@ -2,10 +2,11 @@
 pmg.visual_reviewer
 ===================
 STEP 5 — AI & Computer Vision Visual Review System.
-Analyzes both the native PowerPoint video export (powerpoint_export.mp4) and
-the actual live slideshow recording (actual_slideshow_recording.mp4) against
-the ExpectedTimeline specification (both inter-slide Morph/transitions and
-intra-slide native object animations).
+Analyzes both the native PowerPoint video export (powerpoint_export.mp4),
+static edit-mode slide reference images (edit_mode_refs/edit_slide_XX.png),
+and the actual live slideshow recording (actual_slideshow_recording.mp4) against
+the ExpectedTimeline specification (inter-slide Morph/transitions, intra-slide
+native object animations, and visibility-aware object completion checks).
 """
 
 import os
@@ -69,10 +70,23 @@ def _frame_similarity(f1: np.ndarray, f2: np.ndarray) -> float:
     return float(max(0.0, 1.0 - diff))
 
 
+def _roi_similarity(r1: np.ndarray, r2: np.ndarray) -> float:
+    """Computes normalized similarity between two cropped ROIs."""
+    if r1 is None or r2 is None or r1.size == 0 or r2.size == 0:
+        return 0.0
+    target_w = max(16, min(160, r1.shape[1]))
+    target_h = max(16, min(160, r1.shape[0]))
+    a1 = cv2.resize(r1, (target_w, target_h)).astype(np.float32)
+    a2 = cv2.resize(r2, (target_w, target_h)).astype(np.float32)
+    diff = np.mean(np.abs(a1 - a2)) / 255.0
+    return float(max(0.0, 1.0 - diff))
+
+
 class VisualAnimationReviewer:
     """
     Reviews exported and live-recorded PowerPoint playback videos against the
-    intended ExpectedTimeline across visual, animation, temporal, and capture criteria.
+    intended ExpectedTimeline across visual, animation, temporal, capture, and
+    visibility-aware object completion criteria.
     """
 
     def review(
@@ -85,6 +99,7 @@ class VisualAnimationReviewer:
         qa_dir: str,
     ) -> Tuple[ReviewReport, Dict[str, Any]]:
         frame_samples_dir = os.path.join(qa_dir, "frame_samples")
+        edit_refs_dir = os.path.join(qa_dir, "edit_mode_refs")
         os.makedirs(frame_samples_dir, exist_ok=True)
 
         defects: List[ReviewDefect] = []
@@ -178,6 +193,7 @@ class VisualAnimationReviewer:
 
         slide_analysis: List[Dict[str, Any]] = []
         tracked_entities: Dict[str, List[Dict[str, Any]]] = {}
+        object_visibility_checks: List[Dict[str, Any]] = []
         similarities: List[float] = []
         temporal_deviations: List[float] = []
         geometric_deviations: List[float] = []
@@ -209,6 +225,9 @@ class VisualAnimationReviewer:
 
             f_rec_steady = _read_frame_at_sec(cap_rec, rec_fps, steady_time_rec_sec)
             f_exp_steady = _read_frame_at_sec(cap_exp, exp_fps, steady_time_exp_sec)
+
+            edit_png_path = os.path.join(edit_refs_dir, f"edit_slide_{idx:02d}.png")
+            f_edit = cv2.imread(edit_png_path) if os.path.exists(edit_png_path) else None
 
             s_info: Dict[str, Any] = {
                 "slide_number": idx,
@@ -262,11 +281,12 @@ class VisualAnimationReviewer:
                         )
 
             # -----------------------------------------------------------------
-            # 2. INTRA-SLIDE NATIVE ANIMATION VERIFICATION (v1.2+)
+            # 2. INTRA-SLIDE NATIVE ANIMATION & VISIBILITY VERIFICATION (v1.2+ / v1.5.1)
             # -----------------------------------------------------------------
             intra_objs = [o for o in slide_spec.objects if o.trigger_type not in ("static", "slide_transition")]
             if intra_objs and f_rec_steady is not None:
-                anim_start_sec = max(0.05, (actual_start_ms + trans_dur_ms + 80.0) / 1000.0)
+                start_offset_ms = 80.0 if idx == 1 else min(350.0, trans_dur_ms * 0.3)
+                anim_start_sec = max(0.05, (actual_start_ms + start_offset_ms) / 1000.0)
                 anim_mid_sec = max(
                     0.1,
                     min(
@@ -356,6 +376,102 @@ class VisualAnimationReviewer:
                         "geometric_deviation_pct": round(geo_dev, 2),
                         "verified_on_screen": (roi_std > 1.0 or roi_diff > 0.25),
                     })
+
+            # -----------------------------------------------------------------
+            # 2B. VISIBILITY-AWARE EDIT-MODE VS. SLIDESHOW OBJECT CHECK (v1.5.1 Upgrade D)
+            # -----------------------------------------------------------------
+            if f_rec_steady is not None:
+                img_h, img_w = f_rec_steady.shape[:2]
+                # Deduplicate object specs by object_id (evaluate final expected state on the slide)
+                by_obj_id: Dict[str, Any] = {}
+                for o_spec in slide_spec.objects:
+                    by_obj_id[o_spec.object_id] = o_spec
+
+                for obj_id, o_spec in by_obj_id.items():
+                    if not o_spec.is_required_content:
+                        continue
+                    x2, y2 = o_spec.final_position
+                    w2, h2 = o_spec.final_size
+                    # Skip deliberately off-screen staging objects
+                    if x2 + w2 <= 0.15 or x2 >= SLIDE_W_IN - 0.15 or y2 + h2 <= 0.15 or y2 >= SLIDE_H_IN - 0.15:
+                        continue
+                    if w2 < 0.2 or h2 < 0.15:
+                        continue
+
+                    # Inset inner-core ROI for hero_image or large objects so sibling decorative outlines (e.g., Oval 13)
+                    # cannot mask a disappearing inner image!
+                    inset_frac = 0.18 if (o_spec.semantic_role == "hero_image" or (w2 * h2) >= 4.0) else 0.06
+                    cx_in = max(0.0, x2 + w2 * inset_frac)
+                    cy_in = max(0.0, y2 + h2 * inset_frac)
+                    cw_in = max(0.15, w2 * (1.0 - 2.0 * inset_frac))
+                    ch_in = max(0.12, h2 * (1.0 - 2.0 * inset_frac))
+
+                    px_s, py_s, pw_s, ph_s = _inches_to_px(cx_in, cy_in, cw_in, ch_in, img_w, img_h)
+                    roi_steady = _crop_safe(f_rec_steady, px_s, py_s, pw_s, ph_s)
+                    if roi_steady is None:
+                        continue
+
+                    steady_std = float(np.std(roi_steady))
+                    steady_luma = float(np.mean(roi_steady))
+
+                    edit_std = steady_std
+                    edit_luma = steady_luma
+                    core_sim = 1.0
+                    if f_edit is not None:
+                        ed_h, ed_w = f_edit.shape[:2]
+                        px_e, py_e, pw_e, ph_e = _inches_to_px(cx_in, cy_in, cw_in, ch_in, ed_w, ed_h)
+                        roi_edit = _crop_safe(f_edit, px_e, py_e, pw_e, ph_e)
+                        if roi_edit is not None:
+                            edit_std = float(np.std(roi_edit))
+                            edit_luma = float(np.mean(roi_edit))
+                            core_sim = _roi_similarity(roi_edit, roi_steady)
+
+                    visible_in_edit = (edit_std > 4.0) or (edit_luma > 18.0)
+                    visible_in_steady = True
+                    if o_spec.expected_completion_state == "visible" and visible_in_edit:
+                        # An object that is visible in Edit Mode has disappeared in Slide Show if:
+                        # 1) Its steady-state inner-core contrast collapses drastically (>72% drop), OR
+                        # 2) Its steady-state inner-core contrast drops (>62%) AND similarity is low, OR
+                        # 3) Its steady-state inner-core luminance drops drastically relative to edit mode
+                        if (
+                            (edit_std > 12.0 and steady_std < edit_std * 0.28)
+                            or (edit_std > 8.0 and steady_std < edit_std * 0.38 and core_sim < 0.78)
+                            or (abs(edit_luma - steady_luma) > 25.0 and core_sim < 0.75)
+                        ):
+                            visible_in_steady = False
+
+                    check_rec = {
+                        "slide_number": idx,
+                        "object_id": obj_id,
+                        "semantic_role": o_spec.semantic_role,
+                        "trigger_type": o_spec.trigger_type,
+                        "expected_initial_visibility": o_spec.expected_initial_visibility,
+                        "expected_appearance_time_ms": o_spec.expected_appearance_time_ms,
+                        "expected_completion_state": o_spec.expected_completion_state,
+                        "edit_core_std": round(edit_std, 2),
+                        "steady_core_std": round(steady_std, 2),
+                        "edit_core_luma": round(edit_luma, 2),
+                        "steady_core_luma": round(steady_luma, 2),
+                        "edit_vs_steady_core_similarity": round(core_sim, 4),
+                        "passed": visible_in_steady if o_spec.expected_completion_state == "visible" else True,
+                    }
+                    object_visibility_checks.append(check_rec)
+
+                    if o_spec.expected_completion_state == "visible" and not visible_in_steady:
+                        defects.append(
+                            ReviewDefect(
+                                category="animation_behavior",
+                                severity="critical",
+                                slide_number=idx,
+                                object_id=obj_id,
+                                description=(
+                                    f"Required {o_spec.semantic_role} '{obj_id}' on slide {idx} is visible in Edit Mode "
+                                    f"(std={edit_std:.1f}, luma={edit_luma:.1f}) but disappeared during live Slide Show "
+                                    f"(std={steady_std:.1f}, luma={steady_luma:.1f}, core_sim={core_sim:.2f})."
+                                ),
+                                remediation_hint="repair_disappearing_object_timing",
+                            )
+                        )
 
             # -----------------------------------------------------------------
             # 3. INTER-SLIDE TRANSITION & MORPH VERIFICATION (SLIDES 2..N)
@@ -453,8 +569,11 @@ class VisualAnimationReviewer:
         temp_passed = not any(d.category == "temporal_quality" and d.severity in ("critical", "major") for d in defects)
         cap_passed = not any(d.category == "video_capture_quality" and d.severity in ("critical", "major") for d in defects)
         xml_passed = not any(d.category == "openxml_structure" and d.severity in ("critical", "major") for d in defects)
+        obj_vis_passed = all(c.get("passed", True) for c in object_visibility_checks) and not any(
+            d.remediation_hint == "repair_disappearing_object_timing" for d in defects
+        )
 
-        all_passed = vis_passed and anim_passed and temp_passed and cap_passed and xml_passed
+        all_passed = vis_passed and anim_passed and temp_passed and cap_passed and xml_passed and obj_vis_passed
         final_status = ValidationStatus.PASS if all_passed else ValidationStatus.FAIL
 
         report = ReviewReport(
@@ -464,16 +583,18 @@ class VisualAnimationReviewer:
             animation_behavior_passed=anim_passed,
             temporal_quality_passed=temp_passed,
             capture_quality_passed=cap_passed,
+            object_visibility_passed=obj_vis_passed,
             slide_steady_states_verified=len(steady_frames_rec),
             transitions_verified=max(0, len(steady_frames_rec) - 1),
             tracked_entities=tracked_entities,
+            object_visibility_checks=object_visibility_checks,
             temporal_deviation_ms=avg_temp_dev,
             geometric_deviation_pct=avg_geo_dev,
             export_vs_recording_similarity=avg_sim,
             summary=(
                 f"Status={final_status.value}: Verified {len(steady_frames_rec)}/{total_slides} slides, "
                 f"export_fps={export_meta.actual_fps}, rec_fps={recording_meta.actual_fps}, "
-                f"similarity={avg_sim:.3f}, defects={len(defects)}."
+                f"similarity={avg_sim:.3f}, obj_vis={'PASS' if obj_vis_passed else 'FAIL'}, defects={len(defects)}."
             ),
         )
 
@@ -483,6 +604,7 @@ class VisualAnimationReviewer:
             "recording_telemetry": recording_telemetry,
             "slide_analysis": slide_analysis,
             "tracked_entities": tracked_entities,
+            "object_visibility_checks": object_visibility_checks,
         }
 
         return report, video_analysis_data

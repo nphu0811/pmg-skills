@@ -2,8 +2,9 @@
 pmg.self_healing
 ================
 Unified 3-Loop Self-Healing Engine extending scripts.motion_validator to repair
-both static OpenXML deficiencies and visual/temporal playback defects detected
-during real PowerPoint slideshow review (including intra-slide <p:timing> animations).
+both static OpenXML deficiencies and visual/temporal/visibility playback defects
+detected during real PowerPoint slideshow review (including intra-slide <p:timing>
+animations and disappearing hero images/titles).
 """
 
 import os
@@ -22,6 +23,158 @@ from scripts.motion_validator import (
 )
 from pmg.models import ReviewDefect
 from pmg.animations import P_NS, NSMAP, SlideAnimationTimeline
+
+
+def _xp(el: Any, expr: str) -> List[Any]:
+    """Safe XPath helper compatible with both python-pptx BaseOxmlElement and raw lxml.etree._Element."""
+    try:
+        return el.xpath(expr)
+    except TypeError:
+        return el.xpath(expr, namespaces=NSMAP)
+    except etree.XPathEvalError:
+        return el.xpath(expr, namespaces=NSMAP)
+
+
+def _repair_disappearing_object_timing(pptx_path: str, loop_number: int) -> List[str]:
+    """
+    Repairs OpenXML <p:timing> defects that cause hero images, titles, or animated
+    objects to disappear during Slide Show while preserving legitimate Fade In,
+    Wipe, Fly In, Emphasis, and Motion Path animations:
+    - Loop 1 (Targeted):
+      Extracts all intended animations on each affected slide, deduplicates conflicting
+      multiple entrance effects (`presetClass="entr"`) on the same `spid`, injects
+      mandatory `<p:set>` (`style.visibility = "visible"`) transitions, binds `<p:tn val="2"/>`
+      to `evt="onBegin"`, and synchronizes 3-level `mainSeq` `<p:par>` hierarchy and `<p:bldLst>`
+      via `SlideAnimationTimeline.compile_to_openxml`.
+    - Loop 2 (Structural):
+      Rebuilds `<p:timing>` with normalized stagger delays and durations (`600ms-800ms`) so all
+      entrance animations complete well before slide steady state.
+    - Loop 3 (Compatible Fallback):
+      Rebuilds `<p:timing>` substituting any problematic entrance filter with a verified
+      compatible native entrance (`fade`).
+    """
+    actions: List[str] = []
+    prs = pptx.Presentation(pptx_path)
+    modified = False
+
+    for idx, slide in enumerate(prs.slides, 1):
+        sld = slide._element
+        timing = sld.find(f"{{{P_NS}}}timing")
+        if timing is None:
+            continue
+
+        shape_by_id = {str(s.shape_id): s for s in slide.shapes}
+        if not shape_by_id:
+            continue
+
+        effect_ctns = _xp(
+            timing,
+            './/p:cTn[@presetClass="entr" or @presetClass="emph" or @presetClass="exit" or @presetClass="path"]',
+        )
+        if not effect_ctns:
+            continue
+
+        tl = SlideAnimationTimeline(slide_number=idx)
+        seen_entr_spids = set()
+        extracted_count = 0
+        dedup_count = 0
+
+        for step_i, ctn in enumerate(effect_ctns):
+            p_class = ctn.get("presetClass", "entr")
+            p_id = ctn.get("presetID", "10")
+            node_type = ctn.get("nodeType", "withEffect")
+            sp_tgts = _xp(ctn, ".//p:spTgt")
+            if not sp_tgts:
+                continue
+            spid = sp_tgts[0].get("spid", "")
+            if spid not in shape_by_id:
+                continue
+
+            if p_class == "entr":
+                if spid in seen_entr_spids:
+                    dedup_count += 1
+                    continue
+                seen_entr_spids.add(spid)
+
+            # Determine delay & duration
+            delay_ms = 0
+            st_conds = _xp(ctn, "./p:stCondLst/p:cond")
+            if st_conds:
+                d_str = st_conds[0].get("delay", "0")
+                if d_str and d_str.isdigit():
+                    delay_ms = int(d_str)
+
+            dur_ms = 650
+            beh_ctns = _xp(
+                ctn,
+                "./p:childTnLst/*[self::p:animEffect or self::p:anim or self::p:animScale or self::p:animRot or self::p:animMotion]/p:cBhvr/p:cTn",
+            )
+            if beh_ctns:
+                b_dur = beh_ctns[0].get("dur", "650")
+                if b_dur and b_dur.isdigit():
+                    dur_ms = max(150, int(b_dur))
+
+            if loop_number >= 2:
+                # Normalize timing window so animations finish well inside slide hold window
+                delay_ms = min(400, step_i * 80)
+                dur_ms = min(650, dur_ms)
+            else:
+                delay_ms = min(500, delay_ms)
+                dur_ms = min(800, dur_ms)
+
+            trig_map = {
+                "clickEffect": "on_click",
+                "withEffect": "with_previous",
+                "afterEffect": "after_previous",
+            }
+            # In broken decks where separate top-level <p:par> siblings caused unwanted waits,
+            # ensure automatic entrance effects use with_previous so they auto-start on slide entry
+            trig = trig_map.get(node_type, "with_previous")
+            if p_class == "entr" and trig == "on_click" and loop_number >= 2:
+                trig = "with_previous"
+
+            shp = shape_by_id[spid]
+
+            if p_class == "path":
+                am = _xp(ctn, ".//p:animMotion")
+                path_str = am[0].get("path", "M 0 0 L 0.15 0 E") if am else "M 0 0 L 0.15 0 E"
+                tl.add_effect(
+                    shp,
+                    "motion_path",
+                    trigger=trig,
+                    duration_ms=dur_ms,
+                    delay_ms=delay_ms,
+                    motion_path=path_str,
+                )
+            elif p_class == "exit":
+                tl.add_effect(shp, "fade_out", trigger=trig, duration_ms=dur_ms, delay_ms=delay_ms)
+            elif p_class == "emph":
+                eff_type = "spin" if p_id == "8" else ("pulse" if p_id == "26" else "grow_shrink")
+                tl.add_effect(shp, eff_type, trigger=trig, duration_ms=dur_ms, delay_ms=delay_ms)
+            else:
+                if loop_number >= 3:
+                    eff_type = "fade"
+                else:
+                    eff_type = (
+                        "fly_in"
+                        if p_id == "2"
+                        else ("wipe" if p_id == "22" else ("zoom_in" if p_id == "53" else "fade"))
+                    )
+                tl.add_effect(shp, eff_type, trigger=trig, duration_ms=dur_ms, delay_ms=delay_ms)
+            extracted_count += 1
+
+        if extracted_count > 0:
+            tl.compile_to_openxml(slide)
+            modified = True
+            actions.append(
+                f"Repaired <p:timing> on slide {idx}: injected <p:set> visibility='visible', "
+                f"synchronized grpId/<p:bldLst>, removed {dedup_count} conflicting duplicate entrance(s), "
+                f"and preserved {extracted_count} native animation(s)."
+            )
+
+    if modified:
+        prs.save(pptx_path)
+    return actions
 
 
 def _repair_slide_timing_targets_and_paths(pptx_path: str, loop_number: int) -> List[str]:
@@ -45,7 +198,7 @@ def _repair_slide_timing_targets_and_paths(pptx_path: str, loop_number: int) -> 
             continue
 
         # Check if mainSeq is missing (Loop 2 structural rebuild)
-        main_seq = timing.xpath('.//p:cTn[@nodeType="mainSeq"]')
+        main_seq = _xp(timing, './/p:cTn[@nodeType="mainSeq"]')
         if not main_seq and loop_number >= 2:
             tl = SlideAnimationTimeline(slide_number=idx)
             for s in slide.shapes[:4]:
@@ -56,15 +209,38 @@ def _repair_slide_timing_targets_and_paths(pptx_path: str, loop_number: int) -> 
             continue
 
         # Repair invalid spTgt references
-        for sp_tgt in timing.xpath(".//p:spTgt"):
+        entr_spids = set()
+        for ctn in _xp(timing, './/p:cTn[@presetClass="entr"]'):
+            for st in _xp(ctn, ".//p:spTgt"):
+                sid = st.get("spid")
+                if sid in valid_spids:
+                    entr_spids.add(sid)
+
+        for sp_tgt in _xp(timing, ".//p:spTgt"):
             spid = sp_tgt.get("spid", "")
             if spid not in valid_spids:
-                sp_tgt.set("spid", fallback_spid)
+                # Find parent cTn presetClass
+                p_ctn = sp_tgt
+                while p_ctn is not None and p_ctn.tag != f"{{{P_NS}}}cTn":
+                    p_ctn = p_ctn.getparent()
+                is_entr = p_ctn is not None and p_ctn.get("presetClass") == "entr"
+
+                chosen_spid = None
+                if is_entr:
+                    for s in valid_spids:
+                        if s not in entr_spids:
+                            chosen_spid = s
+                            break
+                if not chosen_spid:
+                    chosen_spid = valid_spids[0]
+
+                sp_tgt.set("spid", chosen_spid)
+                entr_spids.add(chosen_spid)
                 modified = True
-                actions.append(f"Rebound broken animation target spid={spid} -> spid={fallback_spid} on slide {idx}.")
+                actions.append(f"Rebound broken animation target spid={spid} -> spid={chosen_spid} on slide {idx}.")
 
         # Repair invalid or fallback motion paths
-        for am in timing.xpath(".//p:animMotion"):
+        for am in _xp(timing, ".//p:animMotion"):
             path_val = (am.get("path") or "").strip()
             if not path_val or not path_val.upper().startswith("M"):
                 am.set("path", "M 0 0 C 0.08 -0.1 0.18 0.1 0.25 0 E" if loop_number < 3 else "M 0 0 L 0.25 0 E")
@@ -150,9 +326,9 @@ def execute_repair_loop(
 ) -> Dict[str, Any]:
     """
     Executes one self-healing loop according to the 3-Loop Repair Architecture:
-    - Loop 1: Targeted repair (missing transitions, invalid durations, direct animation targets/paths)
-    - Loop 2: Structural repair (Morph anchor interpolation, <p:timing> tree rebuild, geometry healing)
-    - Loop 3: Compatible fallback repair (fallback native transition / simpler native motion path substitution)
+    - Loop 1: Targeted repair (missing transitions, invalid durations, disappearing object <p:set>/grpId timing, direct animation targets/paths)
+    - Loop 2: Structural repair (Morph anchor interpolation, canonical <p:timing> tree rebuild via SlideAnimationTimeline, geometry healing)
+    - Loop 3: Compatible fallback repair (fallback native transition / simpler native entrance & motion path substitution)
     """
     actions_taken: List[str] = []
     missing_trans = static_validation.get("missing_transitions", [])
@@ -162,7 +338,12 @@ def execute_repair_loop(
         list({d.slide_number for d in defects if d.slide_number > 1 and d.severity in ("critical", "major")})
     )
 
-    # Check for intra-slide <p:timing> defects
+    # Check for disappearing object timing defects or timing tree rebuilds (Upgrade D)
+    if any(d.remediation_hint in ("repair_disappearing_object_timing", "rebuild_timing_tree") for d in defects):
+        d_acts = _repair_disappearing_object_timing(pptx_path, loop_number)
+        actions_taken.extend([f"Loop {loop_number}: {a}" for a in d_acts])
+
+    # Check for intra-slide <p:timing> target/path defects
     timing_hints = {"repair_animation_target", "repair_motion_path", "rebuild_timing_tree"}
     if any(d.remediation_hint in timing_hints for d in defects):
         t_acts = _repair_slide_timing_targets_and_paths(pptx_path, loop_number)

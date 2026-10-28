@@ -1,16 +1,18 @@
 """
 pmg.validator
 =============
-Deep OpenXML static validator and ExpectedTimeline extractor for PMG presentations.
+Deep OpenXML static validator and visibility-aware ExpectedTimeline extractor for PMG (v1.5.1).
 Verifies:
 - Valid ZIP / OpenXML package structure
 - Unique shape identifiers per slide
 - Valid transition XML and duration attributes
-- Valid intra-slide <p:timing> animation trees, spTgt references, and motion paths (v1.2+)
+- Valid intra-slide <p:timing> animation trees, spTgt references, motion paths,
+  <p:set> visibility transitions, grpId / <p:bldLst> synchronization, mainSeq click-group
+  hierarchy, and conflicting duplicate entrance detection (v1.5.1 Upgrade D)
 - Continuous '!!' Morph anchors across active sequences
 - Valid media relationships (ppt/media/*)
 - Native editable PowerPoint objects check (blocks flattened screenshot shortcuts)
-- Object geometry and ExpectedTimeline generation
+- Object geometry, semantic roles, visibility windows, and ExpectedTimeline generation
 """
 
 import os
@@ -42,8 +44,68 @@ NS = {
 }
 
 
+def _classify_semantic_role(
+    name: str,
+    obj_type: str,
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    has_fill: bool,
+    text: str,
+) -> Tuple[str, bool]:
+    """
+    Returns (semantic_role, is_required_content) for visibility-aware validation.
+    Explicitly separates decorative outlines (e.g. Oval rings with noFill) from hero images.
+    """
+    nl = (name or "").lower()
+    tl = (text or "").lower()
+
+    # 1. Full-slide backgrounds or tint scrims
+    if (w >= 11.5 and h >= 6.5) or any(k in nl for k in ("background", "backdrop", "tint", "sky_backdrop", "starfield")):
+        return ("background", False)
+
+    # 2. Decorative outlines / rings (noFill shapes or Oval rings around hero objects)
+    if not has_fill and obj_type == "shape" and not text:
+        return ("decorative_outline", False)
+    if any(k in nl for k in ("outline", "ring", "halo_ring", "decorative", "orbit_ring")) or (
+        nl.startswith("oval") and not text and w >= 2.5 and h >= 2.5
+    ):
+        return ("decorative_outline", False)
+
+    # 3. Titles & Subtitles (evaluated before hero keywords so '!!HeroTitle' / '!!HeroSubtitle' classify as title/subtitle)
+    if obj_type != "picture":
+        if "subtitle" in nl or ("sub" in nl and text):
+            return ("subtitle", True)
+        if "title" in nl or "herotitle" in nl or (text and y < 2.3 and w >= 3.2 and h >= 0.45 and len(text) >= 6):
+            return ("title", True)
+
+    # 4. Hero images & primary visual subjects
+    hero_keywords = (
+        "earth", "globe", "hero", "planet", "mars", "galaxy", "milky",
+        "astronaut", "spacecraft", "station", "iss", "black_hole", "blackhole",
+        "satellite", "solar_system", "nebula", "telescope",
+    )
+    if obj_type == "picture" and w >= 1.2 and h >= 1.2:
+        return ("hero_image", True)
+    if any(k in nl for k in hero_keywords) and w >= 1.0 and h >= 1.0:
+        return ("hero_image", True)
+
+    # 5. Diagrams & Data visualizations
+    if obj_type == "diagram" or any(k in nl for k in ("diagram", "chart", "infographic", "bar_", "metric_bar")):
+        return ("diagram", True)
+
+    # 6. Information / UI Cards
+    if any(k in nl for k in ("card", "widget", "panel", "module")) and w >= 1.4 and h >= 0.7:
+        return ("card", True)
+    if text and w >= 1.8 and h >= 0.55 and y >= 2.0:
+        return ("card", True)
+
+    return ("content", False)
+
+
 def _parse_shape_node(elem: ET.Element, obj_type: str) -> Optional[Dict[str, Any]]:
-    """Extracts id, name, position, size, rotation, alpha, and text from an OpenXML shape node."""
+    """Extracts id, name, position, size, rotation, alpha, fill state, text, and semantic role."""
     cNvPr = elem.find(".//p:cNvPr", NS)
     if cNvPr is None:
         return None
@@ -67,7 +129,9 @@ def _parse_shape_node(elem: ET.Element, obj_type: str) -> Optional[Dict[str, Any
             w_in = int(ext.attrib.get("cx", "0")) / EMU_PER_INCH
             h_in = int(ext.attrib.get("cy", "0")) / EMU_PER_INCH
 
-    # Parse alpha if present
+    no_fill = elem.find("./p:spPr/a:noFill", NS) is not None
+    has_fill = (obj_type == "picture") or (not no_fill)
+
     alpha_elem = elem.find(".//a:solidFill//a:alpha", NS)
     alpha_val = 1.0
     if alpha_elem is not None:
@@ -76,9 +140,10 @@ def _parse_shape_node(elem: ET.Element, obj_type: str) -> Optional[Dict[str, Any
         except ValueError:
             alpha_val = 1.0
 
-    # Parse text
     texts = [t.text for t in elem.findall(".//a:t", NS) if t.text]
     full_text = " ".join(texts).strip()
+
+    role, is_req = _classify_semantic_role(name, obj_type, x_in, y_in, w_in, h_in, has_fill, full_text)
 
     return {
         "id": shp_id,
@@ -90,7 +155,10 @@ def _parse_shape_node(elem: ET.Element, obj_type: str) -> Optional[Dict[str, Any
         "h": round(h_in, 4),
         "rot_deg": round(rot_deg, 2),
         "alpha": round(alpha_val, 3),
+        "has_fill": has_fill,
         "text": full_text,
+        "semantic_role": role,
+        "is_required_content": is_req,
     }
 
 
@@ -150,9 +218,10 @@ def parse_slide_transition(xml_text: str, slide_idx: int) -> Tuple[str, int, boo
 
 def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> ExpectedTimeline:
     """
-    Constructs a deterministic ExpectedTimeline from a PPTX file, capturing:
+    Constructs a deterministic, visibility-aware ExpectedTimeline from a PPTX file, capturing:
     - Inter-slide Morph object movements (initial/final pos, size, rotation, opacity)
     - Intra-slide native animations (in <p:timing>)
+    - Expected initial visibility, appearance time, disappearance time, and completion state
     - Absolute, slide-relative, and click-triggered playback script
     """
     deck_title = os.path.splitext(os.path.basename(pptx_path))[0]
@@ -187,66 +256,82 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
             seq_idx = 0
 
             curr_objects_by_name = {o["name"]: o for o in objects if o["name"]}
+            static_spec_by_name: Dict[str, ObjectMotionSpec] = {}
 
-            # 1. Track Morph / Cross-slide object movements
+            # 1. Track Morph / Cross-slide object movements and baseline static specs
             for obj in objects:
-                name = obj["name"]
+                name = obj["name"] or f"shape_{obj['id']}"
+                role = obj.get("semantic_role", "content")
+                is_req = obj.get("is_required_content", False)
+
                 if idx > 1 and name.startswith("!!") and name in prev_objects_by_name:
                     prev_obj = prev_objects_by_name[name]
                     seq_idx += 1
-                    motion_specs.append(
-                        ObjectMotionSpec(
-                            object_id=name,
-                            slide_number=idx,
-                            object_type=obj["type"],
-                            initial_position=(prev_obj["x"], prev_obj["y"]),
-                            final_position=(obj["x"], obj["y"]),
-                            initial_size=(prev_obj["w"], prev_obj["h"]),
-                            final_size=(obj["w"], obj["h"]),
-                            rotation_params={
-                                "start_deg": prev_obj["rot_deg"],
-                                "end_deg": obj["rot_deg"],
-                            },
-                            opacity_params={
-                                "start_alpha": prev_obj["alpha"],
-                                "end_alpha": obj["alpha"],
-                            },
-                            motion_path=f"morph_linear:({prev_obj['x']},{prev_obj['y']})->({obj['x']},{obj['y']})",
-                            start_time_ms=0,
-                            duration_ms=trans_dur if trans_dur > 0 else 1600,
-                            delay_ms=0,
-                            trigger_type="slide_transition",
-                            animation_sequence=seq_idx,
-                            easing="smooth_morph",
-                            time_reference="slide_relative",
-                            absolute_start_ms=slide_start_ms,
-                            absolute_end_ms=slide_start_ms + (trans_dur if trans_dur > 0 else 1600),
-                        )
+                    spec = ObjectMotionSpec(
+                        object_id=name,
+                        slide_number=idx,
+                        object_type=obj["type"],
+                        initial_position=(prev_obj["x"], prev_obj["y"]),
+                        final_position=(obj["x"], obj["y"]),
+                        initial_size=(prev_obj["w"], prev_obj["h"]),
+                        final_size=(obj["w"], obj["h"]),
+                        rotation_params={
+                            "start_deg": prev_obj["rot_deg"],
+                            "end_deg": obj["rot_deg"],
+                        },
+                        opacity_params={
+                            "start_alpha": prev_obj["alpha"],
+                            "end_alpha": obj["alpha"],
+                        },
+                        motion_path=f"morph_linear:({prev_obj['x']},{prev_obj['y']})->({obj['x']},{obj['y']})",
+                        start_time_ms=0,
+                        duration_ms=trans_dur if trans_dur > 0 else 1600,
+                        delay_ms=0,
+                        trigger_type="slide_transition",
+                        animation_sequence=seq_idx,
+                        easing="smooth_morph",
+                        time_reference="slide_relative",
+                        absolute_start_ms=slide_start_ms,
+                        absolute_end_ms=slide_start_ms + (trans_dur if trans_dur > 0 else 1600),
+                        semantic_role=role,
+                        is_required_content=is_req,
+                        expected_initial_visibility=True,
+                        expected_appearance_time_ms=0,
+                        expected_disappearance_time_ms=None,
+                        expected_completion_state="visible",
                     )
+                    motion_specs.append(spec)
+                    static_spec_by_name[name] = spec
                 else:
-                    motion_specs.append(
-                        ObjectMotionSpec(
-                            object_id=name or f"shape_{obj['id']}",
-                            slide_number=idx,
-                            object_type=obj["type"],
-                            initial_position=(obj["x"], obj["y"]),
-                            final_position=(obj["x"], obj["y"]),
-                            initial_size=(obj["w"], obj["h"]),
-                            final_size=(obj["w"], obj["h"]),
-                            rotation_params={"start_deg": obj["rot_deg"], "end_deg": obj["rot_deg"]},
-                            opacity_params={"start_alpha": obj["alpha"], "end_alpha": obj["alpha"]},
-                            motion_path=None,
-                            start_time_ms=0,
-                            duration_ms=0,
-                            delay_ms=0,
-                            trigger_type="static",
-                            animation_sequence=0,
-                            easing="none",
-                            time_reference="slide_relative",
-                            absolute_start_ms=slide_start_ms,
-                            absolute_end_ms=slide_start_ms + trans_dur + hold_duration_ms,
-                        )
+                    spec = ObjectMotionSpec(
+                        object_id=name,
+                        slide_number=idx,
+                        object_type=obj["type"],
+                        initial_position=(obj["x"], obj["y"]),
+                        final_position=(obj["x"], obj["y"]),
+                        initial_size=(obj["w"], obj["h"]),
+                        final_size=(obj["w"], obj["h"]),
+                        rotation_params={"start_deg": obj["rot_deg"], "end_deg": obj["rot_deg"]},
+                        opacity_params={"start_alpha": obj["alpha"], "end_alpha": obj["alpha"]},
+                        motion_path=None,
+                        start_time_ms=0,
+                        duration_ms=0,
+                        delay_ms=0,
+                        trigger_type="static",
+                        animation_sequence=0,
+                        easing="none",
+                        time_reference="slide_relative",
+                        absolute_start_ms=slide_start_ms,
+                        absolute_end_ms=slide_start_ms + trans_dur + hold_duration_ms,
+                        semantic_role=role,
+                        is_required_content=is_req,
+                        expected_initial_visibility=True,
+                        expected_appearance_time_ms=0,
+                        expected_disappearance_time_ms=None,
+                        expected_completion_state="visible",
                     )
+                    motion_specs.append(spec)
+                    static_spec_by_name[name] = spec
 
             # 2. Parse intra-slide <p:timing> animations using pmg.animations
             clicks: List[Dict[str, Any]] = []
@@ -261,6 +346,33 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
                 for ispec in intra_specs:
                     seq_idx += 1
                     ispec.animation_sequence = seq_idx
+                    base_obj = static_spec_by_name.get(ispec.object_id)
+                    if base_obj is not None:
+                        ispec.semantic_role = base_obj.semantic_role
+                        ispec.is_required_content = base_obj.is_required_content
+                        ispec.object_type = base_obj.object_type
+
+                    is_entr = ispec.easing.startswith("entr_") or ispec.easing in (
+                        "appear", "fade", "fly_in", "wipe", "zoom"
+                    )
+                    is_exit = ispec.easing.startswith("exit_") or ispec.easing in (
+                        "disappear", "fade_out", "fly_out", "wipe_out"
+                    )
+                    if is_entr:
+                        ispec.expected_initial_visibility = False
+                        ispec.expected_appearance_time_ms = ispec.start_time_ms + ispec.duration_ms
+                        ispec.expected_completion_state = "visible"
+                        if base_obj is not None:
+                            base_obj.expected_initial_visibility = False
+                            base_obj.expected_appearance_time_ms = ispec.expected_appearance_time_ms
+                            base_obj.expected_completion_state = "visible"
+                    elif is_exit:
+                        ispec.expected_disappearance_time_ms = ispec.start_time_ms + ispec.duration_ms
+                        ispec.expected_completion_state = "hidden"
+                        if base_obj is not None:
+                            base_obj.expected_disappearance_time_ms = ispec.expected_disappearance_time_ms
+                            base_obj.expected_completion_state = "hidden"
+
                     motion_specs.append(ispec)
                     rel_end = ispec.absolute_end_ms - slide_start_ms
                     if rel_end > max_anim_end_rel:
@@ -330,7 +442,7 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
 class StaticValidator:
     """
     Performs static OpenXML, geometry, media, transition, intra-slide animation timing,
-    and anti-shortcut validation.
+    disappearing-object root-cause detection, and anti-shortcut validation.
     """
 
     def validate(self, pptx_path: str) -> Dict[str, Any]:
@@ -376,7 +488,6 @@ class StaticValidator:
                         "defects": [d.to_dict() for d in defects],
                     }
 
-                # Check 16:9 widescreen dimensions in presentation.xml
                 pres_xml = z.read("ppt/presentation.xml").decode("utf-8", errors="ignore")
                 sldSz = re.search(r'<p:sldSz[^>]*cx="(\d+)"[^>]*cy="(\d+)"', pres_xml)
                 if sldSz:
@@ -413,9 +524,10 @@ class StaticValidator:
                     xml_text = xml_bytes.decode("utf-8", errors="ignore")
                     objects = extract_slide_objects(xml_bytes)
 
-                    # 1. Check shape ID uniqueness
                     seen_ids = set()
+                    obj_name_by_id: Dict[str, str] = {}
                     for o in objects:
+                        obj_name_by_id[o["id"]] = o["name"] or f"spid_{o['id']}"
                         if o["id"] in seen_ids:
                             defects.append(
                                 ReviewDefect(
@@ -478,7 +590,7 @@ class StaticValidator:
                             )
                         )
 
-                    # 4. Validate Intra-Slide <p:timing> Native Animations
+                    # 4. Validate Intra-Slide <p:timing> Native Animations & Disappearing Object Root Causes
                     root = ET.fromstring(xml_bytes)
                     timing = root.find("p:timing", NS)
                     slide_anim_count = 0
@@ -495,10 +607,69 @@ class StaticValidator:
                                     remediation_hint="rebuild_timing_tree",
                                 )
                             )
+                        else:
+                            # Root Cause Check C: Multiple top-level <p:par> under mainSeq with withEffect
+                            # or missing <p:tn> in onBegin condition
+                            ms_child_lst = main_seq.find("p:childTnLst", NS)
+                            if ms_child_lst is not None:
+                                top_pars = ms_child_lst.findall("p:par", NS)
+                                if top_pars:
+                                    first_ctn = top_pars[0].find("p:cTn", NS)
+                                    if first_ctn is not None:
+                                        on_begin = first_ctn.find('.//p:stCondLst/p:cond[@evt="onBegin"]', NS)
+                                        if on_begin is not None and on_begin.find("p:tn", NS) is None:
+                                            defects.append(
+                                                ReviewDefect(
+                                                    category="object_visibility",
+                                                    severity="critical",
+                                                    slide_number=idx,
+                                                    object_id=None,
+                                                    description=(
+                                                        f"Slide {idx} mainSeq click-group <p:cond evt='onBegin'> is missing "
+                                                        f"<p:tn val='2'/> target reference, preventing reliable auto-start in Slide Show."
+                                                    ),
+                                                    remediation_hint="repair_disappearing_object_timing",
+                                                )
+                                            )
+                                    if len(top_pars) > 1:
+                                        for sec_par in top_pars[1:]:
+                                            sec_eff = sec_par.find('.//p:cTn[@presetClass]', NS)
+                                            if sec_eff is not None and sec_eff.attrib.get("nodeType") == "withEffect":
+                                                sp_t = sec_eff.find(".//p:spTgt", NS)
+                                                t_id = sp_t.attrib.get("spid", "") if sp_t is not None else ""
+                                                t_name = obj_name_by_id.get(t_id, f"spid_{t_id}")
+                                                defects.append(
+                                                    ReviewDefect(
+                                                        category="object_visibility",
+                                                        severity="critical",
+                                                        slide_number=idx,
+                                                        object_id=t_name,
+                                                        description=(
+                                                            f"Slide {idx} places 'withEffect' animation for '{t_name}' in a separate "
+                                                            f"top-level <p:seq> child <p:par>, causing '{t_name}' to remain hidden in Slide Show."
+                                                        ),
+                                                        remediation_hint="repair_disappearing_object_timing",
+                                                    )
+                                                )
+
+                        # Gather <p:bldLst> entries
+                        bld_grps_by_spid: Dict[str, List[str]] = {}
+                        for bld_p in timing.findall(".//p:bldLst/p:bldP", NS):
+                            b_spid = bld_p.attrib.get("spid", "")
+                            b_grp = bld_p.attrib.get("grpId", "")
+                            bld_grps_by_spid.setdefault(b_spid, []).append(b_grp)
+
+                        active_visible_state: Dict[str, str] = {}  # spid -> last presetClass ("entr" or "exit")
+                        defined_grp_ids = set()
+
                         for ctn in timing.findall(".//p:cTn", NS):
                             p_cls = ctn.attrib.get("presetClass")
                             if p_cls in ("entr", "emph", "path", "exit"):
                                 slide_anim_count += 1
+                                grp_id_attr = ctn.attrib.get("grpId")
+                                if grp_id_attr is not None:
+                                    defined_grp_ids.add(grp_id_attr)
+
                                 sp_tgts = ctn.findall(".//p:spTgt", NS)
                                 if not sp_tgts:
                                     defects.append(
@@ -512,19 +683,86 @@ class StaticValidator:
                                         )
                                     )
                                 else:
+                                    tgt_spid = sp_tgts[0].attrib.get("spid", "")
+                                    tgt_name = obj_name_by_id.get(tgt_spid, f"spid_{tgt_spid}")
                                     for st in sp_tgts:
-                                        tgt_spid = st.attrib.get("spid", "")
-                                        if tgt_spid not in seen_ids:
+                                        s_id = st.attrib.get("spid", "")
+                                        if s_id not in seen_ids:
                                             defects.append(
                                                 ReviewDefect(
                                                     category="animation_behavior",
                                                     severity="major",
                                                     slide_number=idx,
-                                                    object_id=f"spid_{tgt_spid}",
-                                                    description=f"Animation effect on slide {idx} targets nonexistent shape spid={tgt_spid}.",
+                                                    object_id=f"spid_{s_id}",
+                                                    description=f"Animation effect on slide {idx} targets nonexistent shape spid={s_id}.",
                                                     remediation_hint="repair_animation_target",
                                                 )
                                             )
+
+                                    # Root Cause Check A: Entrance animation missing <p:set> style.visibility="visible"
+                                    if p_cls == "entr":
+                                        has_vis_set = False
+                                        for p_set in ctn.findall(".//p:set", NS):
+                                            attr_el = p_set.find(".//p:attrName", NS)
+                                            val_el = p_set.find(".//p:to/p:strVal", NS)
+                                            if (
+                                                attr_el is not None
+                                                and (attr_el.text or "").strip() == "style.visibility"
+                                                and val_el is not None
+                                                and val_el.attrib.get("val") == "visible"
+                                            ):
+                                                has_vis_set = True
+                                                break
+                                        if not has_vis_set:
+                                            defects.append(
+                                                ReviewDefect(
+                                                    category="object_visibility",
+                                                    severity="critical",
+                                                    slide_number=idx,
+                                                    object_id=tgt_name,
+                                                    description=(
+                                                        f"Entrance animation on '{tgt_name}' (slide {idx}) is missing "
+                                                        f"<p:set> style.visibility='visible', causing '{tgt_name}' to disappear during Slide Show."
+                                                    ),
+                                                    remediation_hint="repair_disappearing_object_timing",
+                                                )
+                                            )
+
+                                        # Root Cause Check B: Missing grpId when spid is in <p:bldLst>
+                                        if tgt_spid in bld_grps_by_spid and grp_id_attr is None:
+                                            defects.append(
+                                                ReviewDefect(
+                                                    category="object_visibility",
+                                                    severity="critical",
+                                                    slide_number=idx,
+                                                    object_id=tgt_name,
+                                                    description=(
+                                                        f"Entrance animation on '{tgt_name}' (slide {idx}) omits grpId while "
+                                                        f"<p:bldLst> binds spid={tgt_spid}, leaving '{tgt_name}' hidden in Slide Show."
+                                                    ),
+                                                    remediation_hint="repair_disappearing_object_timing",
+                                                )
+                                            )
+
+                                        # Root Cause Check D: Duplicate conflicting entrance animations on same spid
+                                        if active_visible_state.get(tgt_spid) == "entr":
+                                            defects.append(
+                                                ReviewDefect(
+                                                    category="object_visibility",
+                                                    severity="major",
+                                                    slide_number=idx,
+                                                    object_id=tgt_name,
+                                                    description=(
+                                                        f"Duplicate conflicting entrance animation on '{tgt_name}' (slide {idx}) "
+                                                        f"without an intervening exit effect."
+                                                    ),
+                                                    remediation_hint="repair_disappearing_object_timing",
+                                                )
+                                            )
+                                        active_visible_state[tgt_spid] = "entr"
+                                    elif p_cls == "exit":
+                                        active_visible_state[tgt_spid] = "exit"
+
                                 for am in ctn.findall(".//p:animMotion", NS):
                                     path_attr = am.attrib.get("path", "").strip()
                                     if not path_attr or not path_attr.upper().startswith("M"):
@@ -538,6 +776,7 @@ class StaticValidator:
                                                 remediation_hint="repair_motion_path",
                                             )
                                         )
+
                     total_native_animations += slide_anim_count
 
                     # 5. Track !! Morph anchors
@@ -563,7 +802,6 @@ class StaticValidator:
                                     )
                                 )
 
-                    # 7. Word count
                     word_count = sum(len(o["text"].split()) for o in objects if o["text"])
 
                     slide_summaries.append({
@@ -571,6 +809,8 @@ class StaticValidator:
                         "object_count": len(objects),
                         "editable_object_count": len(editable_objs),
                         "picture_count": len(pictures),
+                        "required_content_objects": [o["name"] for o in objects if o.get("is_required_content")],
+                        "decorative_outlines": [o["name"] for o in objects if o.get("semantic_role") == "decorative_outline"],
                         "transition_type": trans_type,
                         "transition_duration_ms": trans_dur,
                         "native_animation_count": slide_anim_count,
@@ -578,7 +818,6 @@ class StaticValidator:
                         "morph_anchors": [o["name"] for o in objects if o["name"].startswith("!!")],
                     })
 
-                # Check Traveling Entity Continuity for primary traveling entities
                 for tag, s_list in traveling_anchors.items():
                     s_list.sort()
                     if len(s_list) > 1 and ("Traveling" in tag or "prog_" in tag):
