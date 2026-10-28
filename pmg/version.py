@@ -11,7 +11,7 @@ import subprocess
 from datetime import datetime, timezone
 from typing import Dict, Any
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 
 def get_repo_root() -> str:
@@ -65,4 +65,3 @@ def get_engine_provenance(entrypoint: str = "pmg.orchestrator") -> Dict[str, Any
         "os_system": platform.system(),
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
     }
-
