@@ -18,6 +18,8 @@ class ValidationStatus(str, Enum):
     FAIL = "FAIL"
     BLOCKED = "BLOCKED"
     NOT_VERIFIED = "NOT_VERIFIED"
+    SKIPPED = "SKIPPED"
+    NOT_TESTED = "NOT_TESTED"
 
 
 @dataclass

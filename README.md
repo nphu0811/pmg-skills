@@ -1,135 +1,109 @@
-# PMG Skills — PowerPoint Motion Graphics
+# PMG Skills — PowerPoint Motion Graphics (v2.1.0)
 
-PMG creates editable native PowerPoint presentations through one Python engine.
-It combines Morph, native Animation Pane effects, layered composition, virtual
-camera movement and reusable cinematic patterns with actual PowerPoint playback
-review and bounded technical repair.
+PMG creates 100% native, individually editable PowerPoint presentations through a universal, cross-platform Python runtime.
+It combines 60 FPS Morph transitions, native Animation Pane timing trees, frosted glassmorphism layers, virtual camera parallax, and continuous traveling entities.
 
-Current implementation: **v2.0.1**. Publication status is recorded in
-[GitHub releases](https://github.com/nphu0811/pmg-skills/releases).
-The [continued roadmap](docs/development-roadmap.md) preserves the required
-v1.5.2 → v1.6.0 → v1.7.0 → v1.8.0 → v2.0.1 sequence and release gates.
-Future assets, graphs and Creative Motion Intelligence are not yet advertised
-as implemented features. Existing showcase work is retained.
+Current implementation: **v2.1.0 Universal Runtime & Cross-Platform Reliability**.
 
-## Install
+---
 
-```text
-npx skills add https://github.com/nphu0811/pmg-skills
-```
+## What's New in v2.1.0: Universal Runtime
 
-Skill installation provides instructions. Install the canonical Python runtime
-separately in the interpreter that will run it:
+- **PowerPoint-Independent Native Compilation:** Native PowerPoint slide decks, Morph transitions, and Animation Pane effects can now be compiled in any environment running Python — **Microsoft PowerPoint is NOT required to be installed**.
+- **Three Execution Environments:**
+  * **Mode A: Web / Sandbox** (Claude Web, ChatGPT sandbox, restricted Linux CI without Office or internet). Native PPTX compilation + Level 1 structural validation.
+  * **Mode B: Local Desktop** (Windows, macOS, Linux with Python and optional Microsoft PowerPoint COM/AppleScript).
+  * **Mode C: Remote Worker** (configured & authenticated Windows validation worker for remote Slide Show playback testing).
+- **Universal Capability Detection (`pmg doctor` / `pmg capabilities`):** Deterministic environment inspection that adapts automatically without fragile crashes.
+- **Offline-First Dependency Strategy:** Prioritizes installed runtime -> cached/bundled wheels (`PMG_OFFLINE_CACHE`, `~/.pmg/cache`, `./wheels`) -> standalone binary -> network install -> graceful fallback.
+- **Three-Level Validation Architecture:**
+  * **Level 1 (Structural):** Mandatory ZIP, XML, OPC ContentTypes, relationships, unique shape IDs, `<p:timing>` trees, and Morph metadata.
+  * **Level 2 (Visual):** Slide previews rendered via available backend (PowerPoint COM or LibreOffice). Reports `SKIPPED — No slide rendering backend available` if missing.
+  * **Level 3 (Playback):** Native Microsoft PowerPoint Slide Show playback. Reports `NOT_TESTED — PowerPoint Desktop unavailable` if PowerPoint is absent. *Never fabricates Level 3 PASS without genuine PowerPoint Desktop execution.*
 
-```text
-python -m pip install "git+https://github.com/nphu0811/pmg-skills.git@<verified-commit-sha>"
-python -m pmg --version
-python -m pmg worker doctor
-```
+---
 
-From a checkout use `python -m pip install -e .`. Pin the same published commit
-for skills and runtime when validating a release. Do not rely on the current
-working directory or unsupported automatic discovery to supply dependencies.
+## Quickstart
 
-The skill files follow the Agent Skills format. Explicitly load the relevant
-installed guidance when the host does not discover dependencies. Copilot users
-can use [.github/copilot-instructions.md](.github/copilot-instructions.md).
-The CLI/API remain usable independently of any particular agent host.
-
-## Production
-
-```text
-python -m pmg build -o Space.pptx --preset space --slides 20 --worker auto
-python -m pmg validate Input.pptx -o Final.pptx --worker auto
-python -m pmg inspect Input.pptx --timeline-out expected_timeline.json
-```
+### Python API
 
 ```python
-from pmg import PMGOrchestrator, build_environmental_protection_deck, ValidationStatus
+from pmg import PMGRuntime
 
-manifest = PMGOrchestrator().run_pipeline(
-    output_pptx_path="Earth.pptx",
-    builder_fn=lambda path: build_environmental_protection_deck(path, num_slides=4),
+# Auto-detects environment and optimal validation backends
+runtime = PMGRuntime.auto()
+
+# Build and validate from JSON presentation spec, dictionary, or preset
+result = runtime.build(
+    project="presentation_spec.json",
+    output="presentation.pptx",
+    validate=True,
 )
-if manifest.status == ValidationStatus.PASS:
-    print(manifest.delivered_pptx)
+
+print(result.output_path)
+print(result.validation_report.overall_status)
 ```
 
-The engine packages metadata before static/animation checks, native export,
-actual slideshow recording and visual/timeline/visibility review. Repairs use one
-maximum-three-attempt budget, with compatible fallback inside attempt three.
-Every repair requires fresh validation and playback. Final clean PowerPoint
-reopen and SHA-256 checks certify the exact deliverable bytes; no PPTX writes
-follow certification.
+### Command-Line Interface (CLI)
 
-QA is read-only and reports defects. Review chooses repairs. The orchestrator is
-the only final delivery authority. An unavailable PowerPoint/Windows worker is
-BLOCKED; static success is NOT_VERIFIED. Export requests 60 FPS and capture
-requests 30 FPS by default; actual rates are measured, not assumed.
+```bash
+# Check environment readiness and installed capabilities
+pmg doctor
+pmg capabilities
 
-Ordinary presentation users receive only the final validated PPTX. Videos,
-frames and JSON reports stay in internal_qa unless explicitly requested.
-The external companion manifest contains the final status and hash; embedded
-provenance remains NOT_VERIFIED and points to that external certificate.
+# Build presentation from JSON specification or preset
+pmg build presentation_spec.json -o presentation.pptx
+pmg build --preset space --slides 10 -o Space.pptx
 
-## Skills and ownership
+# Validate presentation across Level 1, Level 2, and Level 3
+pmg validate presentation.pptx
+pmg validate presentation.pptx -o Validated.pptx --max-repairs 3
+```
+
+---
+
+## Installation & Packaging
+
+### Core Engine (Zero Binary Dependencies)
+For basic slide compilation, Morph transitions, and Level 1 structural validation, only pure-python dependencies are required:
+```bash
+pip install "python-pptx>=0.6.21" "lxml>=4.9.0" "Pillow>=9.0.0"
+pip install -e .
+```
+
+### Full Capabilities (Computer Vision & Windows COM)
+For video analysis, image decomposition, and local Windows PowerPoint COM playback:
+```bash
+pip install -e ".[full]"
+```
+
+See [Offline Execution Guide](docs/offline-execution.md) and [Cross-Platform Compatibility Matrix](docs/cross-platform-matrix.md).
+
+---
+
+## Skills Architecture
 
 | Skill | Primary responsibility |
 | --- | --- |
-| [pmg-engine](skills/pmg-engine/SKILL.md) | Canonical production routing and delivery entrypoint |
-| [pmg-core](skills/pmg-core/SKILL.md) | Geometry, typography, readable layered composition |
-| [pmg-morph](skills/pmg-morph/SKILL.md) | Technical Morph compilation, matching and persistent identities |
-| [pmg-choreography](skills/pmg-choreography/SKILL.md) | Motion direction, selection, coordination, sequence and timing |
-| [pmg-camera-parallax](skills/pmg-camera-parallax/SKILL.md) | Shared camera transforms, depth, pan/zoom and continuity |
-| [pmg-3d-cinematic](skills/pmg-3d-cinematic/SKILL.md) | Model preparation/composition, cutaways and annotations; uses shared camera |
-| [pmg-glassmorphism](skills/pmg-glassmorphism/SKILL.md) | Acrylic surfaces, alpha, borders and contrast |
-| [pmg-qa-audit](skills/pmg-qa-audit/SKILL.md) | Read-only structured defect detection |
-| [pmg-review-validation](skills/pmg-review-validation/SKILL.md) | Repair policy and certification through the orchestrator |
-| [pmg-storyboard](skills/pmg-storyboard/SKILL.md) | Narrative architecture, scene planning, pacing, visual hierarchy |
+| [pmg-engine](skills/pmg-engine/SKILL.md) | Universal runtime entrypoint, execution modes, 7-step agent workflow |
+| [pmg-core](skills/pmg-core/SKILL.md) | 16:9 widescreen canvas, bright modern light color systems, typography scale |
+| [pmg-morph](skills/pmg-morph/SKILL.md) | 60 FPS Morph compilation, `<p159:morph>`, persistent `!!` traveling entities |
+| [pmg-choreography](skills/pmg-choreography/SKILL.md) | AI Motion Director, narrative pacing, animation sequencing and timing |
+| [pmg-camera-parallax](skills/pmg-camera-parallax/SKILL.md) | Multi-plane parallax (BG 0.7x, Mid 1.0x, FG 1.4x), macro push-in zooms |
+| [pmg-3d-cinematic](skills/pmg-3d-cinematic/SKILL.md) | Model placement/orientation, cutaways and annotations |
+| [pmg-glassmorphism](skills/pmg-glassmorphism/SKILL.md) | Authentic frosted acrylic glass cards (`a:alpha`), hairline borders |
+| [pmg-qa-audit](skills/pmg-qa-audit/SKILL.md) | Read-only Three-Level inspection (Structural, Visual, Playback) |
+| [pmg-review-validation](skills/pmg-review-validation/SKILL.md) | Self-healing policy, 3-loop repair budget, delivery certification |
+| [pmg-storyboard](skills/pmg-storyboard/SKILL.md) | Storyboard intelligence and narrative presentation planner |
+| [pmg-visual-assets](skills/pmg-visual-assets/SKILL.md) | Authentic media research and retrieval (Wikimedia/NASA) |
+| [pmg-image-decomposer](skills/pmg-image-decomposer/SKILL.md) | Decomposition of flat raster images into structured `LayerTree` hierarchies |
 
-See [ownership and boundaries](docs/architecture.md) and the
-[skills index](skills/llms.txt). The three future skills retain distinct roles:
-visual-assets researches/prepares media; image-decomposer produces layers and
-masks; storyboard plans narrative and scenes. They do not duplicate compilers.
+---
 
-## Existing engine capabilities
+## Documentation
 
-- `pmg.animations`: native entrances/exits, rotation, scaling, opacity, pulse and
-  linear/Bezier paths, triggers, repeat and parallel/sequential timing. Unknown
-  effects are rejected; documented aliases are normalized.
-- `pmg.cinematic_builder`: reusable configurable presets, infographics,
-  parallax/zoom sequences, carousel and interface composition.
-- `pmg.cinematic_showcase`: Spotify app shell, Earth/Space reticle and university
-  bloom builders; preserved from the existing working tree.
-- `pmg.reverse_engineer`: PPTX object/geometry/transition/animation extraction,
-  reconstruction and style transfer.
-- `pmg.video_reconstructor`: decoding, scene detection, tracking, motion
-  estimation and editable approximations. Video does not prove source editability.
-- `pmg.worker`: authenticated Windows playback infrastructure for local/remote
-  environments; no independent repair loop or certificate.
-- `benchmarks/`: the existing 44-case suite (Groups A..H), extended in place by future releases.
-- Existing `MotionDeck`, `LightThemeCraftDeck`, `ForgeDeck`, `Cinematic3DDeck`,
-  themes and low-level helpers remain available. Direct saves are candidates.
-
-Native GLB capabilities depend on target PowerPoint support; skill XML/COM
-examples alone do not establish a tested model importer. Intentional compositing
-is allowed; readable content must remain clear.
-
-## Engineering references
-
-- [API and CLI](docs/api-and-cli.md)
-- [Repository guidance](AGENTS.md)
-- [Changelog](CHANGELOG.md)
-- [Benchmark suite](benchmarks/README.md)
-- [Real API example](examples/validate_native_deck.py)
-
-Run `python -m pytest -q` for regression tests. Some tests execute actual
-Windows PowerPoint and require an interactive desktop and FFmpeg. Static checks
-must never be represented as real playback verification.
-
-Historical demonstration: [native slideshow recording](demo/pmg_presentation_demo.mp4).
-It does not certify the current development revision.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+- [Architecture & Ownership](docs/architecture.md)
+- [API & CLI Reference](docs/api-and-cli.md)
+- [Cross-Platform Compatibility Matrix](docs/cross-platform-matrix.md)
+- [Offline Execution Guide](docs/offline-execution.md)
+- [Development Roadmap](docs/development-roadmap.md)

@@ -51,8 +51,50 @@ from pmg.worker import (
 from benchmarks import BenchmarkRunner
 
 
+def cmd_doctor(args: argparse.Namespace) -> int:
+    from pmg.capabilities import detect_environment
+    caps = detect_environment(test_network=getattr(args, "network", False), test_remote=getattr(args, "remote", False))
+    print(caps.format_diagnostic_report())
+    return 0 if caps.can_compile_native_pptx else 1
+
+
+def cmd_capabilities(args: argparse.Namespace) -> int:
+    from pmg.capabilities import detect_environment
+    caps = detect_environment(test_network=getattr(args, "network", False), test_remote=getattr(args, "remote", False))
+    if getattr(args, "table", False):
+        print(caps.format_diagnostic_report())
+    else:
+        print(json.dumps(caps.to_dict(), indent=2, ensure_ascii=False))
+    return 0
+
+
 def cmd_build(args: argparse.Namespace) -> int:
     orchestrator = PMGOrchestrator()
+
+    spec_path = getattr(args, "spec", None)
+    if spec_path and (spec_path.endswith(".json") or os.path.isfile(spec_path)):
+        from pmg.runtime import PMGRuntime
+        runtime = PMGRuntime.auto(
+            worker_url=getattr(args, "worker_url", None),
+            worker_token=getattr(args, "worker_token", None),
+        )
+        res = runtime.build(
+            project=spec_path,
+            output=args.output,
+            validate=not args.skip_playback,
+            validate_levels=[1] if (args.skip_playback or getattr(args, "worker", "auto") == "static") else [1, 2, 3],
+            preset=getattr(args, "preset", None),
+            title=getattr(args, "title", None),
+            slides=getattr(args, "slides", 4),
+        )
+        print(f"[*] PMG Build & Validation Complete: Status = {'PASS' if res.is_valid else 'FAIL'}")
+        print(f"[*] {res.summary}")
+        if res.can_deliver:
+            print(f"[+] Final Validated Deliverable: {res.output_path}")
+            return 0
+        else:
+            print(f"[!] Delivery Blocked. Inspect report at: {res.output_path}.validation_report.json")
+            return 1
 
     def _builder(target_path: str) -> str:
         preset = (args.preset or "v1_3_cinematic").lower()
@@ -134,6 +176,29 @@ def cmd_build(args: argparse.Namespace) -> int:
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
+    worker_mode = getattr(args, "worker", "auto") or "auto"
+    if not args.output:
+        from pmg.validation import validate_presentation
+        from pmg.capabilities import detect_environment
+        caps = detect_environment(worker_url=getattr(args, "worker_url", None), worker_token=getattr(args, "worker_token", None))
+        levels = [1] if (args.static_only or getattr(args, "no_video", False) or worker_mode == "static") else [1, 2, 3]
+        rep = validate_presentation(
+            args.pptx,
+            levels=levels,
+            capabilities=caps,
+            worker_url=getattr(args, "worker_url", None),
+            worker_token=getattr(args, "worker_token", None),
+        )
+        print(f"[*] PMG Three-Level Validation: {args.pptx}")
+        print(f"    Level 1 (Structural): {rep.level1.status.value} - {rep.level1.summary}")
+        print(f"    Level 2 (Visual):     {rep.level2.status.value} - {rep.level2.summary}")
+        print(f"    Level 3 (Playback):   {rep.level3.status.value} - {rep.level3.summary}")
+        print(f"[*] Overall Status:       {rep.overall_status.value}")
+        print(f"[*] Summary:              {rep.summary}")
+        if getattr(args, "json", False):
+            print(json.dumps(rep.to_dict(), indent=2, ensure_ascii=False))
+        return 0 if rep.level1.status.value == "PASS" else 1
+
     worker_mode = getattr(args, "worker", "auto") or "auto"
     if args.static_only or getattr(args, "no_video", False) or worker_mode == "static":
         orchestrator = PMGOrchestrator()
@@ -359,8 +424,23 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"pmg-skills {VERSION}")
     sub = parser.add_subparsers(dest="command", required=True)
 
+    # 0a. pmg doctor
+    p_doc = sub.add_parser("doctor", help="Inspect runtime environment capabilities, Python dependencies, and PowerPoint readiness")
+    p_doc.add_argument("--network", action="store_true", help="Probe outbound network access")
+    p_doc.add_argument("--remote", action="store_true", help="Probe remote worker health if configured")
+    p_doc.set_defaults(func=cmd_doctor)
+
+    # 0b. pmg capabilities
+    p_cap = sub.add_parser("capabilities", help="Print machine-readable or tabular environment capabilities")
+    p_cap.add_argument("--json", action="store_true", default=True, help="Output as JSON (default: True)")
+    p_cap.add_argument("--table", action="store_true", help="Output as formatted text")
+    p_cap.add_argument("--network", action="store_true", help="Probe outbound network access")
+    p_cap.add_argument("--remote", action="store_true", help="Probe remote worker health if configured")
+    p_cap.set_defaults(func=cmd_capabilities)
+
     # 1. pmg build
     p_build = sub.add_parser("build", help="Build and validate a presentation through the canonical PMG engine")
+    p_build.add_argument("spec", nargs="?", default=None, help="Path to project presentation_spec.json (optional)")
     p_build.add_argument("-o", "--output", required=True, help="Output .pptx file path")
     p_build.add_argument(
         "--preset",
@@ -408,6 +488,8 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip live PowerPoint playback verification (marks NOT_VERIFIED)",
     )
+    p_build.add_argument("--worker-url", help="Remote Windows worker URL (overrides PMG_QA_WORKER_URL)")
+    p_build.add_argument("--worker-token", help="Remote Windows worker token (overrides PMG_QA_WORKER_TOKEN)")
     p_build.set_defaults(func=cmd_build)
 
     # 2. pmg validate
@@ -426,6 +508,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_val.add_argument("--worker-token", help="Remote Windows worker token (overrides PMG_QA_WORKER_TOKEN)")
     p_val.add_argument("--static-only", action="store_true", help="Run OpenXML static checks only (NOT_VERIFIED)")
     p_val.add_argument("--no-video", action="store_true", help="Alias for --static-only (returns NOT_VERIFIED)")
+    p_val.add_argument("--json", action="store_true", help="Print structured JSON report")
     p_val.set_defaults(func=cmd_validate)
 
     # 3. pmg render

@@ -165,3 +165,38 @@ class PMGWorkerClient:
                 error=f"BLOCKED: Failed to reach remote Windows validation worker at {self.worker_url}: {str(e)}",
             )
 
+
+    def compile_remote(
+        self,
+        project_spec: Any,
+        output_pptx_path: str,
+        timeout_sec: Optional[int] = None,
+    ) -> bool:
+        """
+        Remote compilation adapter (distinguished from playback validation).
+        Submits presentation spec to POST /compile and saves resulting PPTX artifact.
+        If remote worker is not configured or unreachable, returns False without crashing local execution.
+        """
+        if not self.worker_url:
+            return False
+
+        eff_timeout = timeout_sec or min(60, self.timeout_sec)
+        payload = json.dumps(project_spec).encode("utf-8") if isinstance(project_spec, (dict, list)) else (
+            open(project_spec, "rb").read() if os.path.isfile(str(project_spec)) else str(project_spec).encode("utf-8")
+        )
+
+        url = f"{self.worker_url}/compile"
+        hdrs = self._headers({"Content-Type": "application/json"})
+        req = urllib.request.Request(url, data=payload, headers=hdrs, method="POST")
+
+        try:
+            with urllib.request.urlopen(req, timeout=eff_timeout) as resp:
+                data = resp.read()
+                if data.startswith(b"PK\x03\x04"):
+                    os.makedirs(os.path.dirname(os.path.abspath(output_pptx_path)), exist_ok=True)
+                    with open(output_pptx_path, "wb") as f:
+                        f.write(data)
+                    return True
+            return False
+        except Exception:
+            return False

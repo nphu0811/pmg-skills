@@ -1,8 +1,8 @@
 """
-PMG Skills — Native PowerPoint Motion Graphics Engine (v1.7.0)
-==============================================================
-Canonical Python API, Windows Validation Worker, Animation Benchmark Suite,
-and Orchestration Engine for PowerPoint Motion Graphics.
+PMG Skills — Universal Runtime & Native PowerPoint Motion Graphics Engine (v2.1.0)
+=================================================================================
+Canonical Python API, Universal Capability Detection, Offline-First Architecture,
+Native OOXML Compiler, Three-Level Validation & Self-Healing System.
 """
 
 from pmg.version import (
@@ -10,6 +10,17 @@ from pmg.version import (
     get_git_commit,
     get_engine_provenance,
     verify_runtime_dependencies,
+)
+from pmg.capabilities import (
+    CapabilityState,
+    ExecutionMode,
+    EnvironmentCapabilities,
+    detect_environment,
+)
+from pmg.dependencies import (
+    DependencyResolution,
+    resolve_dependencies,
+    find_compatible_offline_wheels,
 )
 from pmg.models import (
     ValidationStatus,
@@ -27,6 +38,24 @@ from pmg.animations import (
     SlideAnimationTimeline,
     parse_slide_timing_openxml,
     verify_animation_pane_com,
+)
+from pmg.compiler import (
+    NativePPTXCompiler,
+    CompilerReport,
+)
+from pmg.validation import (
+    Level1Result,
+    Level2Result,
+    Level3Result,
+    ComprehensiveValidationReport,
+    validate_level1_structural,
+    validate_level2_visual,
+    validate_level3_playback,
+    validate_presentation,
+)
+from pmg.runtime import (
+    PMGRuntime,
+    PMGBuildResult,
 )
 from pmg.engine import (
     Themes,
@@ -63,22 +92,7 @@ from pmg.reverse_engineer import (
     PPTXMotionReverseEngineer,
     build_v1_4_reference_smartphone_slide,
 )
-from pmg.video_reconstructor import (
-    TrackedVideoObject,
-    VideoSceneSpec,
-    VideoReconstructionReport,
-    VideoMotionReconstructor,
-    generate_controlled_reference_video,
-)
 from pmg.validator import StaticValidator, extract_expected_timeline, verify_clean_powerpoint_open
-from pmg.video_pipeline import (
-    is_powerpoint_available,
-    probe_video_metadata,
-    export_edit_mode_slide_images,
-    export_video_with_powerpoint,
-    record_actual_slideshow,
-)
-from pmg.visual_reviewer import VisualAnimationReviewer
 from pmg.self_healing import execute_repair_loop
 from pmg.orchestrator import PMGOrchestrator
 from pmg.worker import (
@@ -97,7 +111,6 @@ from pmg.visual_assets import (
     AssetRecord,
 )
 from pmg.layers import LayerTree, VisualObject, LayerMask
-from pmg.image_decomposer import ImageDecomposer
 from pmg.asset_builder import build_logo_assembly_deck, build_image_shutter_deck
 from pmg.scene_graph import SceneGraph, SceneNode, Transform
 from pmg.motion_graph import MotionGraph, AnimationAction, Dependency
@@ -125,6 +138,44 @@ from pmg.creative_director import (
     build_v2_0_creative_concept_selection_deck,
 )
 
+# Optional heavy CV / Media modules guarded for web sandboxes lacking cv2/scipy
+try:
+    from pmg.video_reconstructor import (
+        TrackedVideoObject,
+        VideoSceneSpec,
+        VideoReconstructionReport,
+        VideoMotionReconstructor,
+        generate_controlled_reference_video,
+    )
+except ImportError:
+    TrackedVideoObject = None  # type: ignore
+    VideoSceneSpec = None  # type: ignore
+    VideoReconstructionReport = None  # type: ignore
+    VideoMotionReconstructor = None  # type: ignore
+    generate_controlled_reference_video = None  # type: ignore
+
+try:
+    from pmg.video_pipeline import (
+        is_powerpoint_available,
+        probe_video_metadata,
+        export_edit_mode_slide_images,
+        export_video_with_powerpoint,
+        record_actual_slideshow,
+    )
+    from pmg.visual_reviewer import VisualAnimationReviewer
+except ImportError:
+    is_powerpoint_available = lambda: False  # type: ignore
+    probe_video_metadata = None  # type: ignore
+    export_edit_mode_slide_images = None  # type: ignore
+    export_video_with_powerpoint = None  # type: ignore
+    record_actual_slideshow = None  # type: ignore
+    VisualAnimationReviewer = None  # type: ignore
+
+try:
+    from pmg.image_decomposer import ImageDecomposer
+except ImportError:
+    ImageDecomposer = None  # type: ignore
+
 __version__ = VERSION
 
 __all__ = [
@@ -133,6 +184,27 @@ __all__ = [
     "get_git_commit",
     "get_engine_provenance",
     "verify_runtime_dependencies",
+    # Universal Runtime & Capabilities (v2.1.0)
+    "PMGRuntime",
+    "PMGBuildResult",
+    "CapabilityState",
+    "ExecutionMode",
+    "EnvironmentCapabilities",
+    "detect_environment",
+    "DependencyResolution",
+    "resolve_dependencies",
+    "find_compatible_offline_wheels",
+    "NativePPTXCompiler",
+    "CompilerReport",
+    "Level1Result",
+    "Level2Result",
+    "Level3Result",
+    "ComprehensiveValidationReport",
+    "validate_level1_structural",
+    "validate_level2_visual",
+    "validate_level3_playback",
+    "validate_presentation",
+    # Core Models & Animations
     "ValidationStatus",
     "ObjectMotionSpec",
     "SlideTimelineSpec",

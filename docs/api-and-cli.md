@@ -1,65 +1,131 @@
-# Canonical API and CLI
+# PMG Canonical API and CLI (v2.1.0)
 
-Install the engine in the interpreter used by the agent. Copying SKILL.md files
-does not install Python or dependencies. For a published commit:
+PMG v2.1.0 provides a unified public API and CLI for universal PowerPoint generation, multi-level validation, and offline execution.
 
-```text
-python -m pip install "git+https://github.com/nphu0811/pmg-skills.git@<verified-commit-sha>"
-python -m pmg --version
-python -m pmg worker doctor
-```
+---
 
-From a repository checkout use `python -m pip install -e .`. Do not depend on the
-agent's current directory accidentally exposing an uninstalled `pmg` module.
+## 1. Unified Python API (`PMGRuntime`)
 
 ```python
-from pmg import PMGOrchestrator, build_environmental_protection_deck, ValidationStatus
+from pmg import PMGRuntime
 
-manifest = PMGOrchestrator().run_pipeline(
-    output_pptx_path="Earth.pptx",
-    builder_fn=lambda path: build_environmental_protection_deck(path, num_slides=4),
+# Auto-detects runtime capabilities (Mode A: Sandbox, Mode B: Local Desktop, Mode C: Remote Worker)
+runtime = PMGRuntime.auto()
+
+# Inspect capabilities programmatically
+print(runtime.capabilities.platform)
+print(runtime.capabilities.powerpoint_available)
+print(runtime.capabilities.can_compile_native_pptx)
+
+# Build a native presentation from a JSON specification or dict
+result = runtime.build(
+    project="presentation_spec.json",  # or spec dict or builder callable
+    output="quantum_architecture.pptx",
+    validate=True,  # Runs all available validation levels
 )
-if manifest.status == ValidationStatus.PASS:
-    print(manifest.delivered_pptx)
+
+print(f"Delivered: {result.output_path}")
+print(f"Overall Status: {result.validation_report.overall_status}")
+print(f"Can Deliver: {result.can_deliver}")
+print(f"Summary: {result.summary}")
 ```
 
-`run_pipeline` retains builder_fn/existing_pptx_path, hold_duration_ms,
-max_repair_loops, require_video_playback, worker_mode/url/token and run_id.
-max_repair_loops accepts 0–3, including compatible fallback within attempt 3.
-allow_substitution controls that fallback. Static mode may repair technical
-defects but returns NOT_VERIFIED and never sets delivered_pptx.
+### Presentation Specification Format
 
-`StaticValidator.validate(path)` returns a read-only structured audit with
-is_valid, status, defects and existing slide/anchor/animation summaries.
-`verify_com_open=True` is retained as a read-only compatibility option; skipped
-PowerPoint checks cannot report clean. `ReviewDefect` is shared by inspection and
-repair. `execute_repair_loop` applies one attempt, never starts an independent loop.
-
-`SlideAnimationTimeline.add_effect` compiles through the existing native engine.
-Aliases: fade_in→fade, zoom_in→zoom, spin→rotate, grow_shrink→scale,
-linear_motion_path/bezier_motion_path→motion_path. Unknown effects raise
-ValueError, including directly created or subsequently mutated AnimationStep
-records. Targets must exist on the compiled slide, including grouped shapes.
-
-```text
-python -m pmg build -o Space.pptx --preset space --slides 20 --worker local
-python -m pmg validate Input.pptx -o Final.pptx --worker auto
-python -m pmg inspect Input.pptx --timeline-out expected_timeline.json
-python -m pmg render Input.pptx -o internal_qa/powerpoint_export.mp4 --fps 60
-python -m pmg record Input.pptx -o internal_qa/actual_slideshow_recording.mp4 --fps 30
-python -m pmg review Input.pptx --export-video internal_qa/powerpoint_export.mp4 --record-video internal_qa/actual_slideshow_recording.mp4 --telemetry internal_qa/recording_telemetry.json
-python -m pmg reconstruct Reference.pptx -o Reconstructed.pptx
-python -m pmg reconstruct Reference.mp4 -o Reconstructed.pptx
-python -m pmg benchmark run --all --worker static
+```json
+{
+  "theme": "LIGHT_ACADEMIC_CYAN",
+  "slides": [
+    {
+      "title": "Quantum Entanglement",
+      "subtitle": "Cross-Slide 60 FPS Morph Continuity",
+      "transition": "morph",
+      "duration_ms": 1400,
+      "elements": [
+        {
+          "type": "card",
+          "name": "!!HeroCard",
+          "left": 1.0,
+          "top": 2.5,
+          "width": 5.5,
+          "height": 3.0,
+          "title": "Cryogenic Control",
+          "body": "Phase coherence maintained across multi-node topologies."
+        }
+      ],
+      "animations": [
+        {
+          "target": "!!HeroCard",
+          "effect": "fade",
+          "trigger": "with_previous",
+          "duration_ms": 800,
+          "delay_ms": 200
+        }
+      ]
+    }
+  ]
+}
 ```
 
-`record` writes actual recording_telemetry.json beside the video. `review` requires
-that evidence; it never invents slide events from the expected timeline. Review
-does not publish a deliverable: `validate` runs the complete orchestrator gate.
+---
 
-Reconstruction and direct builder APIs remain available for engineering and
-composition. Their saved outputs are candidates until passed to run_pipeline.
-Existing SpotifyAppShellBuilder, EarthSpaceMotionBuilder, UniversityBloomBuilder,
-MotionPresetRegistry, PPTXMotionReverseEngineer and VideoMotionReconstructor remain
-available. Future graph/asset/director APIs are specified in the roadmap, not
-advertised as implemented commands.
+## 2. Command-Line Interface (CLI)
+
+### Environment Diagnostics (`pmg doctor` & `pmg capabilities`)
+```bash
+# Print diagnostic report for active environment
+pmg doctor
+
+# Print machine-readable capabilities JSON
+pmg capabilities
+pmg capabilities --table
+```
+
+### Building Presentations (`pmg build`)
+```bash
+# Compile from JSON specification
+pmg build presentation_spec.json -o presentation.pptx
+
+# Compile from built-in preset
+pmg build --preset space --slides 10 -o space_presentation.pptx
+pmg build --preset spotify --slides 6 -o spotify_app.pptx
+
+# Compile in static mode (skipping live PowerPoint Slide Show playback)
+pmg build presentation_spec.json -o presentation.pptx --skip-playback
+```
+
+### Three-Level Validation (`pmg validate`)
+```bash
+# Validate existing presentation across Level 1, Level 2, and Level 3
+pmg validate presentation.pptx
+
+# Print structured JSON report
+pmg validate presentation.pptx --json
+
+# Validate and apply 3-loop self-healing to an output deck
+pmg validate input.pptx -o healed.pptx --max-repairs 3
+```
+
+### Video Rendering & Slide Show Recording (Requires PowerPoint Desktop)
+```bash
+# Export native 60 FPS MP4 video
+pmg render presentation.pptx -o powerpoint_export.mp4 --fps 60
+
+# Record actual Slide Show playback with telemetry
+pmg record presentation.pptx -o actual_slideshow.mp4 --fps 30
+
+# Run AI/CV visual review comparing export vs recording
+pmg review presentation.pptx --export-video powerpoint_export.mp4 --record-video actual_slideshow.mp4 --telemetry recording_telemetry.json
+```
+
+---
+
+## 3. Supported Native Animation Effects
+
+| Category | Native Effect Types | Triggers |
+| :--- | :--- | :--- |
+| **Entrances** | `appear`, `fade` (`fade_in`), `fly_in`, `wipe`, `zoom` (`zoom_in`) | `with_previous`, `after_previous`, `on_click` |
+| **Emphasis** | `scale` (`grow_shrink`), `rotate` (`spin`), `transparency`, `pulse` | `with_previous`, `after_previous`, `on_click` |
+| **Motion Paths** | `motion_path` (linear, cubic Bezier `M ... C ... E`) | `with_previous`, `after_previous`, `on_click` |
+| **Exits** | `disappear`, `fade_out`, `fly_out`, `wipe_out` | `with_previous`, `after_previous`, `on_click` |
+| **Transitions** | `morph`, `fade`, `circle`, `split`, `wipe`, `push`, `cover` | Slide transition (`p14:dur`) |

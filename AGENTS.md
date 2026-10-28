@@ -65,9 +65,13 @@ Agents should route user requests to the appropriate modular skill:
 ### D. Zero Static Image Clutter in `examples/`
 - Deliver demonstration artifacts as **high-definition 60 FPS MP4 videos** in `examples/`, capturing actual motion and transitions in real time.
 
-### E. The Mandatory Review, OPC Compliance & Zero-Repair Delivery Gate
-- **Mandatory Engine-First Execution:** Always execute the canonical `pmg` engine (`pmg.orchestrator.PMGOrchestrator` or `python -m pmg`). Do not bypass the engine with ad-hoc `python-pptx` code, and never flatten slides into screenshots or video backgrounds.
-- **Real Playback & Video Review:** Every presentation must undergo static validation, native PowerPoint video export (`powerpoint_export.mp4`), actual Microsoft PowerPoint Desktop Slide Show recording (`actual_slideshow_recording.mp4`), and AI/CV visual review against `expected_timeline.json`.
+### E. Universal Runtime, Three-Level Validation & Zero-Repair Delivery Gate
+- **Universal Runtime Execution:** Execute the canonical `pmg` runtime (`pmg.runtime.PMGRuntime`, `pmg.orchestrator.PMGOrchestrator`, or `python -m pmg`). Adapts automatically across Mode A (Web/Sandbox), Mode B (Local Desktop), and Mode C (Remote Worker).
+- **PowerPoint-Independent Compilation:** Creating native PowerPoint presentations and animations does NOT require Microsoft PowerPoint to be installed. Slides, editable shapes, text frames, Morph transitions, and intra-slide Animation Pane timing trees compile via pure Python OpenXML synthesis.
+- **Structured Three-Level Validation:**
+  * **Level 1 (Structural):** Mandatory everywhere. Validates ZIP integrity, XML well-formedness, OPC ContentTypes, relationships, unique shape IDs, animation target existence, and `<p:timing>` trees.
+  * **Level 2 (Visual):** Executed when a slide renderer (PowerPoint COM or LibreOffice) is available. If unavailable, reports `SKIPPED - No slide rendering backend available`. Static rendering does NOT prove animation correctness.
+  * **Level 3 (Native Playback):** Executed when Microsoft PowerPoint automation is genuinely available (local COM or remote Windows worker). If unavailable, reports `NOT_TESTED - PowerPoint Desktop unavailable`. *Never report Level 3 PASS without actual Microsoft PowerPoint Desktop execution.*
 - **OPC ContentType Declaration:** When embedding manifest JSON in PPTX (`ppt/pmg_execution_manifest.json`), always declare a valid ContentType in `[Content_Types].xml` (`<Default Extension="json" ContentType="application/json"/>`) and write a companion manifest (`<pptx_path>.manifest.json`) outside the package. Unmapped parts that trigger the PowerPoint Repair dialog are strictly prohibited.
 - **Zero Modifications Post-Validation:** NEVER modify a `.pptx` file after marking validation `PASS` without re-running full verification. The deliverable is frozen and verified in its final byte state.
 - **Mandatory Clean COM Open Verification:** The final packaged deliverable must be opened in Microsoft PowerPoint Desktop COM with `DisplayAlerts = ppAlertsAll` (`2`; `1` suppresses alerts), with `OpenAndRepair=False` to ensure zero "Repair presentation" prompts or corruption warnings.
@@ -79,7 +83,7 @@ Agents should route user requests to the appropriate modular skill:
 
 ## 4. Reusable Script & Package Engines
 
-- `pmg/` (`pmg.orchestrator`, `pmg.engine`, `pmg.validator`, `pmg.video_pipeline`, `pmg.visual_reviewer`, `pmg.self_healing`, `pmg.cli`): Canonical Python package and CLI (`pmg build`, `pmg validate`, `pmg render`, `pmg record`, `pmg review`, `pmg inspect`, `pmg reconstruct`).
+- `pmg/` (`pmg.runtime`, `pmg.capabilities`, `pmg.compiler`, `pmg.validation`, `pmg.dependencies`, `pmg.orchestrator`, `pmg.engine`, `pmg.validator`, `pmg.video_pipeline`, `pmg.visual_reviewer`, `pmg.self_healing`, `pmg.cli`): Canonical Python package and CLI (`pmg doctor`, `pmg capabilities`, `pmg build`, `pmg validate`, `pmg render`, `pmg record`, `pmg review`, `pmg inspect`, `pmg reconstruct`).
 - `scripts/motion_graph_kit.py`: Core presentation builder with light themes, frosted cards, multi-transition suite, traveling entities, and video export.
 - `scripts/motion_validator.py`: Backward compatible adapter to shared read-only QA and canonical orchestrator repair/certification; no separate validator or loop.
 - `scripts/slide_inspector.py`: Read-only adapter to pmg.validator.StaticValidator structured reports.

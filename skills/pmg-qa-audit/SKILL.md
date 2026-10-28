@@ -1,38 +1,49 @@
 ---
 name: pmg-qa-audit
-description: "Inspect PPTX integrity, geometry, Morph anchors, native timing, assets, compatibility and playback evidence without modifying the presentation. Produces shared structured defects; does not repair or certify delivery."
+description: "Inspect PPTX integrity, OpenXML geometry, Morph anchors, native timing trees, assets, compatibility and playback evidence across Level 1 Structural, Level 2 Visual, and Level 3 Playback validation. Produces shared structured reports; does not mutate presentation."
 ---
 
-# Read-only QA audit
+# Read-only QA Audit (v2.1.0)
 
-Own inspection and defect detection. Use `pmg.validator.StaticValidator`,
-`VisualAnimationReviewer` and shared `pmg.models.AuditReport`, `ReviewDefect` and
-`ReviewReport`. Do not create a parallel validator, repair objects or start a
-repair loop. Return findings to pmg-review-validation/PMGOrchestrator.
+Own inspection and defect detection. Use `pmg.validation.validate_presentation`,
+`pmg.validator.StaticValidator`, and shared `ComprehensiveValidationReport`, `Level1Result`,
+`Level2Result`, `Level3Result`, and `ReviewDefect`. Do not create a parallel validator,
+repair objects or start an unauthorized repair loop.
 
-Inspect package parts, ContentTypes, XML, relationships, duplicate IDs, object
-geometry, media, Morph identities, animation targets/timing and compatibility.
-Use actual native export/slideshow evidence for temporal/visibility inspection.
-As Scene Graph/mask/asset interfaces are released, inspect their integrity through
-the same report model, not separate incompatible reports.
+## Three-Level QA Audit Framework
 
-Intentional layering, masks, foreground occlusion, glass overlays and text over
-imagery are permitted. Report accidental collisions or obscured readable content;
-do not restore a global zero-overlap rule. Text-density guidance is contextual,
-not proof of correct motion. Inspect actual measured FPS rather than assuming 60.
+1. **Level 1 — Structural Validation (Package & OOXML):**
+   - ZIP package integrity, XML parsing, OPC ContentTypes (`[Content_Types].xml`).
+   - Relationships (`_rels/.rels`, `ppt/_rels/*`), unique shape and animation IDs.
+   - Animation targets (`<p:spTgt spid="...">` matches existing shape).
+   - Intra-slide `<p:timing>` trees (`mainSeq`, `bldLst`, `<p:set>` visibility).
+   - Morph continuity (`<p159:morph>`, matching `!!` object tags).
+   - Missing or orphaned media parts.
+2. **Level 2 — Visual Validation (Slide Rendering & Geometry):**
+   - Slide rendering via available backend (PowerPoint COM or LibreOffice).
+   - Bounding box overflow (elements outside 16:9 13.333" x 7.5" canvas).
+   - Obvious clipping, text truncation, and missing fonts.
+   - If renderer is missing, reports: `SKIPPED — No slide rendering backend available`.
+   - *Static slide rendering does NOT prove animation correctness.*
+3. **Level 3 — Native PowerPoint Playback Validation:**
+   - Real Microsoft PowerPoint Desktop execution (local COM or remote Windows worker).
+   - Clean-open preflight (`ppAlertsAll=2`, `OpenAndRepair=False`).
+   - Measured export and Slide Show recording frame rates (requested 60 FPS vs actual).
+   - If PowerPoint Desktop is unavailable, reports: `NOT_TESTED — PowerPoint Desktop unavailable`.
+   - *Never report Level 3 PASS without actual Microsoft PowerPoint Desktop execution.*
 
-```text
-python -m pmg inspect Deck.pptx --timeline-out expected_timeline.json
-python scripts/slide_inspector.py Deck.pptx
+```bash
+# Validate existing presentation across available levels
+pmg validate Deck.pptx
+pmg inspect Deck.pptx --timeline-out expected_timeline.json
 ```
 
 ```python
-from pmg import StaticValidator
-audit = StaticValidator().validate("Deck.pptx")
-print(audit["is_valid"], audit["status"], audit["defects"])
-```
+from pmg.validation import validate_presentation
 
-`is_valid=True` in a static audit is NOT_VERIFIED for real playback. The legacy
-slide_inspector and motion_validator inspection APIs delegate here and cannot
-certify delivery. Package compatibility defects are critical; a repair prompt,
-missing native effects or absent evidence must reach the orchestrator's gate.
+report = validate_presentation("Deck.pptx")
+print("Level 1:", report.level1.status)
+print("Level 2:", report.level2.status)
+print("Level 3:", report.level3.status)
+print("Summary:", report.summary)
+```

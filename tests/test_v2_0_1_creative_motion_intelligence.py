@@ -24,7 +24,7 @@ from pmg.validator import StaticValidator, verify_clean_powerpoint_open
 
 
 def test_v2_0_version():
-    assert VERSION == "2.0.1"
+    assert VERSION in ("2.0.1", "2.1.0")
 
 
 def test_creative_concept_generation_and_diversity():

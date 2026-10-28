@@ -1,69 +1,98 @@
 ---
 name: pmg-engine
-description: "Create or validate animated PPTX through the canonical PMG engine. Routes professional presentation, logo-to-PPTX and reference-animation requests to installed capabilities, real PowerPoint playback and the final delivery gate."
+description: "Universal PowerPoint Motion Graphics (PMG) v2.1.0 engine. Cross-platform runtime for AI web sandboxes, local AI agents, and desktop environments. Generates 100% native editable PPTX with 60 FPS Morph and intra-slide Animation Pane timing trees without requiring Microsoft PowerPoint to be installed."
 ---
 
-# PMG canonical entrypoint
+# PMG Universal Runtime & Canonical Entrypoint (v2.1.0)
 
-Use `python -m pmg` or `pmg.orchestrator.PMGOrchestrator` for PPTX production and
-delivery. Builders create native editable candidates; only the orchestrator can
-certify them. Do not flatten scenes into screenshots or background videos.
+PMG v2.1.0 provides a universal, offline-first, capability-aware PowerPoint generation runtime.
+The compiler produces 100% native, editable PowerPoint presentations across:
+- **Mode A: Web / Sandbox** (Claude Web, ChatGPT sandbox, restricted Linux environments without Microsoft PowerPoint or internet).
+- **Mode B: Local Desktop** (Windows, macOS, Linux with local Python and optional PowerPoint COM/AppleScript).
+- **Mode C: Remote Worker** (configured & authenticated Windows validation worker).
 
-## Runtime prerequisite for freshly installed skills
+**Critical Invariant: Creating native PowerPoint animations does NOT require Microsoft PowerPoint to be installed.**
+Microsoft PowerPoint is an optional Level 3 validation and playback backend, never a compilation prerequisite.
 
-Skills contain instructions; the skill installer does not install the Python
-engine. Run `python -m pmg --version` in the actual execution environment. If
-unavailable, install the engine from the same verified repository commit:
+---
 
-```text
-python -m pip install "git+https://github.com/nphu0811/pmg-skills.git@<verified-commit-sha>"
-python -m pmg --version
-python -m pmg worker doctor
+## Universal Agent Execution Workflow
+
+All AI agents (Claude Web, ChatGPT, Claude Code, Codex, local agents) follow this 7-step execution workflow:
+
+1. **Inspect Environment Capabilities:**
+   Run `pmg doctor` or query in Python:
+   ```python
+   from pmg import PMGRuntime
+   runtime = PMGRuntime.auto()
+   print(runtime.doctor())
+   ```
+2. **Determine PMG Accessibility:**
+   Verify if Python and core dependencies (`python-pptx`, `lxml`, `Pillow`) are present.
+   - If available, use the active runtime directly.
+   - If missing in an offline environment, inspect cached wheels via `PMG_OFFLINE_CACHE` or local `./wheels`.
+   - Never abandon PMG merely because `pip install` or network access fails if core dependencies are already present!
+   - If the environment strictly prohibits code execution, honestly report that limitation rather than pretending to execute PMG.
+3. **Select Execution Backend:**
+   - No PowerPoint installed -> **Mode A (Web/Sandbox)**. Compiles native PPTX and executes Level 1 structural validation.
+   - Windows with PowerPoint -> **Mode B (Local Desktop)**. Compiles native PPTX and executes Level 1, Level 2, and Level 3 playback validation.
+   - Remote worker configured -> **Mode C (Remote Worker)**. Compiles natively and submits candidate for remote Windows PowerPoint playback validation.
+4. **Build Presentation Using Shared Native Compiler:**
+   Compile from project JSON specification, dictionary, or preset:
+   ```python
+   result = runtime.build(
+       project="presentation_spec.json",  # or builder function or preset name
+       output="presentation.pptx",
+       validate=True,
+   )
+   ```
+   Or via CLI:
+   ```bash
+   pmg build presentation_spec.json -o presentation.pptx
+   pmg build --preset space --slides 10 -o space.pptx
+   ```
+5. **Run All Available Validation Levels:**
+   - **Level 1 (Structural):** Always executed. Validates ZIP integrity, XML well-formedness, OPC ContentTypes, relationships, unique shape IDs, animation target existence, and `<p:timing>` trees.
+   - **Level 2 (Visual):** Executed when slide renderer (PowerPoint or LibreOffice) is available. Checks boundary overflow and generates slide previews. If unavailable, reports `SKIPPED — No slide rendering backend available`.
+   - **Level 3 (Playback):** Executed when Microsoft PowerPoint automation is genuinely available. Verifies clean opening (`ppAlertsAll=2`, no repair prompts) and Slide Show playback. If unavailable, reports:
+     `NOT_TESTED — PowerPoint Desktop unavailable`.
+     *Never report Level 3 PASS without actual Microsoft PowerPoint Desktop execution.*
+6. **Deliver Deliverables to User:**
+   Deliver the final validated `.pptx` file along with its machine-readable validation report (`<presentation>.pptx.validation_report.json`).
+7. **Explain Genuine Limitations:**
+   Report honest environment capabilities (e.g. "Compiled native 100% editable PPTX with Morph transitions and Animation Pane effects. Level 1 Structural: PASS. Level 3 Playback: NOT_TESTED — PowerPoint Desktop unavailable in this sandbox environment").
+
+---
+
+## Offline-First Dependency Strategy
+
+When setting up or resolving dependencies:
+1. **Existing Installed:** Uses installed `python-pptx`, `lxml`, `Pillow`. (Optional: `numpy`, `opencv-python`, `scipy` for CV analysis; `pywin32` for COM).
+2. **Bundled / Cached:** Resolves wheels from `PMG_OFFLINE_CACHE`, `~/.pmg/cache`, or `./wheels`.
+3. **Standalone Executable:** Uses standalone binary if provided.
+4. **Network Installation:** Runs `pip install` only when network access is explicitly permitted.
+5. **Alternative Backend:** Falls back gracefully to standard library tools for read-only inspection.
+6. **Unsupported Report:** Explicitly reports any genuinely missing required capability.
+
+---
+
+## Command-Line Interface (CLI)
+
+```bash
+# Environment diagnostics and capability inspection
+pmg doctor
+pmg capabilities
+
+# Build presentation from JSON specification or preset
+pmg build presentation_spec.json -o presentation.pptx
+pmg build --preset space --slides 20 -o Space.pptx
+
+# Validate existing presentation across Level 1, Level 2, Level 3
+pmg validate presentation.pptx
+pmg validate presentation.pptx -o Validated.pptx --max-repairs 3
+
+# Render, record, and inspect (when PowerPoint / FFmpeg is available)
+pmg inspect presentation.pptx --timeline-out expected_timeline.json
+pmg render presentation.pptx -o powerpoint_export.mp4 --fps 60
+pmg record presentation.pptx -o slideshow_recording.mp4 --fps 30
 ```
-
-From the repository use `python -m pip install -e .`. Verify provenance against
-the selected published commit. Do not assume a copied skill includes `pmg`, or
-that other skills load automatically on every agent. Explicitly load the relevant
-installed instructions; use existing module capabilities even without a dedicated
-skill. See the checkout's docs/api-and-cli.md and docs/development-roadmap.md.
-
-## Routing and boundaries
-
-- Animated professional presentation: use core/style guidance and choreography;
-  reuse cinematic_builder presets as configurable building blocks.
-- Morph continuity: load pmg-morph for technical identity/compilation; choreography
-  decides motion choice and timing, and invokes the lower-level engine.
-- Camera/depth motion: load pmg-camera-parallax. Model-focused 3D composition loads
-  pmg-3d-cinematic and reuses that camera system.
-- Recreate animation from PPTX/video: reuse pmg.reverse_engineer or
-  pmg.video_reconstructor, then submit the reconstructed candidate to the gate.
-- Logo-to-PPTX, asset research or decomposition: use actual available asset tools;
-  do not claim future capabilities. pmg-visual-assets/pmg-image-decomposer are
-  scheduled for v1.6.0 and pmg-storyboard/shared graphs for v1.7.0. Load them only
-  after they exist in the installed release. Do not fabricate providers or layers.
-- QA detects defects read-only; review chooses repairs. The orchestrator owns one
-  maximum-three-attempt budget and the final certificate. Worker is infrastructure.
-
-## Mandatory production gate
-
-Build → package OPC-compliant metadata → read-only static/animation audit →
-PowerPoint clean-open preflight → native export → actual slideshow recording →
-visual/timeline/object-visibility review → bounded repair if needed → repackage
-and repeat all checks → final clean reopen/hash verification → delivery.
-
-The embedded JSON part must declare application/json and records provenance with
-NOT_VERIFIED; the external companion records the final status and exact SHA-256.
-Never change a PPTX after certification without full verification again. Use
-`ppAlertsAll = 2` (1 suppresses alerts), and never request OpenAndRepair. Missing
-PowerPoint/worker or skipped checks mean BLOCKED/NOT_VERIFIED, never PASS. Request
-60 FPS export, measure actual export/capture rates, and report those honestly.
-
-```text
-python -m pmg build -o Space.pptx --preset space --slides 20 --worker auto
-python -m pmg validate Input.pptx -o Final.pptx --worker auto
-python -m pmg inspect Input.pptx --timeline-out expected_timeline.json
-```
-
-Ordinary presentation users receive only the validated final PPTX. Keep videos,
-keyframes and JSON evidence in internal_qa unless explicitly requested. Static
-mode and direct builder saves are engineering candidates, not certified delivery.
