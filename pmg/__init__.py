@@ -103,6 +103,17 @@ from pmg.scene_graph import SceneGraph, SceneNode, Transform
 from pmg.motion_graph import MotionGraph, AnimationAction, Dependency
 from pmg.storyboard import StoryboardEngine, StoryboardPlan, StoryboardScene
 from pmg.motion_director import MotionDirector
+from pmg.compositing import (
+    ParallaxPlane,
+    PARALLAX_PLANES,
+    build_bezier_motion_path,
+    build_orbital_motion_path,
+    build_waypoint_motion_path,
+    generate_massive_constellation,
+    build_v1_8_agribank_identity_deck,
+    build_v1_8_cinematic_shutter_reveal,
+    build_v1_8_deep_space_exploration,
+)
 
 __version__ = VERSION
 
@@ -197,4 +208,13 @@ __all__ = [
     "StoryboardPlan",
     "StoryboardScene",
     "MotionDirector",
+    "ParallaxPlane",
+    "PARALLAX_PLANES",
+    "build_bezier_motion_path",
+    "build_orbital_motion_path",
+    "build_waypoint_motion_path",
+    "generate_massive_constellation",
+    "build_v1_8_agribank_identity_deck",
+    "build_v1_8_cinematic_shutter_reveal",
+    "build_v1_8_deep_space_exploration",
 ]

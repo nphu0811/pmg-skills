@@ -1,7 +1,7 @@
 """
 benchmarks
 ==========
-24-Case Animation Benchmark Suite for PMG Skills (v1.5.1 Upgrade B).
+44-Case Animation Benchmark Suite for PMG Skills (v1.5.1 Upgrade B).
 """
 
 from benchmarks.cases import BENCHMARK_CASES, BenchmarkCaseSpec, get_benchmark_case

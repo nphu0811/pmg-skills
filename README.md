@@ -5,7 +5,7 @@ It combines Morph, native Animation Pane effects, layered composition, virtual
 camera movement and reusable cinematic patterns with actual PowerPoint playback
 review and bounded technical repair.
 
-Current implementation: **v1.7.0**. Publication status is recorded in
+Current implementation: **v1.8.0**. Publication status is recorded in
 [GitHub releases](https://github.com/nphu0811/pmg-skills/releases).
 The [continued roadmap](docs/development-roadmap.md) preserves the required
 v1.5.2 → v1.6.0 → v1.7.0 → v1.8.0 → v2.0.1 sequence and release gates.
@@ -107,7 +107,7 @@ masks; storyboard plans narrative and scenes. They do not duplicate compilers.
   estimation and editable approximations. Video does not prove source editability.
 - `pmg.worker`: authenticated Windows playback infrastructure for local/remote
   environments; no independent repair loop or certificate.
-- `benchmarks/`: the existing 24-case suite, extended in place by future releases.
+- `benchmarks/`: the existing 44-case suite (Groups A..H), extended in place by future releases.
 - Existing `MotionDeck`, `LightThemeCraftDeck`, `ForgeDeck`, `Cinematic3DDeck`,
   themes and low-level helpers remain available. Direct saves are candidates.
 

@@ -1,3 +1,10 @@
+from benchmarks.cases.group_e_f_g_h import (
+    _build_case_25, _build_case_26, _build_case_27, _build_case_28, _build_case_29,
+    _build_case_30, _build_case_31, _build_case_32, _build_case_33, _build_case_34,
+    _build_case_35, _build_case_36, _build_case_37, _build_case_38, _build_case_39,
+    _build_case_40, _build_case_41, _build_case_42, _build_case_43, _build_case_44,
+)
+
 """
 benchmarks.cases
 ================
@@ -585,6 +592,30 @@ BENCHMARK_CASES: List[BenchmarkCaseSpec] = [
     BenchmarkCaseSpec(22, "case_22_title_text_visibility", "Group D", "Title & Text Visibility During Animation", "Animated HeroTitle, HeroSubtitle, and summary card visibility.", ["fade", "fly_in"], False, _build_case_22),
     BenchmarkCaseSpec(23, "case_23_multiple_animated_images", "Group D", "Multiple Animated Images with Independent Timing", "Three planetary hero images entering with independent effects.", ["fade", "zoom_in", "fly_in"], False, _build_case_23),
     BenchmarkCaseSpec(24, "case_24_failure_detection_and_repair", "Group D", "Animation Failure Detection & Automatic Repair", "Broken disappearing Earth/Title XML detected as FAIL and healed to PASS.", ["fade"], True, _build_case_24_broken),
+    # Group E (Cases 25..29): Advanced Motion Paths & Dynamics
+    BenchmarkCaseSpec(25, "case_25_orbital_bezier_loop", "Group E", "Orbital Bezier Loop Path", "Closed orbital motion path with dynamic curve approximation.", ["motion_path"], False, _build_case_25),
+    BenchmarkCaseSpec(26, "case_26_staggered_radial_cascade", "Group E", "Staggered Radial Blossom", "8-node radial blossom expanding outward with sequential stagger.", ["zoom"], False, _build_case_26),
+    BenchmarkCaseSpec(27, "case_27_multi_segment_waypoint_path", "Group E", "Multi-Segment Waypoint Motion Path", "Linear waypoint trajectory traversing multiple waypoints.", ["motion_path"], False, _build_case_27),
+    BenchmarkCaseSpec(28, "case_28_continuous_micro_pulse_and_spin", "Group E", "Continuous Micro Pulse and Spin", "Dual continuous emphasis: pulsing scale + 360-deg rotation.", ["pulse", "rotate"], False, _build_case_28),
+    BenchmarkCaseSpec(29, "case_29_reverse_oscillating_path", "Group E", "Auto-Reversing Oscillating Trajectory", "Auto-reversing ping-pong linear trajectory with repeat count.", ["motion_path"], False, _build_case_29),
+    # Group F (Cases 30..34): Massive Scene Hierarchies & Layered Parallax
+    BenchmarkCaseSpec(30, "case_30_massive_hierarchy_50_nodes", "Group F", "Massive Hierarchy 50 Nodes", "Single slide with 50 coordinated vector nodes.", [], False, _build_case_30),
+    BenchmarkCaseSpec(31, "case_31_massive_hierarchy_100_nodes", "Group F", "Massive Hierarchy 100 Nodes", "Single slide with 100 independently addressable objects.", [], False, _build_case_31),
+    BenchmarkCaseSpec(32, "case_32_massive_hierarchy_200_nodes", "Group F", "Massive Hierarchy 200 Nodes", "Extreme stress: 200 nodes arranged in a constellation grid.", [], False, _build_case_32),
+    BenchmarkCaseSpec(33, "case_33_six_layer_deep_parallax", "Group F", "Six-Layer Deep Parallax", "Multi-plane parallax with distinct velocity ratios.", ["morph"], False, _build_case_33),
+    BenchmarkCaseSpec(34, "case_34_counter_tracking_hud_overlay", "Group F", "Counter-Tracking HUD Overlay", "Camera moves right while HUD element counter-tracks to lock on screen.", ["morph"], False, _build_case_34),
+    # Group G (Cases 35..39): Decomposed Asset Choreography & Reassembly
+    BenchmarkCaseSpec(35, "case_35_decomposed_particle_scatter_gather", "Group G", "Particle Scatter and Gather", "Decomposed particles scatter and converge back into position.", ["fade"], False, _build_case_35),
+    BenchmarkCaseSpec(36, "case_36_multi_strip_shutter_reveal", "Group G", "10-Strip Shutter Reveal", "10 vertical slices staggered revealing background visual.", ["wipe"], False, _build_case_36),
+    BenchmarkCaseSpec(37, "case_37_radial_sector_blade_rotation", "Group G", "Radial Sector Iris Rotation", "6 radial sectors opening like a mechanical iris with rotation.", ["rotate"], False, _build_case_37),
+    BenchmarkCaseSpec(38, "case_38_vector_polygon_morph_reassembly", "Group G", "Vector Polygon Morph Reassembly", "OpenXML vector polygons morphing across slides.", ["morph"], False, _build_case_38),
+    BenchmarkCaseSpec(39, "case_39_frosted_glass_depth_stack", "Group G", "Frosted Glass Depth Stack", "Multi-tier acrylic glass cards with varying opacity and glowing borders.", [], False, _build_case_39),
+    # Group H (Cases 40..44): End-to-End Cinematic Storyboard & Motion Director
+    BenchmarkCaseSpec(40, "case_40_long_intra_slide_sequence_15s", "Group H", "Long Intra-Slide Sequence 15s", "15-second multi-act intra-slide timeline with 3 causal phases.", ["fade", "fly_in", "zoom"], False, _build_case_40),
+    BenchmarkCaseSpec(41, "case_41_storyboard_to_motion_director_cinematic_hero", "Group H", "Storyboard to Motion Director Deck", "Full StoryboardScene compiled with MotionDirector.", ["fade", "zoom"], False, _build_case_41),
+    BenchmarkCaseSpec(42, "case_42_thematic_traveling_entity_4_scenes", "Group H", "Thematic Traveling Entity 4 Scenes", "Traveling hero object traversing 4 distinct scenes with scale and rotation.", ["morph"], False, _build_case_42),
+    BenchmarkCaseSpec(43, "case_43_multi_target_synchronized_parallel", "Group H", "Multi-Target Synchronized Parallel", "12 shapes animating in synchronized lockstep.", ["wipe"], False, _build_case_43),
+    BenchmarkCaseSpec(44, "case_44_clean_powerpoint_open_com_verification", "Group H", "Clean PowerPoint COM Open Verification", "Composite slide with 20 shapes and parallel animations.", ["fade"], False, _build_case_44),
 ]
 
 
@@ -592,5 +623,5 @@ def get_benchmark_case(case_id: int) -> BenchmarkCaseSpec:
     for c in BENCHMARK_CASES:
         if c.case_id == case_id:
             return c
-    raise KeyError(f"Unknown benchmark case ID: {case_id} (valid: 1..24)")
+    raise KeyError(f"Unknown benchmark case ID: {case_id} (valid: 1..44)")
 

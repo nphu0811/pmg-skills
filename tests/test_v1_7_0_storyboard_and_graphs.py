@@ -19,7 +19,7 @@ from scripts.motion_graph_kit import MotionDeck, Themes
 
 
 def test_v1_7_version():
-    assert VERSION == "1.7.0"
+    assert VERSION in ("1.7.0", "1.8.0")
 
 
 def test_scene_graph_world_transform_accumulation():

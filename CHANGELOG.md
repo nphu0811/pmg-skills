@@ -1,5 +1,27 @@
 # Changelog — PMG Skills
 
+## [v1.8.0] - 2026-10-29
+
+Advanced Cinematic Compositing, Motion Reconstruction & Professional Benchmarks release. Expands benchmark suite from 24 to 44 cases and delivers three production-grade cinematic motion presentations.
+
+### Added
+- **Advanced Cinematic Compositing Engine (`pmg.compositing`):**
+  - 6-layer multi-plane parallax velocity scaling (`deep_background` 0.2x, `background` 0.5x, `midground` 1.0x, `foreground` 1.4x, `floating_particles` 1.8x, `hud_overlay` 0.0x fixed/counter-tracking).
+  - OpenXML curved cubic Bezier motion path (`build_bezier_motion_path`), elliptical orbital trajectories (`build_orbital_motion_path`), and multi-segment waypoint paths (`build_waypoint_motion_path`).
+  - Massive scene hierarchy synthesis supporting 50, 100, 200+ addressable objects per slide (`generate_massive_constellation`).
+  - Group dynamics and cascades: staggered reveals, radial blossom cascades, wave animations, and micro-pulsing/rotation.
+- **Three Mandatory Acceptance Presentations:**
+  - **Demo 1: Agribank Motion Identity System (8 slides):** Particle reassembly reveal, heritage split cards, concentric branch network, digital 3D frosted cards, ESG green agriculture wave, dynamic bar chart metrics, 4-pillar radial carousel, and circle wipe closing.
+  - **Demo 2: Cinematic Shutter & Perspective Reveal (5 slides):** 8-strip vertical shutter reveal, 240% perspective macro zoom, horizontal slice cascade, frosted glass depth stack, and iris resolution.
+  - **Demo 3: Deep Space Exploration — Beyond the Horizon (12 slides):** Flagship presentation with >100 objects on key slides, authentic NASA media integration, Jovian gravity assist, Saturn ring plane crossing, heliopause boundary, and 12-slide traveling spacecraft hero entity.
+- **Expanded 44-Case Animation Benchmark Suite (`benchmarks/`):**
+  - Added Group E (Cases 25..29): Orbital loops, radial blossoms, waypoint paths, micro-pulse/spin, and oscillating trajectories.
+  - Added Group F (Cases 30..34): Massive hierarchies (50, 100, 200 nodes), 6-layer deep parallax, and counter-tracking HUD.
+  - Added Group G (Cases 35..39): Decomposed particle scatter/gather, 10-strip shutter, radial sector iris, vector polygon morph, and frosted glass depth.
+  - Added Group H (Cases 40..44): 15-second multi-act intra-slide timelines, storyboard-to-director compilation, 4-scene traveling entity, multi-target synchronized parallel tracks, and clean PowerPoint COM open verification.
+- **Clean COM Open Verification:**
+  - All presentations certified with Microsoft PowerPoint Desktop COM `DisplayAlerts = ppAlertsAll` (`2`) and `OpenAndRepair = False` with zero repair prompts.
+
 ## [v1.7.0] - 2026-10-29
 
 Storyboard Intelligence, Scene Graph, Motion Graph & AI Motion Director release. Adds canonical skill pmg-storyboard and upgrades pmg-choreography with hierarchical scene composition and motion dependency graphs.

@@ -1,8 +1,8 @@
-# PMG Animation Benchmark Suite (24-case baseline)
+# PMG Animation Benchmark Suite (44 Canonical Cases)
 
-The **PMG Animation Benchmark Suite** evaluates PMG's native PowerPoint animation generation, OpenXML `<p:timing>` compilation, Morph choreography, reverse engineering, visibility-aware validation, and 3-loop self-healing across **24 canonical benchmark cases**.
+The **PMG Animation Benchmark Suite** evaluates PMG's native PowerPoint animation generation, OpenXML `<p:timing>` compilation, Morph choreography, reverse engineering, visibility-aware validation, and 3-loop self-healing across **44 canonical benchmark cases** (expanded in v1.8.0).
 
-## Benchmark Groups (24 Cases)
+## Benchmark Groups (44 Cases across Groups A..H)
 
 ### Group A — Single-Object Animations (Cases 01–08)
 1. **Case 01 (`case_01_fade_in`):** Native Fade In entrance (`presetID="10"`, `<p:set>` visibility transition).
@@ -35,6 +35,34 @@ The **PMG Animation Benchmark Suite** evaluates PMG's native PowerPoint animatio
 22. **Case 22 (`case_22_title_text_visibility`):** Animated `!!HeroTitle`, `!!HeroSubtitle`, and summary card visibility.
 23. **Case 23 (`case_23_multiple_animated_images`):** Three planetary hero images entering with independent timing.
 24. **Case 24 (`case_24_failure_detection_and_repair`):** Negative + Auto-Healing test verifying broken disappearing Earth/Title XML is flagged as `FAIL` before being healed to `PASS` with Fade In animations preserved.
+
+### Group E — Advanced Motion Paths & Dynamics (Cases 25–29)
+25. **Case 25 (case_25_orbital_bezier_loop):** Closed orbital motion path with dynamic curve approximation.
+26. **Case 26 (case_26_staggered_radial_cascade):** 8-node radial blossom expanding outward with sequential stagger.
+27. **Case 27 (case_27_multi_segment_waypoint_path):** Linear waypoint trajectory traversing multiple waypoints.
+28. **Case 28 (case_28_continuous_micro_pulse_and_spin):** Dual continuous emphasis: pulsing scale + 360-deg rotation.
+29. **Case 29 (case_29_reverse_oscillating_path):** Auto-reversing ping-pong linear trajectory with repeat count.
+
+### Group F — Massive Scene Hierarchies & Layered Parallax (Cases 30–34)
+30. **Case 30 (case_30_massive_hierarchy_50_nodes):** Single slide with 50 coordinated vector nodes.
+31. **Case 31 (case_31_massive_hierarchy_100_nodes):** Single slide with 100 independently addressable objects.
+32. **Case 32 (case_32_massive_hierarchy_200_nodes):** Extreme stress: 200 nodes arranged in a constellation grid.
+33. **Case 33 (case_33_six_layer_deep_parallax):** Multi-plane parallax with distinct velocity ratios (0.2x to 1.8x).
+34. **Case 34 (case_34_counter_tracking_hud_overlay):** Camera moves right while HUD element counter-tracks to lock on screen.
+
+### Group G — Decomposed Asset Choreography & Reassembly (Cases 35–39)
+35. **Case 35 (case_35_decomposed_particle_scatter_gather):** Decomposed particles scatter and converge back into position.
+36. **Case 36 (case_36_multi_strip_shutter_reveal):** 10 vertical slices staggered revealing background visual.
+37. **Case 37 (case_37_radial_sector_blade_rotation):** 6 radial sectors opening like a mechanical iris with rotation.
+38. **Case 38 (case_38_vector_polygon_morph_reassembly):** OpenXML vector polygons morphing across slides.
+39. **Case 39 (case_39_frosted_glass_depth_stack):** Multi-tier acrylic glass cards with varying opacity and glowing borders.
+
+### Group H — End-to-End Cinematic Storyboard & Motion Director (Cases 40–44)
+40. **Case 40 (case_40_long_intra_slide_sequence_15s):** 15-second multi-act intra-slide timeline with 3 causal phases.
+41. **Case 41 (case_41_storyboard_to_motion_director_cinematic_hero):** Full StoryboardScene compiled with MotionDirector.
+42. **Case 42 (case_42_thematic_traveling_entity_4_scenes):** Traveling hero object traversing 4 distinct scenes with scale and rotation.
+43. **Case 43 (case_43_multi_target_synchronized_parallel):** 12 shapes animating in synchronized lockstep.
+44. **Case 44 (case_44_clean_powerpoint_open_com_verification):** Composite slide with 20 shapes and parallel animations.
 
 ## CLI Usage
 

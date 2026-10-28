@@ -29,7 +29,7 @@ from pmg.video_reconstructor import VideoMotionReconstructor
 
 
 def test_v1_6_version():
-    assert VERSION in ("1.6.0", "1.7.0")
+    assert VERSION in ("1.6.0", "1.7.0", "1.8.0")
 
 
 def test_wikimedia_search_and_provenance():

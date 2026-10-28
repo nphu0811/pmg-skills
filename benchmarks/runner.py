@@ -1,7 +1,7 @@
 """
 benchmarks.runner
 =================
-Executes the 24-case PMG Animation Benchmark Suite (`pmg benchmark run --all`,
+Executes the 44-case PMG Animation Benchmark Suite (`pmg benchmark run --all`,
 `pmg benchmark run --case <id>`, `pmg benchmark report`) and writes structured
 JSON and Markdown reports to `benchmarks/reports/`.
 """
@@ -23,7 +23,7 @@ from benchmarks.metrics import CaseBenchmarkMetrics, aggregate_benchmark_metrics
 
 class BenchmarkRunner:
     """
-    Runs individual or all 24 animation benchmark cases through the PMG Engine,
+    Runs individual or all 44 animation benchmark cases through the PMG Engine,
     measures quantitative accuracy, timing, trajectory, visibility, and editability
     metrics, and generates JSON + Markdown benchmark reports.
     """

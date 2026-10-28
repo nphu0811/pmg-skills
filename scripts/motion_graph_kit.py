@@ -214,9 +214,10 @@ def apply_morph(slide, duration_ms: int = 1600, option: str = "byObject"):
     apply_transition(slide, trans_type="morph", duration_ms=duration_ms, mode=option)
 
 
-def link_morph(shape_a, shape_b, name_tag: str):
+def link_morph(shape_a, shape_b, name_tag: Optional[str] = None):
     """Assigns identical !!<tag> to guarantee 60 FPS Morph interpolation across slides."""
-    tag = f"!!{name_tag}" if not name_tag.startswith("!!") else name_tag
+    tag_str = name_tag or getattr(shape_a, "name", None) or getattr(shape_b, "name", None) or "MorphTarget"
+    tag = f"!!{tag_str}" if not tag_str.startswith("!!") else tag_str
     shape_a.name = tag
     shape_b.name = tag
 
