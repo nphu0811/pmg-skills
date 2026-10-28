@@ -43,6 +43,16 @@ from pmg.animations import (
     P_NS,
     A_NS,
 )
+from pmg.animation_ir import (
+    AnimationIR,
+    SceneIR,
+    ObjectIR,
+    AnimationTrackIR,
+    TimelineCompiler,
+    MorphReliabilityValidator,
+    AnimationCapabilityStatus,
+    get_effect_capability_status,
+)
 from scripts.motion_graph_kit import (
     Themes,
     apply_transition,
@@ -62,10 +72,13 @@ class CompilerReport:
     named_anchors: List[str] = field(default_factory=list)
     unsupported_effects: List[str] = field(default_factory=list)
     approximate_effects: List[str] = field(default_factory=list)
+    unverified_playback_effects: List[str] = field(default_factory=list)
     editable_shapes_count: int = 0
     picture_count: int = 0
     is_fully_native: bool = True
     timing_trees_attached: int = 0
+    capability_breakdown: Dict[str, int] = field(default_factory=dict)
+    morph_validation_report: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -77,10 +90,13 @@ class CompilerReport:
             "named_anchors": list(self.named_anchors),
             "unsupported_effects": list(self.unsupported_effects),
             "approximate_effects": list(self.approximate_effects),
+            "unverified_playback_effects": list(self.unverified_playback_effects),
             "editable_shapes_count": self.editable_shapes_count,
             "picture_count": self.picture_count,
             "is_fully_native": self.is_fully_native,
             "timing_trees_attached": self.timing_trees_attached,
+            "capability_breakdown": dict(self.capability_breakdown),
+            "morph_validation_report": self.morph_validation_report,
         }
 
 
@@ -305,7 +321,15 @@ class NativePPTXCompiler:
         slide_idx = self.slides.index(slide) + 1
         timeline = self.timelines[slide_idx]
 
-        norm_eff = normalize_effect(effect_type)
+        cap_status, norm_eff = get_effect_capability_status(effect_type)
+        self.report.capability_breakdown[cap_status.value] = (
+            self.report.capability_breakdown.get(cap_status.value, 0) + 1
+        )
+        if cap_status == AnimationCapabilityStatus.UNSUPPORTED:
+            self.report.unsupported_effects.append(effect_type)
+        elif cap_status == AnimationCapabilityStatus.SUPPORTED_UNVERIFIED_PLAYBACK:
+            self.report.unverified_playback_effects.append(effect_type)
+
         step = timeline.add_effect(
             shape=shape,
             effect_type=norm_eff,
@@ -344,10 +368,134 @@ class NativePPTXCompiler:
         self.report.total_slides = len(self.slides)
         return self.report
 
-    def compile_from_spec(self, spec: Union[str, Dict[str, Any]], output_path: str) -> CompilerReport:
+    def compile_from_ir(self, ir: AnimationIR, output_path: str) -> CompilerReport:
         """
-        Compiles a complete native presentation from a JSON string, file path, or dictionary.
+        Compiles a validated AnimationIR into a native PowerPoint presentation.
         """
+        self.report.morph_validation_report = MorphReliabilityValidator.validate_morph_flow(ir)
+
+        theme_map = {
+            "LIGHT_ACADEMIC_CYAN": Themes.LIGHT_ACADEMIC_CYAN,
+            "LIGHT_MODERN_STUDIO": Themes.LIGHT_MODERN_STUDIO,
+            "LIGHT_ECO_EMERALD": getattr(Themes, "LIGHT_ECO_EMERALD", Themes.LIGHT_ACADEMIC_CYAN),
+            "DARK_OBSIDIAN": getattr(Themes, "DARK_OBSIDIAN", Themes.LIGHT_ACADEMIC_CYAN),
+        }
+        self.theme = theme_map.get(ir.palette_name, Themes.LIGHT_ACADEMIC_CYAN)
+        self.new_presentation(width_in=ir.canvas_width_in, height_in=ir.canvas_height_in)
+
+        for scene in ir.scenes:
+            trans = scene.transition_type if scene.transition_type != "none" else "fade"
+            dur_ms = scene.transition_duration_ms
+            slide = self.add_slide(transition=trans, duration_ms=dur_ms)
+
+            # Titles
+            if scene.title:
+                self.add_textbox(
+                    slide=slide,
+                    left_in=0.8,
+                    top_in=0.8,
+                    width_in=8.0,
+                    height_in=1.0,
+                    text=scene.title,
+                    name=f"!!Title_{scene.scene_id}",
+                    font_size_pt=32,
+                    font_bold=True,
+                )
+            if scene.subtitle:
+                self.add_textbox(
+                    slide=slide,
+                    left_in=0.8,
+                    top_in=1.8,
+                    width_in=8.0,
+                    height_in=0.6,
+                    text=scene.subtitle,
+                    name=f"!!Subtitle_{scene.scene_id}",
+                    font_size_pt=18,
+                    font_color=self.theme.get("text_secondary", RGBColor(71, 85, 105)),
+                )
+
+            # Objects
+            shape_map: Dict[str, Any] = {}
+            for obj in scene.objects:
+                x, y, w, h = obj.transform.x, obj.transform.y, obj.transform.width, obj.transform.height
+                if obj.kind == "card":
+                    shp = self.add_glass_card(
+                        slide=slide,
+                        left_in=x,
+                        top_in=y,
+                        width_in=w,
+                        height_in=h,
+                        name=obj.name or obj.id,
+                        title=obj.title,
+                        body=obj.body,
+                    )
+                elif obj.kind == "textbox":
+                    shp = self.add_textbox(
+                        slide=slide,
+                        left_in=x,
+                        top_in=y,
+                        width_in=w,
+                        height_in=h,
+                        text=obj.body or obj.title,
+                        name=obj.name or obj.id,
+                    )
+                elif obj.kind == "oval":
+                    shp = self.add_shape(
+                        slide=slide,
+                        shape_type=MSO_SHAPE.OVAL,
+                        left_in=x,
+                        top_in=y,
+                        width_in=w,
+                        height_in=h,
+                        name=obj.name or obj.id,
+                        fill_rgb=self.theme.get("accent"),
+                    )
+                else:
+                    shp = self.add_shape(
+                        slide=slide,
+                        shape_type=MSO_SHAPE.ROUNDED_RECTANGLE,
+                        left_in=x,
+                        top_in=y,
+                        width_in=w,
+                        height_in=h,
+                        name=obj.name or obj.id,
+                        fill_rgb=self.theme.get("accent"),
+                        text=obj.title,
+                    )
+                shape_map[obj.id] = shp
+                shape_map[obj.name] = shp
+
+            # Timeline compile
+            timeline_compiler = TimelineCompiler(scene)
+            scheduled_tracks = timeline_compiler.compile()
+
+            for track in scheduled_tracks:
+                shp = shape_map.get(track.target_id)
+                if shp:
+                    self.add_animation(
+                        slide=slide,
+                        shape=shp,
+                        effect_type=track.effect,
+                        trigger=track.trigger,
+                        duration_ms=track.duration_ms,
+                        delay_ms=track.delay_ms,
+                        direction=track.direction or "up",
+                        motion_path=track.motion_path,
+                        rotation_deg=track.rotation_deg,
+                        scale_factor=track.scale_factor,
+                        opacity_from=track.opacity_from,
+                        opacity_to=track.opacity_to,
+                    )
+
+        return self.save(output_path)
+
+    def compile_from_spec(self, spec: Union[str, Dict[str, Any], AnimationIR], output_path: str) -> CompilerReport:
+        """
+        Compiles a complete native presentation from a JSON string, file path, dictionary, or AnimationIR.
+        """
+        if isinstance(spec, AnimationIR):
+            return self.compile_from_ir(spec, output_path)
+
         if isinstance(spec, str):
             if os.path.isfile(spec):
                 with open(spec, "r", encoding="utf-8") as f:
@@ -356,6 +504,10 @@ class NativePPTXCompiler:
                 data = json.loads(spec)
         else:
             data = spec
+
+        if isinstance(data, dict) and "scenes" in data:
+            ir = AnimationIR.from_dict(data)
+            return self.compile_from_ir(ir, output_path)
 
         theme_name = data.get("theme", "LIGHT_ACADEMIC_CYAN")
         theme_map = {

@@ -43,6 +43,19 @@ from pmg.compiler import (
     NativePPTXCompiler,
     CompilerReport,
 )
+from pmg.animation_ir import (
+    AnimationCapabilityStatus,
+    AnimationEasing,
+    AnimationIR,
+    SceneIR,
+    ObjectIR,
+    KeyframeIR,
+    AnimationTrackIR,
+    TransformIR,
+    TimelineCompiler,
+    MorphReliabilityValidator,
+    get_effect_capability_status,
+)
 from pmg.validation import (
     Level1Result,
     Level2Result,
@@ -307,4 +320,15 @@ __all__ = [
     "build_v2_0_oneshot_space_scene",
     "build_v2_0_agribank_oneshot_deck",
     "build_v2_0_creative_concept_selection_deck",
+    "AnimationCapabilityStatus",
+    "AnimationEasing",
+    "AnimationIR",
+    "SceneIR",
+    "ObjectIR",
+    "KeyframeIR",
+    "AnimationTrackIR",
+    "TransformIR",
+    "TimelineCompiler",
+    "MorphReliabilityValidator",
+    "get_effect_capability_status",
 ]
