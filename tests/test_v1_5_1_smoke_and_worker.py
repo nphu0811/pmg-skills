@@ -147,11 +147,11 @@ def test_24_case_animation_benchmark_suite(tmp_path):
     plus live PowerPoint playback execution on Case 21 (Hero Image Visibility with Outline)
     and Case 24 (Negative Detection + Auto-Repair).
     """
-    assert len(BENCHMARK_CASES) == 24
+    assert len(BENCHMARK_CASES) in (24, 44)
     runner = BenchmarkRunner(benchmarks_dir=str(tmp_path / "benchmarks"))
 
     # 1. Verify all 24 cases build, validate, extract expected timelines, and write JSON/MD reports
-    report_all = runner.run_all(worker_mode="static", hold_duration_ms=800)
+    report_all = runner.run_all(case_ids=list(range(1, 25)), worker_mode="static", hold_duration_ms=800)
     assert report_all["summary"]["total_cases"] == 24
     assert report_all["summary"]["passed_cases"] == 24
     assert report_all["summary"]["pass_rate"] == 100.0
