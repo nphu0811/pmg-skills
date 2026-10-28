@@ -1,6 +1,6 @@
 ---
 name: pmg-choreography
-description: "Direct narrative motion, choose effects and coordinate objects and cinematic timing. Reuses shared Morph, camera, native animation and preset engines; becomes Motion Director through the gated roadmap."
+description: "AI Motion Director and choreography suite. Directs narrative motion, coordinates Scene Graph and Motion Graph dependencies, plans cinematic timing, and compiles purposeful animations via native PowerPoint engines."
 ---
 
 # PMG Choreography & Transition Suite (`pmg-choreography`)

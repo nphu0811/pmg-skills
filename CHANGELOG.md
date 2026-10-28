@@ -1,5 +1,30 @@
 # Changelog — PMG Skills
 
+## [v1.7.0] - 2026-10-29
+
+Storyboard Intelligence, Scene Graph, Motion Graph & AI Motion Director release. Adds canonical skill pmg-storyboard and upgrades pmg-choreography with hierarchical scene composition and motion dependency graphs.
+
+### Added
+- **pmg-storyboard (skills/pmg-storyboard/SKILL.md, pmg.storyboard):**
+  - High-level narrative architecture and scene planning (StoryboardEngine, StoryboardPlan, StoryboardScene).
+  - Narrative pacing, visual hierarchy, thematic traveling hero continuity across scenes, camera framing, and asset requirement specification.
+- **Hierarchical Scene Graph (pmg.scene_graph):**
+  - Scene tree data structure (SceneGraph, SceneNode, Transform) with parent-child relative transforms and world coordinate resolution.
+  - Semantic role definitions (ackground, card, subject, 	ypography, hud, overlay).
+  - Intelligent overlap rules: allows intentional design layering (masks, glass cards, shadows) while strictly rejecting accidental readable text collisions (protected_readable).
+  - Native PowerPoint compilation (compile_to_slide) preserving shape hierarchy and !! persistent identifiers.
+- **Motion Graph & Dependency Resolution (pmg.motion_graph):**
+  - Directed acyclic graph (MotionGraph, AnimationAction, Dependency) defining temporal animation relationships (fter_previous, with_previous).
+  - Cycle detection and topological sorting for robust chronological compilation.
+  - Native compilation to SlideAnimationTimeline with automatic target shape mapping.
+- **AI Motion Director (pmg.motion_director):**
+  - Coordinates storyboard intent with SceneGraph and MotionGraph synthesis.
+  - Diverse cinematic composition templates (cinematic_hero, editorial_layout, 
+adial_infographic, multi_card).
+  - End-to-end compilation into certified editable PowerPoint decks.
+- **Acceptance Verification:**
+  - Automated 5-slide Interstellar Navigation Systems presentation verified via Microsoft PowerPoint Desktop COM clean open with 0 alerts and full animation timeline.
+
 ## [v1.6.0] - 2026-10-29
 
 Intelligent Visual Asset Research & Image Decomposition release. Adds two canonical modular skills: `pmg-visual-assets` and `pmg-image-decomposer`.

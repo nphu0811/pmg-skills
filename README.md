@@ -5,7 +5,7 @@ It combines Morph, native Animation Pane effects, layered composition, virtual
 camera movement and reusable cinematic patterns with actual PowerPoint playback
 review and bounded technical repair.
 
-Current implementation: **v1.6.0**. Publication status is recorded in
+Current implementation: **v1.7.0**. Publication status is recorded in
 [GitHub releases](https://github.com/nphu0811/pmg-skills/releases).
 The [continued roadmap](docs/development-roadmap.md) preserves the required
 v1.5.2 → v1.6.0 → v1.7.0 → v1.8.0 → v2.0.1 sequence and release gates.
@@ -85,6 +85,7 @@ provenance remains NOT_VERIFIED and points to that external certificate.
 | [pmg-glassmorphism](skills/pmg-glassmorphism/SKILL.md) | Acrylic surfaces, alpha, borders and contrast |
 | [pmg-qa-audit](skills/pmg-qa-audit/SKILL.md) | Read-only structured defect detection |
 | [pmg-review-validation](skills/pmg-review-validation/SKILL.md) | Repair policy and certification through the orchestrator |
+| [pmg-storyboard](skills/pmg-storyboard/SKILL.md) | Narrative architecture, scene planning, pacing, visual hierarchy |
 
 See [ownership and boundaries](docs/architecture.md) and the
 [skills index](skills/llms.txt). The three future skills retain distinct roles:

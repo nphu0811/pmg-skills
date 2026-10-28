@@ -1,6 +1,6 @@
 # PMG Skills Index
 
-Skill/runtime version: v1.6.0. Published tags require exact-commit reinstall and playback retesting.
+Skill/runtime version: v1.7.0. Published tags require exact-commit reinstall and playback retesting.
 Release status: https://github.com/nphu0811/pmg-skills/releases
 Future releases: v1.6.0, v1.7.0, v1.8.0, then v2.0.1; each is gated.
 
@@ -64,8 +64,12 @@ load relevant installed guidance and use actual available engine APIs.
 - Triggers: decompose image, logo decomposition, slice image, shutter transition, layer tree, vector reconstruction
 - Path: skills/pmg-image-decomposer/SKILL.md
 
+## pmg-storyboard
+- Responsibility: High-level narrative architecture and scene planning (narrative pacing, visual hierarchy, thematic traveling hero continuity across scenes, camera framing, and asset requirement specification); passes plan to Motion Director, no raw XML.
+- Triggers: storyboard, narrative plan, scene planning, visual hierarchy, presentation flow
+- Path: skills/pmg-storyboard/SKILL.md
+
 ## Future skill routing (not yet implemented in this release)
-- v1.7.0 pmg-storyboard: narrative, scene choice, hierarchy, pacing and asset needs; passes plan to Motion Director, no XML.
 - v1.7.0 shared Scene Graph/Motion Graph and Motion Director are APIs, not separate skills.
 - v2.0.1 extends choreography/storyboard after v1.8.0; no competing director/compiler skills.
 - Existing pmg.animations, cinematic_builder, reverse_engineer, video_reconstructor, worker and benchmarks are reused.

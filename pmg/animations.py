@@ -633,7 +633,7 @@ class SlideAnimationTimeline:
     @staticmethod
     def _resolve_preset_attrs(step: AnimationStep) -> Tuple[int, str, int]:
         dir_map = {"up": 4, "down": 1, "left": 2, "right": 8}
-        sub = dir_map.get(step.direction.lower(), 4)
+        sub = dir_map.get((step.direction or "up").lower(), 4)
         et = step.effect_type
         if et == "appear":
             return (1, "entr", 0)
@@ -664,8 +664,8 @@ class SlideAnimationTimeline:
         raise ValueError(f"Unsupported native PowerPoint animation effect: {et!r}")
 
     @staticmethod
-    def _fly_formulas(direction: str) -> Tuple[str, str]:
-        d = direction.lower()
+    def _fly_formulas(direction: Optional[str] = "up") -> Tuple[str, str]:
+        d = (direction or "up").lower()
         if d == "up":  # from bottom moving up
             return ("#ppt_x", "1+#ppt_h/2")
         if d == "down":  # from top moving down

@@ -38,7 +38,7 @@ from pmg.cinematic_showcase import (
 
 
 def test_current_reliability_version():
-    assert VERSION == "1.6.0"
+    assert VERSION == "1.7.0"
 
 
 def test_spotify_app_shell_builder_generation(tmp_path):
@@ -102,7 +102,7 @@ def test_manifest_content_type_registration(tmp_path):
     deck.save(output_pptx)
 
     dummy_manifest = {
-        "engine_version": "1.6.0",
+        "engine_version": "1.7.0",
         "status": "PASS",
         "run_id": "test_opc",
     }
@@ -113,7 +113,7 @@ def test_manifest_content_type_registration(tmp_path):
     assert os.path.exists(companion_path)
     with open(companion_path, "r", encoding="utf-8") as f:
         comp_data = json.load(f)
-    assert comp_data["engine_version"] == "1.6.0"
+    assert comp_data["engine_version"] == "1.7.0"
 
     # 2. Verify OPC [Content_Types].xml has valid ContentType mapping for json
     with zipfile.ZipFile(output_pptx, "r") as zf:
@@ -164,7 +164,7 @@ def test_verify_clean_powerpoint_open_on_clean_deck(tmp_path):
     deck.save(output_pptx)
 
     # Embed valid manifest
-    _embed_manifest_in_pptx(output_pptx, {"version": "1.6.0", "status": "PASS"})
+    _embed_manifest_in_pptx(output_pptx, {"version": "1.7.0", "status": "PASS"})
 
     com_result = verify_clean_powerpoint_open(output_pptx)
     assert com_result["is_clean"] is True, f"verify_clean_powerpoint_open failed: {com_result.get('error')}"

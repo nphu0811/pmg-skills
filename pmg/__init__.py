@@ -1,5 +1,5 @@
 """
-PMG Skills — Native PowerPoint Motion Graphics Engine (v1.6.0)
+PMG Skills — Native PowerPoint Motion Graphics Engine (v1.7.0)
 ==============================================================
 Canonical Python API, Windows Validation Worker, Animation Benchmark Suite,
 and Orchestration Engine for PowerPoint Motion Graphics.
@@ -89,6 +89,20 @@ from pmg.worker import (
     PMGWorkerClient,
     check_worker_health,
 )
+from pmg.visual_assets import (
+    VisualAssetEngine,
+    WikimediaProvider,
+    NASAProvider,
+    AssetRequirement,
+    AssetRecord,
+)
+from pmg.layers import LayerTree, VisualObject, LayerMask
+from pmg.image_decomposer import ImageDecomposer
+from pmg.asset_builder import build_logo_assembly_deck, build_image_shutter_deck
+from pmg.scene_graph import SceneGraph, SceneNode, Transform
+from pmg.motion_graph import MotionGraph, AnimationAction, Dependency
+from pmg.storyboard import StoryboardEngine, StoryboardPlan, StoryboardScene
+from pmg.motion_director import MotionDirector
 
 __version__ = VERSION
 
@@ -162,4 +176,25 @@ __all__ = [
     "PMGValidationWorkerServer",
     "PMGWorkerClient",
     "check_worker_health",
+    "VisualAssetEngine",
+    "WikimediaProvider",
+    "NASAProvider",
+    "AssetRequirement",
+    "AssetRecord",
+    "LayerTree",
+    "VisualObject",
+    "LayerMask",
+    "ImageDecomposer",
+    "build_logo_assembly_deck",
+    "build_image_shutter_deck",
+    "SceneGraph",
+    "SceneNode",
+    "Transform",
+    "MotionGraph",
+    "AnimationAction",
+    "Dependency",
+    "StoryboardEngine",
+    "StoryboardPlan",
+    "StoryboardScene",
+    "MotionDirector",
 ]
