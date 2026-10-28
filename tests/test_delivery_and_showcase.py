@@ -121,7 +121,7 @@ def test_manifest_content_type_registration(tmp_path):
         ct_bytes = zf.read("[Content_Types].xml")
         root = ET.fromstring(ct_bytes)
         default_ns = "http://schemas.openxmlformats.org/package/2006/content-types"
-        
+
         has_json_mapping = False
         for child in root.findall(f"{{{default_ns}}}Default"):
             ext = child.attrib.get("Extension", "").lower()
