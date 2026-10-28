@@ -291,6 +291,19 @@ class MotionDeck:
                 xfrm.set('rot', str(int(rot_deg * 60000)))
             return shp
 
+    def add_traveling_entity(self, slide, asset_path: Optional[str] = None,
+                             shape_type: Optional[MSO_SHAPE] = None,
+                             left: float = 1.0, top: float = 1.0,
+                             width: float = 1.5, height: float = 1.5,
+                             rot_deg: float = 0, name: str = "!!Traveling_Hero",
+                             fill_color: Optional[RGBColor] = None):
+        """Backward-compatible alias for add_thematic_traveling_entity."""
+        return self.add_thematic_traveling_entity(
+            slide=slide, asset_path=asset_path, shape_type=shape_type,
+            left=left, top=top, width=width, height=height,
+            rot_deg=rot_deg, name=name, fill_color=fill_color
+        )
+
     # -------------------------------------------------------------
     # SPOTIFY RADIAL MORPH & APP SHELL UNLOCK (from MAC-LENIN)
     # -------------------------------------------------------------
@@ -620,8 +633,39 @@ class MotionDeck:
         return track, fill_bar
 
     def save(self, output_path: str):
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
         self.prs.save(output_path)
         print(f"[OK] Saved presentation: {output_path}")
+
+
+class CinematicColors(Themes):
+    """Backward-compatible alias for Themes."""
+    pass
+
+
+class LightThemeCraftDeck(MotionDeck):
+    """
+    Backward-compatible high-level craft deck builder referenced in README quickstart.
+    """
+    def __init__(self, title: str = "PMG Presentation", theme: dict = Themes.LIGHT_ACADEMIC_CYAN):
+        super().__init__(theme=theme)
+        self.title = title
+
+    def add_craft_slide(self, title: str, category: str = "PMG CORE", badge: str = "STAGE 01",
+                        subtitle: str = "", transition: str = "morph", duration_ms: int = 1600):
+        idx = len(self.slides) + 1
+        s_trans = "none" if idx == 1 else transition
+        slide = self.add_slide(transition=s_trans, duration_ms=duration_ms)
+        self.add_badge(slide, f"{category} // {badge}", left=1.0, top=0.9, width=3.8, height=0.38, name="!!craft_badge")
+        self.add_hero_title(slide, title, subtitle=subtitle, left=1.0, top=1.5, width=10.5, height=1.6, name="!!craft_title")
+        self.add_glass_card(slide, left=1.0, top=3.3, width=11.333, height=3.1, name="!!craft_stage")
+        # Traveling entity for continuous motion across craft slides
+        hero_x = 1.2 + ((idx - 1) * 2.5) % 10.0
+        hero_y = 3.8 if idx % 2 == 1 else 4.4
+        self.add_thematic_traveling_entity(slide, left=hero_x, top=hero_y, width=1.1, height=1.1,
+                                           rot_deg=(idx * 15) % 360, name="!!Traveling_Hero")
+        self.add_progress_bar(slide, current_step=idx, total_steps=max(idx, 4))
+        return slide
 
 
 # ==========================================
@@ -674,7 +718,8 @@ def export_deck_to_video(pptx_path: str, video_path: str, slide_duration: float 
     except Exception:
         pass
     try:
-        ppt.Quit()
+        if ppt.Presentations.Count == 0:
+            ppt.Quit()
     except Exception:
         pass
     

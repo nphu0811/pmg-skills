@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pmg-skills"
+version = "1.1.0"
+description = "PowerPoint Motion Graphics (PMG) Native Engine, Animation Timeline, Real Playback Validation & Self-Healing System"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Mergi (nphu0811)", email = "duongngocphu134@gmail.com"}
+]
+dependencies = [
+    "python-pptx>=0.6.21",
+    "Pillow>=9.0.0",
+    "numpy>=1.21.0",
+    "opencv-python>=4.5.0",
+    "scipy>=1.7.0",
+    "pywin32>=300; platform_system=='Windows'",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+pmg = "pmg.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pmg*", "scripts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+

@@ -34,6 +34,7 @@ Agents should route user requests to the appropriate modular skill:
 
 | Skill | Directory | When to Activate |
 | :--- | :--- | :--- |
+| **`pmg-engine`** | `skills/pmg-engine/` | **Canonical Engine-First Entrypoint:** Mandatory whenever PMG Skills is requested. Executes `pmg` engine, real PowerPoint playback recording, AI video review, 3-loop repair, and final `.pptx` delivery gate. |
 | **`pmg-core`** | `skills/pmg-core/` | Base layout, 16:9 canvas geometry (`13.333" x 7.5"`), **bright modern light palettes as primary default**, zero-overlap math. |
 | **`pmg-morph`** | `skills/pmg-morph/` | PowerPoint Morph transitions, OpenXML `<p159:morph>`, `!!` identifier invariants, **thematic cross-slide traveling entities**. |
 | **`pmg-choreography`** | `skills/pmg-choreography/` | Native transitions suite (Morph, Circle, Split, Fade), **Spotify Radial Morph App Shell unlock**, and **3D Orbiting Carousels**. |
@@ -63,14 +64,18 @@ Agents should route user requests to the appropriate modular skill:
 - Deliver demonstration artifacts as **high-definition 60 FPS MP4 videos** in `examples/`, capturing actual motion and transitions in real time.
 
 ### E. The Mandatory Review & Auto-Healing Delivery Gate
-- **Never deliver unverified decks:** An AI agent is strictly forbidden from declaring a presentation complete without passing `pmg-review-validation`.
-- **3-Loop Auto-Repair:** Automatically diagnose and heal missing transitions, bridge broken `!!` anchors, and correct timing anomalies up to 3 cycles.
-- **Fallback Skill Substitution:** If an effect remains unresolved after 3 repair loops, substitute with an alternative skill from the suite (e.g. Morph $\to$ Circle Wipe/Spotlight, 3D Dolly $\to$ Parallax Pan / App Shell), re-loop validation, and certify only upon 100% pass.
+- **Mandatory Engine-First Execution:** Always execute the canonical `pmg` engine (`pmg.orchestrator.PMGOrchestrator` or `python -m pmg`). Do not bypass the engine with ad-hoc `python-pptx` code, and never flatten slides into screenshots or video backgrounds.
+- **Real Playback & Video Review:** Every presentation must undergo static validation, native PowerPoint video export (`powerpoint_export.mp4`), actual Microsoft PowerPoint Desktop Slide Show recording (`actual_slideshow_recording.mp4`), and AI/CV visual review against `expected_timeline.json`.
+- **Never deliver unverified decks:** An AI agent is strictly forbidden from declaring a presentation complete without passing `pmg-review-validation` and `PMGOrchestrator` (`status == "PASS"`).
+- **3-Loop Auto-Repair:** Automatically diagnose and heal missing transitions, bridge broken `!!` anchors, and correct timing anomalies up to 3 cycles, re-rendering and re-recording after every repair.
+- **Fallback Skill Substitution:** If an effect remains unresolved after 3 repair loops, substitute with an alternative compatible native effect, re-loop validation, and certify only upon 100% pass.
+- **Final Delivery Policy:** Deliver **ONLY** the final validated `.pptx` file to the user. Keep `internal_qa/<run_id>/` videos, keyframes, and JSON reports internal unless explicitly requested by the user.
 
 ---
 
-## 4. Reusable Script Engines
+## 4. Reusable Script & Package Engines
 
+- `pmg/` (`pmg.orchestrator`, `pmg.engine`, `pmg.validator`, `pmg.video_pipeline`, `pmg.visual_reviewer`, `pmg.self_healing`, `pmg.cli`): Canonical Python package and CLI (`pmg build`, `pmg validate`, `pmg render`, `pmg record`, `pmg review`, `pmg inspect`, `pmg reconstruct`).
 - `scripts/motion_graph_kit.py`: Core presentation builder with light themes, frosted cards, multi-transition suite, traveling entities, and video export.
 - `scripts/motion_validator.py`: Automated review, validation, 3-loop auto-repair, and fallback skill substitution engine.
 - `scripts/slide_inspector.py`: Automated QA audit engine checking transitions, traveling anchors, and word counts.

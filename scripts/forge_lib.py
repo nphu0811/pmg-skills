@@ -337,5 +337,63 @@ class ForgeDeck:
         return shapes
 
     def save(self, output_path: str):
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
         self.prs.save(output_path)
         print(f"[FORGE_LIB] Successfully generated 3D cinematic presentation: {output_path}")
+
+
+class Cinematic3DDeck(ForgeDeck):
+    """
+    High-level 3D camera & multi-plane parallax deck builder referenced in pmg-camera-parallax.
+    """
+    def __init__(self, title: str = "3D Cinematic Deck", bg_hex: str = IndustrialPalette.BG_STUDIO_HEX):
+        super().__init__(bg_hex=bg_hex)
+        self.title = title
+
+    def add_cinematic_slide(self, scene_idx: int, camera_zoom: float = 1.0,
+                            camera_focus_center: Tuple[float, float] = (6.66, 3.75),
+                            header_title: str = "SYSTEM CORE",
+                            callout_title: str = "MODULE",
+                            callout_desc: str = "High-efficiency operation."):
+        slide = self.add_slide(enable_morph=(scene_idx > 1), duration_ms=1600)
+        self.add_corner_badge_header(slide, f"0{scene_idx}", header_title, "3D CAMERA")
+        
+        # Compute multi-plane parallax positions (BG 0.7x, Mid 1.0x, FG 1.4x)
+        dx_cam = 6.66 - camera_focus_center[0]
+        dy_cam = 3.75 - camera_focus_center[1]
+        
+        # Plane 1: Background Grid (0.7x shift)
+        bg_w, bg_h = 13.333 * (1.0 + (camera_zoom - 1.0) * 0.7), 7.5 * (1.0 + (camera_zoom - 1.0) * 0.7)
+        bg_x = 6.66 - bg_w / 2.0 + dx_cam * 0.7
+        bg_y = 3.75 - bg_h / 2.0 + dy_cam * 0.7
+        bg_plane = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(bg_x), Inches(bg_y), Inches(bg_w), Inches(bg_h))
+        bg_plane.name = "!!BG_Grid"
+        bg_plane.fill.solid()
+        bg_plane.fill.fore_color.rgb = RGBColor(16, 24, 42)
+        bg_plane.line.color.rgb = IndustrialPalette.COOLING_CYAN
+        bg_plane.line.width = Pt(0.75)
+
+        # Plane 2: Midground Core (1.0x shift & zoom)
+        mid_w, mid_h = 3.2 * camera_zoom, 3.2 * camera_zoom
+        mid_x = 6.66 - mid_w / 2.0 + dx_cam * 1.0
+        mid_y = 3.75 - mid_h / 2.0 + dy_cam * 1.0
+        mid_core = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(mid_x), Inches(mid_y), Inches(mid_w), Inches(mid_h))
+        mid_core.name = "!!Hero3D_Focus"
+        mid_core.fill.solid()
+        mid_core.fill.fore_color.rgb = IndustrialPalette.DEEP_BLUE
+        mid_core.line.color.rgb = IndustrialPalette.COOLING_CYAN
+        mid_core.line.width = Pt(2.0)
+
+        # Plane 3: Foreground Accent (1.4x shift)
+        fg_x = 6.66 + dx_cam * 1.4 + 2.0
+        fg_y = 3.75 + dy_cam * 1.4 - 1.2
+        fg_orb = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(fg_x), Inches(fg_y), Inches(0.45), Inches(0.45))
+        fg_orb.name = "!!FG_Dust"
+        fg_orb.fill.solid()
+        fg_orb.fill.fore_color.rgb = IndustrialPalette.ELECTRIC_GOLD
+        fg_orb.line.fill.background()
+
+        # 3D HUD Callout
+        self.add_3d_callout(slide, target_x=6.66, target_y=3.75, callout_x=8.8, callout_y=4.8,
+                            part_name=callout_title, verb_desc=callout_desc, name_id="hud_callout")
+        return slide

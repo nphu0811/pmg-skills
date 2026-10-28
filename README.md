@@ -92,6 +92,7 @@ Copy the `skills/` folder into your agent’s skill directory:
 
 | Skill | Description |
 |---|---|
+| **`pmg-engine`** | **Main Canonical Engine-First Entrypoint (`pmg` CLI & `PMGOrchestrator`)**: Enforces canonical PMG engine execution, native editable PowerPoint objects, mandatory real PowerPoint slideshow playback recording, AI video review, 3-loop self-healing, and final `.pptx` delivery gate. |
 | **`pmg-core`** | Base canvas: 16:9 widescreen geometry (`13.333" x 7.5"`), **bright modern light palettes as primary default**, typographic scales, zero-overlap bounding grids. |
 | **`pmg-morph`** | Hardware-accelerated 60 FPS PowerPoint Morph engine: OpenXML `<p159:morph>`, `!!` identifier naming invariants, **thematic cross-slide traveling entities (satellites, drones, vinyls, droplets)**, aspect-ratio locks. |
 | **`pmg-glassmorphism`** | Frosted acrylic glass scrims (90%-94% alpha), glowing hairline borders (`0.75pt - 1.25pt`), multi-tier depth. |
@@ -105,31 +106,49 @@ Copy the `skills/` folder into your agent’s skill directory:
 
 ## Quick Reference (For AI Agents)
 
-Canonical PMG pattern to suggest or generate:
+### 1. Canonical PMG CLI (`pmg`)
+
+```bash
+# Install the canonical PMG engine package:
+pip install -e .
+
+# Build and validate a 10-slide presentation with real PowerPoint playback & AI video review:
+python -m pmg build -o Protecting_Our_Earth.pptx --preset environment --slides 10
+
+# Inspect, render, record, review, validate, or reconstruct:
+python -m pmg inspect Protecting_Our_Earth.pptx --timeline-out expected_timeline.json
+python -m pmg render Protecting_Our_Earth.pptx -o powerpoint_export.mp4 --fps 60
+python -m pmg record Protecting_Our_Earth.pptx -o actual_slideshow_recording.mp4 --fps 30
+python -m pmg validate Protecting_Our_Earth.pptx -o Protecting_Our_Earth.pptx
+python -m pmg reconstruct Protecting_Our_Earth.pptx -o Reconstructed_Deck.pptx
+```
+
+### 2. Canonical Python API (`pmg` & `scripts.motion_graph_kit`)
 
 ```python
-from scripts.motion_graph_kit import LightThemeCraftDeck, CinematicColors
+from pmg import PMGOrchestrator, build_environmental_protection_deck, LightThemeCraftDeck, CinematicColors
 
-# 1. Initialize 16:9 Widescreen Deck with Modern Light Palette
-deck = LightThemeCraftDeck(title="Autonomous AI Core")
+# Option A: Full Orchestrated Pipeline (Build -> Export -> Live Slideshow Record -> AI Review -> Self-Heal -> Deliver)
+orchestrator = PMGOrchestrator()
+manifest = orchestrator.run_pipeline(
+    output_pptx_path="Protecting_Our_Earth.pptx",
+    builder_fn=lambda path: build_environmental_protection_deck(path, num_slides=10),
+)
 
-# 2. Slide 1: Wide Establishing Shot (Camera Zoom 100%)
+# Option B: Direct Craft Deck Builder
+deck = LightThemeCraftDeck(title="Autonomous AI Core", theme=CinematicColors.LIGHT_ACADEMIC_CYAN)
 s1 = deck.add_craft_slide(
     title="NEURAL FABRIC ARCHITECTURE",
     category="AI COMPUTE PLATFORM",
     badge="STAGE 01",
     subtitle="Global overview of high-throughput heterogeneous compute clusters."
 )
-
-# 3. Slide 2: Macro Push-In Zoom with Frosted Glassmorphism
 s2 = deck.add_craft_slide(
     title="TENSOR ACCELERATOR ENGINE",
     category="DEEP LEARNING HARDWARE",
     badge="STAGE 02",
     subtitle="Sub-millisecond matrix execution running across distributed pipeline nodes."
 )
-
-# 4. Save and auto-inject 60 FPS OpenXML Morph transitions
 deck.save("AI_Core_Cinematic.pptx")
 ```
 

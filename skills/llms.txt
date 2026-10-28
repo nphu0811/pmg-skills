@@ -1,12 +1,17 @@
-# PowerPoint Motion Graphics (PMG) AI Skills Index
+# PowerPoint Motion Graphics (PMG) AI Skills Index (v1.1.0)
 
-> Modular AI Skills for creating broadcast-grade Motion Graphics PowerPoint presentations (.pptx).
+> Modular AI Skills & Canonical Native Engine for creating broadcast-grade Motion Graphics PowerPoint presentations (.pptx).
 > Modeled after Agent Skills standard (agentskills.io). Compatible with Claude Code, Cursor, Copilot, Antigravity, Windsurf.
 
 ## Skills
 
+### pmg-engine (Canonical Entrypoint)
+- **Summary:** Main Engine-First entrypoint (`python -m pmg` / `PMGOrchestrator`). Enforces canonical engine execution, native editable PowerPoint objects, real PowerPoint slideshow playback recording, AI video review, 3-loop self-healing, and final PPTX delivery gating.
+- **Triggers:** "use pmg skills", "pmg build", "create powerpoint with pmg", "animated powerpoint", "motion graphics presentation"
+- **Path:** skills/pmg-engine/SKILL.md
+
 ### pmg-core
-- **Summary:** Core 16:9 widescreen canvas (13.333" x 7.5"), obsidian dark palettes, typographic hierarchy, and anti-overlap bounding box geometry.
+- **Summary:** Core 16:9 widescreen canvas (13.333" x 7.5"), bright modern light palettes, typographic hierarchy, and anti-overlap bounding box geometry.
 - **Triggers:** "create powerpoint", "pptx setup", "presentation canvas", "pptx layout", "typography scale", "pptx colors"
 - **Path:** skills/pmg-core/SKILL.md
 
@@ -17,7 +22,7 @@
 
 ### pmg-glassmorphism
 - **Summary:** Authentic frosted glass scrims, OpenXML alpha blending (a:alpha), glowing hairline borders (0.75pt - 1.5pt), multi-tier translucent depth, and contrast systems.
-- **Triggers:** "glassmorphism", "frosted glass", "transparent card", "glowing border", "dark mode presentation", "hud card"
+- **Triggers:** "glassmorphism", "frosted glass", "transparent card", "glowing border", "hud card"
 - **Path:** skills/pmg-glassmorphism/SKILL.md
 
 ### pmg-camera-parallax
@@ -31,17 +36,16 @@
 - **Path:** skills/pmg-3d-cinematic/SKILL.md
 
 ### pmg-choreography
-- **Summary:** Opening & ending cinematic choreography: Aperture Burst, hero title zoom lockup, kinetic typographic wave, convergence pull-back outro, and executive credits.
+- **Summary:** Opening & ending cinematic choreography: Spotify UI shell unlock, 3D orbiting carousels, native transitions (Morph, Circle Wipe, Split Curtain, Fade), and thematic traveling motion.
 - **Triggers:** "opening slide", "intro animation", "outro slide", "ending animation", "aperture burst", "credits showcase"
 - **Path:** skills/pmg-choreography/SKILL.md
 
 ### pmg-qa-audit
-- **Summary:** Automated QA audit engine: slide inspection, 100% morph compliance, word count limits (<= 25 words in 3d mode), zero-overlap layout geometry, and slide image export.
-- **Triggers:** "inspect slide", "verify pptx", "qa audit", "check morph", "word count limit", "export slide png"
+- **Summary:** Automated QA audit engine: slide inspection, 100% transition coverage, word count limits, FFprobe video inspection, and live slideshow recording.
+- **Triggers:** "inspect slide", "verify pptx", "qa audit", "check morph", "word count limit", "export video"
 - **Path:** skills/pmg-qa-audit/SKILL.md
 
 ### pmg-review-validation
-- **Summary:** Automated deck review, validation, and self-healing engine: 3-loop auto-repair of missing transitions/anchors, fallback skill substitution, and mandatory delivery certification gate.
-- **Triggers:** "review pptx", "validate motion", "check animations", "auto repair slides", "quality gate", "final delivery check", "kiểm tra hiệu ứng", "sửa lỗi chuyển trang"
+- **Summary:** Automated deck review, real playback video validation, and self-healing engine: 3-loop auto-repair of missing transitions/anchors, fallback skill substitution, and mandatory delivery certification gate.
+- **Triggers:** "review pptx", "validate motion", "check animations", "auto repair slides", "quality gate", "final delivery check"
 - **Path:** skills/pmg-review-validation/SKILL.md
-

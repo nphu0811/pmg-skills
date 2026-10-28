@@ -1,0 +1,8 @@
+python-pptx>=0.6.21
+Pillow>=9.0.0
+numpy>=1.21.0
+opencv-python>=4.5.0
+scipy>=1.7.0
+pywin32>=300; platform_system == "Windows"
+pytest>=7.0.0
+

@@ -2,14 +2,20 @@
 DataPowerPoint/
 .agents/
 .agent/
+internal_qa/
 
-# Python cache & environments
+# Python cache, build & environments
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+build/
+dist/
+*.egg-info/
 *.venv/
 venv/
 env/
+*.pre_heal.bak
 
 # OS & Editor files
 .DS_Store
@@ -20,4 +26,3 @@ Thumbs.db
 # Raw screen recordings
 demo/2026-*.mp4
 demo/*raw*.mp4
-
