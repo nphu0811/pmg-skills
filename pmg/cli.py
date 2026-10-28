@@ -28,6 +28,10 @@ from pmg.engine import (
     Themes,
 )
 from pmg.cinematic_builder import build_v1_3_cinematic_environmental_deck
+from pmg.reverse_engineer import (
+    PPTXMotionReverseEngineer,
+    build_v1_4_reference_smartphone_slide,
+)
 from pmg.validator import StaticValidator, extract_expected_timeline
 from pmg.video_pipeline import (
     export_video_with_powerpoint,
@@ -45,6 +49,8 @@ def cmd_build(args: argparse.Namespace) -> int:
         preset = (args.preset or "v1_3_cinematic").lower()
         if preset in ("v1_3_cinematic", "cinematic"):
             return build_v1_3_cinematic_environmental_deck(target_path, num_slides=args.slides)
+        elif preset in ("v1_4_reference", "smartphone"):
+            return build_v1_4_reference_smartphone_slide(target_path)
         elif preset in ("v1_2_showcase", "timeline", "animation"):
             return build_v1_2_single_slide_animation_showcase(target_path)
         elif preset in ("environment", "eco", "kite", "earth"):
@@ -177,8 +183,9 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
 def cmd_reconstruct(args: argparse.Namespace) -> int:
     """
-    Base reconstruction entrypoint in v1.1-v1.3 (extracts timeline & reconstructs editable deck
-    from a reference PPTX; full motion transfer in v1.4 and video reconstruction in v1.5).
+    Reverse-engineers object hierarchy, geometry, z-order, transitions, and native <p:timing>
+    animations from a reference PPTX (v1.4) or video (v1.5) and reconstructs/transfers
+    them onto an editable PowerPoint presentation.
     """
     source = args.source
     output = args.output
@@ -186,33 +193,35 @@ def cmd_reconstruct(args: argparse.Namespace) -> int:
         print(f"[!] Source file not found: {source}", file=sys.stderr)
         return 1
 
-    timeline = extract_expected_timeline(source)
-    deck = MotionDeck(theme=Themes.LIGHT_ACADEMIC_CYAN)
-    for s_spec in timeline.slides:
-        slide = deck.add_slide(
-            transition=s_spec.transition_type if s_spec.slide_number > 1 else "none",
-            duration_ms=s_spec.transition_duration_ms or 1600,
+    if source.lower().endswith(".pptx"):
+        re_engine = PPTXMotionReverseEngineer()
+        spec = re_engine.extract_motion_spec(source)
+        if getattr(args, "spec_out", None):
+            spec.save(args.spec_out)
+
+        content_transfer = {}
+        if getattr(args, "transfer_title", None):
+            content_transfer["title"] = args.transfer_title
+
+        re_engine.reconstruct_and_transfer(
+            motion_spec=spec,
+            output_pptx_path=output,
+            content_transfer=content_transfer,
         )
-        for obj in s_spec.objects:
-            x, y = obj.final_position
-            w, h = max(0.4, obj.final_size[0]), max(0.3, obj.final_size[1])
-            rot = obj.rotation_params.get("end_deg", 0.0)
-            if obj.object_type == "textbox":
-                tb = slide.shapes.add_textbox(
-                    deck.prs.slide_width.__class__(int(x * 914400)),
-                    deck.prs.slide_width.__class__(int(y * 914400)),
-                    deck.prs.slide_width.__class__(int(w * 914400)),
-                    deck.prs.slide_width.__class__(int(h * 914400)),
-                )
-                tb.name = obj.object_id
-                tb.text_frame.text = obj.object_id.replace("!!", "")
-            else:
-                deck.add_thematic_traveling_entity(
-                    slide, left=x, top=y, width=w, height=h, rot_deg=rot, name=obj.object_id
-                )
-    deck.save(output)
-    print(json.dumps({"reconstructed_pptx": os.path.abspath(output), "slides": len(timeline.slides)}, indent=2))
-    return 0
+        comp = re_engine.compare_reference_and_reconstructed(source, output)
+        if getattr(args, "compare_out", None):
+            os.makedirs(os.path.dirname(os.path.abspath(args.compare_out)), exist_ok=True)
+            with open(args.compare_out, "w", encoding="utf-8") as f:
+                json.dump(comp, f, indent=2, ensure_ascii=False)
+
+        print(json.dumps({
+            "reconstructed_pptx": os.path.abspath(output),
+            "comparison": comp,
+        }, indent=2, ensure_ascii=False))
+        return 0
+
+    print(f"[!] Unsupported source format for v1.4 reconstruct: {source}", file=sys.stderr)
+    return 1
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -241,6 +250,8 @@ def build_parser() -> argparse.ArgumentParser:
             "animation",
             "v1_3_cinematic",
             "cinematic",
+            "v1_4_reference",
+            "smartphone",
         ],
         help="Presentation preset",
     )
@@ -297,6 +308,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_recon = sub.add_parser("reconstruct", help="Reconstruct editable PowerPoint slides from reference source")
     p_recon.add_argument("source", help="Reference .pptx or .mp4 file")
     p_recon.add_argument("-o", "--output", required=True, help="Output reconstructed .pptx path")
+    p_recon.add_argument("--spec-out", help="Optional path to save extracted PresentationMotionSpec JSON")
+    p_recon.add_argument("--compare-out", help="Optional path to save comparison report JSON")
+    p_recon.add_argument("--transfer-title", help="Optional new title text for style transfer")
     p_recon.set_defaults(func=cmd_reconstruct)
 
     return parser

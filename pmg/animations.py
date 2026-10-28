@@ -891,10 +891,5 @@ def verify_animation_pane_com(pptx_path: str) -> Dict[str, Any]:
                 pres.Close()
             except Exception:
                 pass
-        if app is not None:
-            try:
-                if app.Presentations.Count == 0 and app.SlideShowWindows.Count == 0:
-                    app.Quit()
-            except Exception:
-                pass
+        pass
     return result

@@ -1,5 +1,14 @@
 # Changelog — PMG Skills
 
+## [v1.4.0] - 2026-10-28
+### Added
+- **PPTX Motion Reverse Engineering & Animation Style Transfer (`pmg.reverse_engineer`):**
+  - Implemented `PPTXMotionReverseEngineer`, `PresentationMotionSpec`, `SlideBlueprintSpec`, `ExtractedObjectSpec`, and `ExtractedAnimationSpec`.
+  - Extracts slide geometry, object hierarchy, z-order, shape/text/group properties, semantic roles (`badge`, `title`, `hero_device`, `ui_card`, `accent_node`, `status_bar`), transitions, Morph anchors, and native `<p:timing>` animation trees (effect type, direction, duration, delay, trigger, parallel group ID, Bezier motion paths, rotation, and scale factors).
+  - Implemented `reconstruct_and_transfer` and `compare_reference_and_reconstructed` to recreate editable slides with transferred native Animation Pane effects (`15/15` exact matches) and content/palette style transfer.
+  - Added `build_v1_4_reference_smartphone_slide` reference showcase (Smartphone flying in, 360° rotation, scale-up, curved Bezier signal orb trajectory, and staggered UI component reveals).
+  - Wired `pmg reconstruct <source.pptx> -o <output.pptx> [--spec-out ...] [--compare-out ...] [--transfer-title ...]` into `pmg.cli`.
+
 ## [v1.3.0] - 2026-10-28
 ### Added
 - **Professional Cinematic Motion Graphics Builder (`pmg.cinematic_builder`):**
