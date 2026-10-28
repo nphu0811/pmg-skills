@@ -1,5 +1,5 @@
 """
-PMG Skills — Native PowerPoint Motion Graphics Engine (v1.5.2)
+PMG Skills — Native PowerPoint Motion Graphics Engine (v1.6.0)
 ==============================================================
 Canonical Python API, Windows Validation Worker, Animation Benchmark Suite,
 and Orchestration Engine for PowerPoint Motion Graphics.

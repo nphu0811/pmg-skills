@@ -26,6 +26,7 @@ from pptx.enum.shapes import MSO_SHAPE
 from pmg.engine import MotionDeck, Themes
 from pmg.animations import SlideAnimationTimeline, verify_animation_pane_com
 from pmg.video_pipeline import probe_video_metadata
+from pmg.segmentation import ForegroundSegmenter
 
 
 CANVAS_W_IN = 13.333
@@ -231,7 +232,8 @@ class VideoMotionReconstructor:
     presentations (.pptx) with native Animation Pane timelines from reference MP4 videos.
     """
 
-    def __init__(self, sample_fps: float = 10.0, max_duration_sec: float = 10.0, max_scenes: int = 2):
+    def __init__(self, sample_fps: float = 10.0, max_duration_sec: float = 10.0, max_scenes: int = 2, segmenter=None):
+        self.segmenter = segmenter or ForegroundSegmenter()
         self.sample_fps = sample_fps
         self.max_duration_sec = max_duration_sec
         self.max_scenes = max_scenes
@@ -607,89 +609,13 @@ class VideoMotionReconstructor:
 
         return tracked_objects
 
-    def _segment_foreground_boxes(
-        self,
-        frame: np.ndarray,
-        bg_bgr: np.ndarray,
-        vid_w: int,
-        vid_h: int,
-    ) -> List[Dict[str, Any]]:
-        diff = np.abs(frame.astype(np.int16) - bg_bgr).max(axis=2).astype(np.uint8)
-        min_area = (vid_w * vid_h) * 0.0012
-        max_area = (vid_w * vid_h) * 0.55
-
-        boxes: List[Dict[str, Any]] = []
-
-        # Multi-threshold pass so both flat-background UI videos and textured videos segment cleanly
-        for thresh in (24, 52, 85, 115):
-            _, mask = cv2.threshold(diff, thresh, 255, cv2.THRESH_BINARY)
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
-            closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-            contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-            for cnt in contours:
-                area = cv2.contourArea(cnt)
-                if area < min_area or area > max_area:
-                    continue
-                x, y, w, h = cv2.boundingRect(cnt)
-                if w < 24 or h < 18:
-                    continue
-                if any(self._iou((x, y, w, h), b["bbox"]) > 0.35 for b in boxes):
-                    continue
-
-                peri = cv2.arcLength(cnt, True)
-                circularity = (4.0 * math.pi * area / (peri * peri)) if peri > 0 else 0.0
-                aspect = w / float(max(1, h))
-                prim = "ellipse" if (circularity > 0.72 and 0.7 <= aspect <= 1.4) else "roundRect"
-
-                roi = frame[y : y + h, x : x + w]
-                med_bgr = np.median(roi.reshape(-1, 3), axis=0).astype(int)
-                dom_rgb = (int(med_bgr[2]), int(med_bgr[1]), int(med_bgr[0]))
-                bdr_rgb = (
-                    max(0, dom_rgb[0] - 35),
-                    max(0, dom_rgb[1] - 35),
-                    max(0, dom_rgb[2] - 35),
-                )
-                boxes.append({
-                    "bbox": (x, y, w, h),
-                    "area": area,
-                    "primitive": prim,
-                    "dominant_rgb": dom_rgb,
-                    "border_rgb": bdr_rgb,
-                })
-            if len(boxes) >= 6:
-                break
-
-        # Fallback salient-region extraction for continuous full-bleed / textured video scenes
-        if len(boxes) < 5:
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            p_hi = float(np.percentile(gray, 80))
-            _, sal_mask = cv2.threshold(gray, max(40, int(p_hi)), 255, cv2.THRESH_BINARY)
-            cnts, _ = cv2.findContours(sal_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            for cnt in sorted(cnts, key=cv2.contourArea, reverse=True):
-                area = cv2.contourArea(cnt)
-                if area < min_area or area > max_area:
-                    continue
-                x, y, w, h = cv2.boundingRect(cnt)
-                if w < 28 or h < 20:
-                    continue
-                if any(self._iou((x, y, w, h), b["bbox"]) > 0.30 for b in boxes):
-                    continue
-                roi = frame[y : y + h, x : x + w]
-                med_bgr = np.median(roi.reshape(-1, 3), axis=0).astype(int)
-                dom_rgb = (int(med_bgr[2]), int(med_bgr[1]), int(med_bgr[0]))
-                bdr_rgb = (max(0, dom_rgb[0] - 35), max(0, dom_rgb[1] - 35), max(0, dom_rgb[2] - 35))
-                boxes.append({
-                    "bbox": (x, y, w, h),
-                    "area": area,
-                    "primitive": "ellipse" if 0.8 <= (w / float(max(1, h))) <= 1.25 else "roundRect",
-                    "dominant_rgb": dom_rgb,
-                    "border_rgb": bdr_rgb,
-                })
-                if len(boxes) >= 7:
-                    break
-
-        return boxes
+    def _segment_foreground_boxes(self, frame, bg_bgr, vid_w, vid_h):
+        """Compatibility adapter using the same segmentation interface as stills."""
+        return [dict(segment.metadata, bbox=segment.bbox, dominant_rgb=segment.color_rgb,
+                     primitive=segment.metadata.get('primitive', 'roundRect'),
+                     area=segment.metadata.get('area', segment.bbox[2]*segment.bbox[3]),
+                     border_rgb=segment.metadata.get('border_rgb', tuple(max(0, c-35) for c in segment.color_rgb)))
+                for segment in self.segmenter.segment(frame, background_bgr=bg_bgr)]
 
     @staticmethod
     def _locate_object_in_frame(

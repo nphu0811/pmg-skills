@@ -16,6 +16,7 @@ Verifies:
 """
 
 import os
+import json
 import re
 import posixpath
 import zipfile
@@ -583,6 +584,7 @@ class StaticValidator:
         discontinuous_anchors: Dict[str, List[int]] = {}
         missing_transitions: List[int] = []
         total_native_animations = 0
+        asset_expectations = {}
 
         if not os.path.exists(pptx_path):
             defects.append(
@@ -600,6 +602,11 @@ class StaticValidator:
             with zipfile.ZipFile(pptx_path, "r") as z:
                 namelist = set(z.namelist())
                 defects.extend(inspect_package_integrity(z))
+                if 'ppt/pmg_asset_expectations.json' in namelist:
+                    asset_expectations = json.loads(z.read('ppt/pmg_asset_expectations.json'))
+                    if asset_expectations.get('source_part') not in namelist:
+                        defects.append(ReviewDefect('asset_completeness', 'critical', 0, None,
+                                                    'Asset reassembly reference is missing.'))
 
                 if "ppt/presentation.xml" not in namelist:
                     defects.append(
@@ -666,6 +673,13 @@ class StaticValidator:
                         seen_ids.add(o["id"])
 
                     # 2. Check Native Editable Objects (Anti-Shortcut Rule)
+                    for expected in asset_expectations.get('scenes', []):
+                        if expected.get('slide_number') == idx:
+                            missing = [identity for identity in expected.get('shape_ids', []) if str(identity) not in seen_ids]
+                            if missing:
+                                defects.append(ReviewDefect('asset_completeness', 'critical', idx, None,
+                                                            f'Compiled asset layers are missing native shape IDs {missing}.',
+                                                            'restore_asset_layers'))
                     editable_objs = [o for o in objects if o["type"] in ("shape", "textbox", "group", "diagram", "connector")]
                     pictures = [o for o in objects if o["type"] == "picture"]
                     if len(editable_objs) == 0 and len(pictures) >= 1:
@@ -996,4 +1010,6 @@ class StaticValidator:
             "traveling_anchors": traveling_anchors,
             "discontinuous_anchors": discontinuous_anchors,
             "slides": slide_summaries,
+            "source_pptx_path": os.path.abspath(pptx_path),
+            "asset_expectations": asset_expectations,
         }).to_dict()

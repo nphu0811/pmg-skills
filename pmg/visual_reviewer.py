@@ -12,6 +12,7 @@ native object animations, and visibility-aware object completion checks).
 import os
 import json
 import math
+import zipfile
 from typing import Dict, Any, List, Tuple, Optional
 
 import cv2
@@ -80,6 +81,41 @@ def _roi_similarity(r1: np.ndarray, r2: np.ndarray) -> float:
     a2 = cv2.resize(r2, (target_w, target_h)).astype(np.float32)
     diff = np.mean(np.abs(a1 - a2)) / 255.0
     return float(max(0.0, 1.0 - diff))
+
+
+def inspect_asset_reassembly(frame, slide_number, static_validation):
+    """Read-only comparison against the source asset, not a second validator."""
+    checks, defects = [], []
+    expected = static_validation.get('asset_expectations', {})
+    scenes = [scene for scene in expected.get('scenes', []) if scene.get('slide_number') == slide_number]
+    if not scenes:
+        return checks, defects
+    try:
+        with zipfile.ZipFile(static_validation['source_pptx_path']) as package:
+            encoded = package.read(expected['source_part'])
+        reference = cv2.imdecode(np.frombuffer(encoded, np.uint8), cv2.IMREAD_UNCHANGED)
+        if reference is None:
+            raise ValueError('Reference asset cannot be decoded')
+        for scene in scenes:
+            roi = _crop_safe(frame, *_inches_to_px(*scene['roi'], frame.shape[1], frame.shape[0]))
+            resized = cv2.resize(reference, (roi.shape[1], roi.shape[0]), interpolation=cv2.INTER_AREA)
+            mask = resized[:, :, 3] > 230 if resized.ndim == 3 and resized.shape[2] == 4 else np.ones(roi.shape[:2], bool)
+            color = resized[:, :, :3] if resized.ndim == 3 else cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
+            score = float(1-np.abs(roi[mask].astype(float)-color[mask].astype(float)).mean()/255) if mask.any() else 0.0
+            passed = score >= scene.get('tolerance', .94)
+            checks.append({'slide_number': slide_number, 'object_id': expected['root_id'], 'passed': passed,
+                           'check': 'source_asset_reassembly', 'pixel_similarity': score,
+                           'tolerance': scene.get('tolerance', .94)})
+            if not passed:
+                defects.append(ReviewDefect('object_visibility', 'critical', slide_number, expected['root_id'],
+                                            f'Asset reassembly differs from the source in actual playback (similarity={score:.4f}).',
+                                            'restore_asset_layers'))
+    except Exception as exc:
+        defects.append(ReviewDefect('object_visibility', 'critical', slide_number, expected.get('root_id'),
+                                    f'Asset reassembly could not be verified: {exc}', 'restore_asset_layers'))
+        checks.append({'slide_number': slide_number, 'object_id': expected.get('root_id'), 'passed': False,
+                       'check': 'source_asset_reassembly'})
+    return checks, defects
 
 
 class VisualAnimationReviewer:
@@ -247,6 +283,9 @@ class VisualAnimationReviewer:
             s_info["temporal_deviation_ms"] = round(t_dev, 1)
 
             if f_rec_steady is not None:
+                asset_checks, asset_defects = inspect_asset_reassembly(f_rec_steady, idx, static_validation)
+                object_visibility_checks.extend(asset_checks)
+                defects.extend(asset_defects)
                 steady_frames_rec.append(f_rec_steady)
                 rec_sample_path = os.path.join(frame_samples_dir, f"rec_slide_{idx:02d}_steady.jpg")
                 cv2.imwrite(rec_sample_path, f_rec_steady)

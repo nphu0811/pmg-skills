@@ -46,6 +46,14 @@ def normalize_effect(effect_type: str) -> str:
     return name
 
 
+def iter_native_shapes(shapes):
+    """Traverse a native shape hierarchy once, retaining real child shape IDs."""
+    for shape in shapes:
+        yield shape
+        if hasattr(shape, 'shapes'):
+            yield from iter_native_shapes(shape.shapes)
+
+
 @dataclass
 class AnimationStep:
     """Declarative specification for a single native PowerPoint animation effect."""
@@ -328,6 +336,9 @@ class SlideAnimationTimeline:
         existing = sld.find(f"{{{P_NS}}}timing")
         if existing is not None:
             sld.remove(existing)
+
+        if not self.steps:
+            return None
 
         timing = etree.Element(f"{{{P_NS}}}timing", nsmap=NSMAP)
         tnLst = etree.SubElement(timing, f"{{{P_NS}}}tnLst")
@@ -725,7 +736,7 @@ def parse_slide_timing_openxml(slide, slide_number: int = 1, slide_abs_start_ms:
         return [], []
 
     shape_by_spid: Dict[int, Any] = {}
-    for shp in slide.shapes:
+    for shp in iter_native_shapes(slide.shapes):
         shape_by_spid[shp.shape_id] = shp
 
     specs: List[ObjectMotionSpec] = []

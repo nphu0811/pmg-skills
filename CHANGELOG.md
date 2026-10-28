@@ -1,5 +1,30 @@
 # Changelog — PMG Skills
 
+## [v1.6.0] - 2026-10-29
+
+Intelligent Visual Asset Research & Image Decomposition release. Adds two canonical modular skills: `pmg-visual-assets` and `pmg-image-decomposer`.
+
+### Added
+- **`pmg-visual-assets` (`skills/pmg-visual-assets/SKILL.md`, `pmg.visual_assets`):**
+  - Source-first media research pipeline discovering authentic photography, illustrations, icons, and videos from Wikimedia Commons and NASA archives.
+  - Rigorous rights, license, provenance, and trademark classification; distinct separation of retrieval vs. generation fallback.
+  - Asset quality scoring (resolution, contrast, transparency, suitability for decomposition).
+- **`pmg-image-decomposer` (`skills/pmg-image-decomposer/SKILL.md`, `pmg.image_decomposer`, `pmg.layers`):**
+  - Semantic decomposition isolating meaningful brand components (e.g., Agribank emblem into green background, red diagonal bands, white separators, stem, and granular wheat grains).
+  - Explicit editability classification: `native_vector` (OpenXML `<a:custGeom>` custom polygons) vs `raster_layer` (transparent PNG).
+  - Geometric image slicing: vertical strips, horizontal strips, grids, tiles, circular/radial sectors, puzzle, triangles, and custom polygons with zero dropped pixels.
+  - Depth decomposition: spatial partitioning into foreground, midground, and background layers with explicit inferred/occlusion flags.
+  - Automatic reassembly validation (`verify_reassembly` measuring pixel similarity >= 0.94 and contour alignment).
+- **Native PowerPoint Object Compilation (`pmg.native_objects`):**
+  - Compiles structured `LayerTree` into native PowerPoint shapes, freeform custom geometries, and cropped picture layers preserving `!!` persistent identifiers across slides.
+- **Acceptance Demonstrations:**
+  - Demo A: Agribank Logo Motion 7-slide assembly presentation (`build_logo_assembly_deck`), verified clean COM open and 96 native animations.
+  - Demo B: Image Shutter Reveal presentation (`build_image_shutter_deck`), verified clean COM open.
+- **Shared Segmentation Architecture:**
+  - Unified `ForegroundSegmenter` and `ColorRegionSegmenter` in `pmg.segmentation`, reused by both still-image decomposition and `VideoMotionReconstructor`.
+- **Empty Animation Node Safeguard:**
+  - `SlideAnimationTimeline.compile_to_openxml` safely strips empty `<p:timing>` trees to eliminate PowerPoint modal stalls.
+
 ## [v1.5.2] - 2026-10-29
 
 Reliability release; publication requires exact-commit reinstall and playback

@@ -42,6 +42,8 @@ Agents should route user requests to the appropriate modular skill:
 | **`pmg-camera-parallax`** | `skills/pmg-camera-parallax/` | Multi-plane parallax speeds (BG 0.7x, Mid 1.0x, FG 1.4x), macro push-in zooms ($100\% \to 400\%$), tracking pans. |
 | **`pmg-3d-cinematic`** | `skills/pmg-3d-cinematic/` | Model preparation, placement/orientation, cutaways and annotations; reuses the camera system. Verify actual host model support. |
 | **`pmg-qa-audit`** | `skills/pmg-qa-audit/` | Read-only structured inspection of package, layout, anchors, timing, media, compatibility and playback evidence; no repairs or certification. |
+| **`pmg-visual-assets`** | `skills/pmg-visual-assets/` | Media research, authentic asset discovery (Wikimedia/NASA), licensing, provenance, and preparation; does not compile animations. |
+| **`pmg-image-decomposer`** | `skills/pmg-image-decomposer/` | Semantic, geometric, and depth decomposition of flat images into structured `LayerTree` hierarchies with vector/raster editability and reassembly verification. |
 | **`pmg-review-validation`** | `skills/pmg-review-validation/` | Consumes shared audit reports, chooses repairs and certification policy; orchestrator owns one maximum-three-attempt loop and final authority. |
 
 ---

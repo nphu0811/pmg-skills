@@ -20,7 +20,7 @@ from lxml import etree
 
 from scripts.motion_graph_kit import apply_transition
 from pmg.models import ReviewDefect
-from pmg.animations import P_NS, NSMAP, SlideAnimationTimeline
+from pmg.animations import P_NS, NSMAP, SlideAnimationTimeline, iter_native_shapes
 
 
 def repair_manifest_content_type(pptx_path: str) -> List[str]:
@@ -140,7 +140,7 @@ def _repair_disappearing_object_timing(pptx_path: str, loop_number: int) -> List
         if timing is None:
             continue
 
-        shape_by_id = {str(s.shape_id): s for s in slide.shapes}
+        shape_by_id = {str(s.shape_id): s for s in iter_native_shapes(slide.shapes)}
         if not shape_by_id:
             continue
 

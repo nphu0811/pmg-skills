@@ -5,7 +5,7 @@ It combines Morph, native Animation Pane effects, layered composition, virtual
 camera movement and reusable cinematic patterns with actual PowerPoint playback
 review and bounded technical repair.
 
-Current implementation: **v1.5.2**. Publication status is recorded in
+Current implementation: **v1.6.0**. Publication status is recorded in
 [GitHub releases](https://github.com/nphu0811/pmg-skills/releases).
 The [continued roadmap](docs/development-roadmap.md) preserves the required
 v1.5.2 → v1.6.0 → v1.7.0 → v1.8.0 → v2.0.1 sequence and release gates.

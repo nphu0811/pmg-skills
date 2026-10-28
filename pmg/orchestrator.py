@@ -16,7 +16,7 @@ import uuid
 import shutil
 import zipfile
 import tempfile
-from lxml import etree
+from pmg.package_parts import write_package_parts
 from datetime import datetime
 from typing import Optional, Callable, Dict, Any, Tuple, List
 
@@ -63,28 +63,9 @@ def _embed_manifest_in_pptx(pptx_path: str, manifest_dict: Dict[str, Any], write
         "certification_source": "external_companion_manifest",
         "timestamp_utc": provenance.get("timestamp_utc", ""),
     }
-    descriptor, temporary = tempfile.mkstemp(suffix=".pptx", dir=os.path.dirname(os.path.abspath(pptx_path)))
-    os.close(descriptor)
-    try:
-        namespace = "http://schemas.openxmlformats.org/package/2006/content-types"
-        with zipfile.ZipFile(pptx_path) as source, zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as output:
-            for item in source.infolist():
-                if item.filename == "ppt/pmg_execution_manifest.json":
-                    continue
-                data = source.read(item.filename)
-                if item.filename == "[Content_Types].xml":
-                    root = etree.fromstring(data)
-                    for node in list(root):
-                        if node.get("Extension", "").lower() == "json" or node.get("PartName") == "/ppt/pmg_execution_manifest.json":
-                            root.remove(node)
-                    etree.SubElement(root, f"{{{namespace}}}Default", Extension="json", ContentType="application/json")
-                    data = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True)
-                output.writestr(item, data)
-            output.writestr("ppt/pmg_execution_manifest.json", json.dumps(compact_manifest, indent=2).encode("utf-8"))
-        os.replace(temporary, pptx_path)
-    finally:
-        if os.path.exists(temporary):
-            os.remove(temporary)
+    write_package_parts(pptx_path, {
+        "ppt/pmg_execution_manifest.json": json.dumps(compact_manifest, indent=2).encode("utf-8"),
+    }, {"ppt/pmg_execution_manifest.json": "application/json"})
     if write_companion:
         with open(f"{pptx_path}.manifest.json", "w", encoding="utf-8") as stream:
             json.dump(manifest_dict, stream, indent=2, ensure_ascii=False)

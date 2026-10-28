@@ -1,6 +1,6 @@
 {
   "name": "pmg-skills",
   "description": "Official PMG skills for Claude, Cursor, and other AI agents \u2014 60 FPS Morph transitions, Windows PowerPoint QA Worker, 24-case animation benchmark suite, and visibility-aware self-healing",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "skills": "./skills/"
 }

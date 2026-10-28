@@ -1,6 +1,6 @@
 # PMG Skills Index
 
-Skill/runtime version: v1.5.2. Published tags require exact-commit reinstall and playback retesting.
+Skill/runtime version: v1.6.0. Published tags require exact-commit reinstall and playback retesting.
 Release status: https://github.com/nphu0811/pmg-skills/releases
 Future releases: v1.6.0, v1.7.0, v1.8.0, then v2.0.1; each is gated.
 
@@ -54,9 +54,17 @@ load relevant installed guidance and use actual available engine APIs.
 - Triggers: repair PPTX, review defects, delivery gate, final certification
 - Path: skills/pmg-review-validation/SKILL.md
 
+## pmg-visual-assets
+- Responsibility: Media research, authentic asset discovery (Wikimedia/NASA), licensing, provenance, and preparation; does not compile animations.
+- Triggers: find images, media research, icon search, asset licensing, NASA assets
+- Path: skills/pmg-visual-assets/SKILL.md
+
+## pmg-image-decomposer
+- Responsibility: Semantic, geometric, and depth decomposition of flat images into structured LayerTree hierarchies with vector/raster editability and reassembly verification.
+- Triggers: decompose image, logo decomposition, slice image, shutter transition, layer tree, vector reconstruction
+- Path: skills/pmg-image-decomposer/SKILL.md
+
 ## Future skill routing (not yet implemented in this release)
-- v1.6.0 pmg-visual-assets: image/icon/video research, licenses, attribution, selection and preparation; no animation compiler.
-- v1.6.0 pmg-image-decomposer: semantic/geometric/depth layers, masks, vectors and reassembly; no completed PPTX generation.
 - v1.7.0 pmg-storyboard: narrative, scene choice, hierarchy, pacing and asset needs; passes plan to Motion Director, no XML.
 - v1.7.0 shared Scene Graph/Motion Graph and Motion Director are APIs, not separate skills.
 - v2.0.1 extends choreography/storyboard after v1.8.0; no competing director/compiler skills.
