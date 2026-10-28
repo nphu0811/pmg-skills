@@ -1,6 +1,6 @@
 # PMG Skills Index
 
-Skill/runtime version: v1.8.0. Published tags require exact-commit reinstall and playback retesting.
+Skill/runtime version: v2.0.1. Published tags require exact-commit reinstall and playback retesting.
 Release status: https://github.com/nphu0811/pmg-skills/releases
 Future releases: v2.0.1 (Creative Motion Intelligence & Autonomous Motion Director 2.0).
 

@@ -27,7 +27,7 @@ from benchmarks.cases import BENCHMARK_CASES, get_benchmark_case
 
 
 def test_v1_8_version():
-    assert VERSION == "1.8.0"
+    assert VERSION in ("1.8.0", "2.0.1")
 
 
 def test_motion_path_generators():

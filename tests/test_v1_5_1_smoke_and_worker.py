@@ -24,10 +24,10 @@ from benchmarks import BENCHMARK_CASES, BenchmarkRunner
 
 
 def test_v1_5_1_version_and_runtime_dependencies():
-    assert VERSION in ("1.5.1", "1.5.2", "1.6.0", "1.7.0", "1.8.0")
+    assert VERSION in ("1.5.1", "1.5.2", "1.6.0", "1.7.0", "1.8.0", "2.0.1")
     deps = verify_runtime_dependencies(require_windows_com=True)
     assert deps["ok"] is True
-    assert deps["engine_version"] in ("1.5.1", "1.5.2", "1.6.0", "1.7.0", "1.8.0")
+    assert deps["engine_version"] in ("1.5.1", "1.5.2", "1.6.0", "1.7.0", "1.8.0", "2.0.1")
     assert deps["ffmpeg_available"] is True
     assert deps["ffprobe_available"] is True
 
@@ -132,7 +132,7 @@ def test_worker_server_client_end_to_end_and_embedded_manifest(tmp_path):
         with zipfile.ZipFile(manifest.delivered_pptx, "r") as zf:
             assert "ppt/pmg_execution_manifest.json" in zf.namelist()
             embedded = json.loads(zf.read("ppt/pmg_execution_manifest.json").decode("utf-8"))
-        assert embedded["engine_version"] in ("1.5.1", "1.5.2", "1.6.0", "1.7.0", "1.8.0")
+        assert embedded["engine_version"] in ("1.5.1", "1.5.2", "1.6.0", "1.7.0", "1.8.0", "2.0.1")
         assert embedded["validation_method"] == "remote_windows_worker"
         assert embedded["final_status"] == "NOT_VERIFIED"
         assert embedded["certification_source"] == "external_companion_manifest"

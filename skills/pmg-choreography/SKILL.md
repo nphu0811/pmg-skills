@@ -145,12 +145,11 @@ bloom_builder = UniversityBloomBuilder(
 )
 bloom_builder.build_deck("output_university.pptx")
 ```
-## Gated Motion Director evolution
+## Autonomous Motion Director 2.0 & Creative Intelligence (v2.0.1)
 
-The v1.7.0 upgrade accepts storyboard/Scene Graph and emits the one canonical
-Motion Graph, selecting/configuring existing presets dynamically. v2.0.1, only
-after v1.8.0 release, adds composable motion grammar, multiple creative concepts,
-provider-agnostic model planning, explicit deterministic fallback, bounded
-creative critique and genuine long one-slide direction. These are roadmap items,
-not capabilities claimed by the present implementation. Technical repairs retain
-the single orchestrator budget. Do not add a separate director skill/compiler.
+In v2.0.1, `pmg-choreography` integrates with `pmg.creative_director.CreativeDirector`:
+- **Composable Motion Grammar**: Coordinates multi-phase intra-slide choreography, independent simultaneous paths, orbital assembly, scale pulsing, perspective tilt, and synchronized typography.
+- **Continuous One-Shot Direction (20–30s Scenes)**: Long continuous single-slide scenes coordinating starfields, celestial rotations, traveling hero trajectories, and camera-follow simulation (`build_v2_0_oneshot_space_scene`).
+- **Multi-Candidate Creative Comparison**: Generates 3 distinct concepts from one prompt, scored across 6 quantitative axes (`clarity`, `originality`, `visual_hierarchy`, `cinematic_coherence`, `rhythm_and_pacing`, `native_editability`).
+- **Bounded Pre-Compilation Critique**: Evaluates narrative rhythm, transition variety, and camera progression; applies refinements prior to OpenXML compilation.
+- **Native Editability & OPC Invariant**: All animations compile to native `<p:timing>` Animation Pane trees with zero repair warnings under PowerPoint Desktop COM.

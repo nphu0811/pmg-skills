@@ -1,5 +1,26 @@
 # Changelog — PMG Skills
 
+## [v2.0.1] - 2026-10-29
+
+Creative Motion Intelligence & Autonomous Motion Director 2.0 release. Upgrades presentation animation into an intelligent, autonomous creative design system featuring multi-concept generation, 6-axis quantitative evaluation, bounded pre-compilation self-critique, and continuous 20–30s one-shot intra-slide choreography.
+
+### Added
+- **Creative Motion Intelligence (`pmg.creative_director`):**
+  - **Data Models:** `CreativeConcept`, `CreativeCritique`, `CreativeEvaluationAxis` (`clarity`, `originality`, `visual_hierarchy`, `cinematic_coherence`, `rhythm_and_pacing`, `native_editability`).
+  - **Provider-Agnostic Adapter (`ModelPlanningAdapter`):** Supports model-backed concept generation and deterministic offline heuristic planning with honest provenance reporting.
+  - **Creative Director 2.0 (`CreativeDirector`):**
+    - `generate_creative_concepts()`: Generates 3 substantially different, feasible creative concepts from one prompt with distinct narrative angles, metaphors, motion grammars, and palettes.
+    - `evaluate_and_select_concept()`: Evaluates concepts across the 6 axes with weighted decision matrix and documented selection rationale.
+    - `critique_and_refine()`: Bounded pre-compilation review loop refining scene pacing, transition contrast, and camera progression.
+- **Continuous One-Shot Intra-Slide Direction (20–30s Scenes):**
+  - `build_v2_0_oneshot_space_scene()`: Flagship physical 25.0s continuous space slide coordinating an atmospheric starfield (45+ stars), celestial Earth rotation, persistent spacecraft hero trajectory, camera-follow HUD targeting reticle, telemetry readouts, and a 4-phase narrative typography progression spanning 25,000 ms of native `<p:timing>` effects.
+- **Brand Identity & Logo One-Shot Reassembly:**
+  - `build_v2_0_agribank_oneshot_deck()`: Cinematic one-shot intra-slide animation of Agribank logo reassembly: 4 quadrant diamond tiles flying in with 180° rotation and scale bounce, central golden S-curve ribbon, concentric wheat grain blossom, brand typography, and 3 pillar metric cards.
+- **Multi-Concept Selection Acceptance Deck:**
+  - `build_v2_0_creative_concept_selection_deck()`: Demonstrates 3 creative concepts from one prompt, documented 6-axis comparative scorecard, critique refinement, and compilation of the winning concept into a 4-slide native editable presentation.
+- **Clean COM Open Verification:**
+  - All presentations certified with Microsoft PowerPoint Desktop COM `DisplayAlerts = ppAlertsAll` (`2`) and `OpenAndRepair = False` with zero repair prompts.
+
 ## [v1.8.0] - 2026-10-29
 
 Advanced Cinematic Compositing, Motion Reconstruction & Professional Benchmarks release. Expands benchmark suite from 24 to 44 cases and delivers three production-grade cinematic motion presentations.

@@ -114,6 +114,16 @@ from pmg.compositing import (
     build_v1_8_cinematic_shutter_reveal,
     build_v1_8_deep_space_exploration,
 )
+from pmg.creative_director import (
+    CreativeEvaluationAxis,
+    CreativeConcept,
+    CreativeCritique,
+    ModelPlanningAdapter,
+    CreativeDirector,
+    build_v2_0_oneshot_space_scene,
+    build_v2_0_agribank_oneshot_deck,
+    build_v2_0_creative_concept_selection_deck,
+)
 
 __version__ = VERSION
 
@@ -217,4 +227,12 @@ __all__ = [
     "build_v1_8_agribank_identity_deck",
     "build_v1_8_cinematic_shutter_reveal",
     "build_v1_8_deep_space_exploration",
+    "CreativeEvaluationAxis",
+    "CreativeConcept",
+    "CreativeCritique",
+    "ModelPlanningAdapter",
+    "CreativeDirector",
+    "build_v2_0_oneshot_space_scene",
+    "build_v2_0_agribank_oneshot_deck",
+    "build_v2_0_creative_concept_selection_deck",
 ]

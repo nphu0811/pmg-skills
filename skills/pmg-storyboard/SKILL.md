@@ -51,4 +51,12 @@ plan = engine.plan_presentation(
 # 2. Hand off plan to MotionDirector
 director = MotionDirector()
 output_pptx = director.compile_plan_to_deck(plan, "output/space_mission.pptx")
+
+# 3. Creative Intelligence & Multi-Concept Evaluation (v2.0.1)
+from pmg.creative_director import CreativeDirector
+
+creative = CreativeDirector()
+concepts = creative.generate_creative_concepts("Autonomous Space Systems", num_concepts=3)
+winner, matrix = creative.evaluate_and_select_concept(concepts)
+refined_plan, critiques = creative.critique_and_refine(winner, plan)
 ```

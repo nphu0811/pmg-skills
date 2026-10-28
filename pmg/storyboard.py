@@ -21,6 +21,7 @@ class StoryboardScene:
     key_elements: List[str] = field(default_factory=list)
     asset_requirements: List[str] = field(default_factory=list)
     motion_intent: str = "gentle_float"
+    pacing_seconds: float = 4.0
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:

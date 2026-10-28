@@ -1,6 +1,6 @@
 {
   "name": "pmg-skills",
-  "version": "1.8.0",
+  "version": "2.0.1",
   "description": "Official PowerPoint Motion Graphics (PMG) skills for Cursor, Claude and other AI agents \u2014 60 FPS Morph transitions, Windows PowerPoint QA Worker, 24-case animation benchmark suite, visibility-aware validation, and 3-loop self-healing",
   "author": {
     "name": "Mergi (nphu0811)",
