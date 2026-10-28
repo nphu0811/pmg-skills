@@ -21,7 +21,7 @@ import argparse
 from typing import Optional, List
 
 from pmg.version import VERSION, get_engine_provenance, verify_runtime_dependencies
-from pmg.models import ValidationStatus
+from pmg.models import ValidationStatus, ReviewReport
 from pmg.engine import (
     build_environmental_protection_deck,
     build_v1_2_single_slide_animation_showcase,
@@ -56,7 +56,29 @@ def cmd_build(args: argparse.Namespace) -> int:
 
     def _builder(target_path: str) -> str:
         preset = (args.preset or "v1_3_cinematic").lower()
-        if preset in ("space", "v1_5_1_space", "beyond_the_horizon"):
+        if preset in ("spotify", "app_shell", "music", "mac_lenin"):
+            from pmg.cinematic_showcase import SpotifyAppShellBuilder
+            b = SpotifyAppShellBuilder(
+                topic_title=args.title or "SPOTIFY",
+                topic_subtitle=getattr(args, "subtitle", "") or "TEAM 8 PRESENTS",
+                author_name=getattr(args, "author", "Presenter") or "Presenter",
+            )
+            return b.build_deck(target_path, num_slides=args.slides)
+        elif preset in ("earth_space", "space_cinematic", "reticle", "radar_wheel"):
+            from pmg.cinematic_showcase import EarthSpaceMotionBuilder
+            b = EarthSpaceMotionBuilder(
+                topic_title=args.title or "EARTH AND SPACE",
+                topic_subtitle=getattr(args, "subtitle", "") or "A CINEMATIC EXPLORATION",
+            )
+            return b.build_deck(target_path, num_slides=args.slides)
+        elif preset in ("university_bloom", "bloom", "petal", "toc_8", "university"):
+            from pmg.cinematic_showcase import UniversityBloomBuilder
+            b = UniversityBloomBuilder(
+                presentation_title=args.title or "BÁO CÁO ĐỀ TÀI",
+                subtitle=getattr(args, "subtitle", "") or "KHẢO SÁT Ý KIẾN VÀ ĐỀ XUẤT",
+            )
+            return b.build_deck(target_path)
+        elif preset in ("space", "v1_5_1_space", "beyond_the_horizon"):
             from pmg.space_builder import build_v1_5_1_space_exploration_20_slide_deck
             return build_v1_5_1_space_exploration_20_slide_deck(target_path, num_slides=args.slides)
         elif preset in ("v1_3_cinematic", "cinematic"):
@@ -175,20 +197,18 @@ def cmd_review(args: argparse.Namespace) -> int:
     rec_meta = probe_video_metadata(args.record_video, requested_fps=30)
 
     qa_dir = args.qa_dir or os.path.dirname(os.path.abspath(args.record_video))
+    telemetry_path = getattr(args, "telemetry", None) or os.path.join(qa_dir, "recording_telemetry.json")
+    if not os.path.isfile(telemetry_path):
+        print(json.dumps(ReviewReport(status=ValidationStatus.NOT_VERIFIED,
+                                     summary="Actual recording telemetry is required; run pmg record or provide --telemetry.").to_dict()))
+        return 1
+    with open(telemetry_path, encoding="utf-8") as stream:
+        telemetry = json.load(stream)
     reviewer = VisualAnimationReviewer()
     report, analysis = reviewer.review(
         export_meta=exp_meta,
         recording_meta=rec_meta,
-        recording_telemetry={
-            "slide_events": [
-                {
-                    "slide_number": s.slide_number,
-                    "actual_start_ms": s.absolute_start_ms,
-                    "actual_end_ms": s.absolute_end_ms,
-                }
-                for s in timeline.slides
-            ]
-        },
+        recording_telemetry=telemetry,
         expected_timeline=timeline,
         static_validation=static_val,
         qa_dir=qa_dir,
@@ -200,6 +220,9 @@ def cmd_review(args: argparse.Namespace) -> int:
 def cmd_inspect(args: argparse.Namespace) -> int:
     validator = StaticValidator()
     static_val = validator.validate(args.pptx)
+    if not static_val.get("is_valid"):
+        print(json.dumps({"static_validation": static_val}, indent=2, ensure_ascii=False))
+        return 1
     timeline = extract_expected_timeline(args.pptx, hold_duration_ms=args.hold_ms)
     if args.timeline_out:
         timeline.save(args.timeline_out)
@@ -359,11 +382,19 @@ def build_parser() -> argparse.ArgumentParser:
             "cinematic",
             "v1_4_reference",
             "smartphone",
+            "spotify",
+            "app_shell",
+            "earth_space",
+            "radar_wheel",
+            "university_bloom",
+            "bloom",
         ],
         help="Presentation preset",
     )
     p_build.add_argument("--title", default="Protecting Our Living Earth", help="Presentation title")
     p_build.add_argument("--slides", type=int, default=10, help="Number of slides (default: 10)")
+    p_build.add_argument("--subtitle", default="", help="Presentation subtitle")
+    p_build.add_argument("--author", default="Presenter", help="Author/Presenter name")
     p_build.add_argument("--hold-ms", type=int, default=1200, help="Per-slide hold duration in ms (default: 1200)")
     p_build.add_argument("--max-repairs", type=int, default=3, help="Max self-healing loops (default: 3)")
     p_build.add_argument(
@@ -420,6 +451,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_rev.add_argument("--export-video", required=True, help="Path to PowerPoint exported MP4")
     p_rev.add_argument("--record-video", required=True, help="Path to live slideshow recorded MP4")
     p_rev.add_argument("--qa-dir", help="Directory to store extracted frame samples and reports")
+    p_rev.add_argument("--telemetry", help="Actual recording_telemetry.json produced by pmg record")
     p_rev.add_argument("--hold-ms", type=int, default=1200, help="Slide hold duration in ms")
     p_rev.set_defaults(func=cmd_review)
 

@@ -1,7 +1,8 @@
 """
 pmg.self_healing
 ================
-Unified 3-Loop Self-Healing Engine extending scripts.motion_validator to repair
+Shared single-attempt repair operations called by PMGOrchestrator. Legacy
+scripts.motion_validator delegates here. Repairs address
 both static OpenXML deficiencies and visual/temporal/visibility playback defects
 detected during real PowerPoint slideshow review (including intra-slide <p:timing>
 animations and disappearing hero images/titles).
@@ -9,6 +10,7 @@ animations and disappearing hero images/titles).
 
 import os
 import shutil
+import zipfile
 from typing import List, Dict, Any, Tuple
 import pptx
 from pptx.util import Inches
@@ -16,13 +18,88 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.dml.color import RGBColor
 from lxml import etree
 
-from scripts.motion_validator import (
-    repair_xml_transitions,
-    repair_traveling_anchor_gap,
-    substitute_with_fallback_skill,
-)
+from scripts.motion_graph_kit import apply_transition
 from pmg.models import ReviewDefect
 from pmg.animations import P_NS, NSMAP, SlideAnimationTimeline
+
+
+def repair_manifest_content_type(pptx_path: str) -> List[str]:
+    """Repair only the known manifest mapping; never guess arbitrary MIME types."""
+    temporary = pptx_path + '.opc.tmp'
+    namespace = 'http://schemas.openxmlformats.org/package/2006/content-types'
+    try:
+        with zipfile.ZipFile(pptx_path) as source:
+            if 'ppt/pmg_execution_manifest.json' not in source.namelist():
+                return []
+            root = etree.fromstring(source.read('[Content_Types].xml'))
+            for node in list(root):
+                if node.get('PartName') == '/ppt/pmg_execution_manifest.json' or node.get('Extension', '').lower() == 'json':
+                    root.remove(node)
+            etree.SubElement(root, f'{{{namespace}}}Default', Extension='json', ContentType='application/json')
+            with zipfile.ZipFile(temporary, 'w', zipfile.ZIP_DEFLATED) as output:
+                for item in source.infolist():
+                    output.writestr(item, etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True)
+                                    if item.filename == '[Content_Types].xml' else source.read(item.filename))
+        os.replace(temporary, pptx_path)
+        return ['Registered execution manifest ContentType application/json.']
+    finally:
+        if os.path.exists(temporary):
+            os.remove(temporary)
+
+
+def repair_xml_transitions(pptx_path: str, target_slides: List[int], trans_type: str = "morph", dur_ms: int = 1600):
+    """Repair transition parameters through the existing shared compiler."""
+    presentation = pptx.Presentation(pptx_path)
+    changed = False
+    for number, slide in enumerate(presentation.slides, 1):
+        if number in target_slides and number > 1:
+            apply_transition(slide, trans_type=trans_type, duration_ms=dur_ms)
+            changed = True
+    if changed:
+        presentation.save(pptx_path)
+
+
+def repair_traveling_anchor_gap(pptx_path: str, anchor_tag: str, gap_slides: List[int]):
+    """Bridges missing traveling anchors on intermediate slides to prevent morph jump cuts."""
+    prs = pptx.Presentation(pptx_path)
+    modified = False
+
+    for s_idx in gap_slides:
+        if 1 <= s_idx <= len(prs.slides):
+            slide = prs.slides[s_idx - 1]
+            # Check if anchor is already there
+            has_tag = any(shape.name == anchor_tag for shape in slide.shapes)
+            if not has_tag:
+                # Add an offscreen or subtle proxy shape with this name so morph stays continuous
+                shape = slide.shapes.add_shape(
+                    pptx.enum.shapes.MSO_SHAPE.RECTANGLE,
+                    pptx.util.Inches(-2.5), pptx.util.Inches(3.5),
+                    pptx.util.Inches(0.5), pptx.util.Inches(0.5)
+                )
+                shape.name = anchor_tag
+                # Make proxy invisible
+                shape.fill.background()
+                shape.line.fill.background()
+                modified = True
+
+    if modified:
+        prs.save(pptx_path)
+
+
+def substitute_with_fallback_skill(pptx_path: str, failed_slides: List[int], reason: str) -> str:
+    """
+    Substitutes an intractable failure with an alternative skill from the PMG suite:
+    - Failed Morph / 3D Dolly -> Fallback to pmg-choreography (Circle Wipe Spotlight or Split Reveal)
+    - Broken complex motion -> Fallback to pmg-camera-parallax or pmg-glassmorphism card transition.
+    """
+    print(f"[*] Activating Fallback Skill Substitution for Slide(s) {failed_slides}...")
+    print(f"    Reason: {reason}")
+    print("    Alternative Skill Activated: 'pmg-choreography' (Iris Spotlight / Circle Wipe)")
+
+    # Substitute failed slide transitions with high-impact Circle Spotlight or Split Curtain
+    repair_xml_transitions(pptx_path, failed_slides, trans_type="circle", dur_ms=1400)
+    return "pmg-choreography"
+
 
 
 def _xp(el: Any, expr: str) -> List[Any]:
@@ -323,6 +400,7 @@ def execute_repair_loop(
     loop_number: int,
     defects: List[ReviewDefect],
     static_validation: Dict[str, Any],
+    allow_substitution: bool = True,
 ) -> Dict[str, Any]:
     """
     Executes one self-healing loop according to the 3-Loop Repair Architecture:
@@ -330,7 +408,12 @@ def execute_repair_loop(
     - Loop 2: Structural repair (Morph anchor interpolation, canonical <p:timing> tree rebuild via SlideAnimationTimeline, geometry healing)
     - Loop 3: Compatible fallback repair (fallback native transition / simpler native entrance & motion path substitution)
     """
+    if loop_number not in (1, 2, 3):
+        raise ValueError('Repair attempt must be 1, 2 or 3.')
     actions_taken: List[str] = []
+    if any(d.remediation_hint == 'declare_part_content_type' and
+           d.object_id == 'ppt/pmg_execution_manifest.json' for d in defects):
+        actions_taken.extend(repair_manifest_content_type(pptx_path))
     missing_trans = static_validation.get("missing_transitions", [])
     discontinuous = static_validation.get("discontinuous_anchors", {})
 
@@ -396,7 +479,7 @@ def execute_repair_loop(
                 repair_traveling_anchor_gap(pptx_path, tag, gap_slides)
                 actions_taken.append(f"Loop 3 (Fallback): Bridged anchor '{tag}' on slides {gap_slides}.")
 
-        if target_fallback_slides:
+        if target_fallback_slides and allow_substitution:
             sub_skill = substitute_with_fallback_skill(
                 pptx_path,
                 failed_slides=target_fallback_slides,

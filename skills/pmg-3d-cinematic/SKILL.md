@@ -1,9 +1,17 @@
 ---
 name: pmg-3d-cinematic
-description: "Visual-First 3D cinematic explainer engine for science, tech, space, and industry: Native 3D models (.glb), 3D camera rotation via Morph, macro dolly zoom (100% to 400%), 3D orbiting carousels, HUD callouts, and multi-domain visual adaptation."
+description: "Prepare and compose 3D assets, model orientation, technical cutaways, exploded views and annotations. Reuses the shared camera system; requires actual PowerPoint model compatibility evidence."
 ---
 
 # PMG 3D Cinematic Engine (`pmg-3d-cinematic`)
+
+## Responsibility and dependencies
+
+3D asset preparation, model placement/orientation, cutaways, exploded views, annotations, model-focused composition and model compatibility. Use pmg-camera-parallax for all camera transforms; choreography owns high-level sequencing.
+
+Dependencies: pmg-engine; pmg-camera-parallax; pmg-morph; core/asset helpers. All generated candidates must pass
+PMGOrchestrator before delivery; direct save/COM snippets below are lower-level
+composition examples, not independent production entrypoints.
 
 Transforms PowerPoint into a cinematic 3D documentary experience. Built on **Native PowerPoint 3D Models (`.glb`)**, **Morph Camera Rotations**, and **Macro Dolly Zooms**, adaptable to any domain without complex prompts.
 
@@ -46,7 +54,7 @@ model.Model3DFormat.RotationZ = 10
 
 ---
 
-## 2. The Macro 3D Dolly Zoom ($100\% \to 400\%$)
+## 2. Shared camera direction: Macro 3D Dolly Zoom ($100\% \to 400\%$)
 
 Demonstrated in top-tier science decks (e.g. *Earth & Space*):
 
@@ -115,3 +123,8 @@ Anchor data cards directly to the 3D model component using vector Target Dots:
 ```
 
 - **Visual-First Rule:** Keep text under 25 words per slide. Let the 3D model carry 85% of the cognitive load.
+Native GLB/COM and OpenXML snippets describe host-level capabilities, not a
+fully verified model importer in this release. Test the actual target PowerPoint
+version, register media/relationships, and use the canonical validation gate.
+Do not claim support solely from the example XML. Carousel coordination belongs
+to choreography; this skill supplies model-focused composition.

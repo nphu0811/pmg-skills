@@ -1,74 +1,38 @@
 ---
 name: pmg-qa-audit
-description: "Automated QA audit engine and quality standard for PowerPoint Motion Graphics: slide inspection, transition coverage verification, traveling entity tracking, word-count limits (<= 25-35 words), and 60 FPS video export protocols."
+description: "Inspect PPTX integrity, geometry, Morph anchors, native timing, assets, compatibility and playback evidence without modifying the presentation. Produces shared structured defects; does not repair or certify delivery."
 ---
 
-# PMG QA & Audit Engine (`pmg-qa-audit`)
+# Read-only QA audit
 
-A presentation is only marked as **PASSED / ACCEPTED** when it fulfills 100% of the rigorous automated quality assurance criteria.
+Own inspection and defect detection. Use `pmg.validator.StaticValidator`,
+`VisualAnimationReviewer` and shared `pmg.models.AuditReport`, `ReviewDefect` and
+`ReviewReport`. Do not create a parallel validator, repair objects or start a
+repair loop. Return findings to pmg-review-validation/PMGOrchestrator.
 
----
+Inspect package parts, ContentTypes, XML, relationships, duplicate IDs, object
+geometry, media, Morph identities, animation targets/timing and compatibility.
+Use actual native export/slideshow evidence for temporal/visibility inspection.
+As Scene Graph/mask/asset interfaces are released, inspect their integrity through
+the same report model, not separate incompatible reports.
 
-## 1. Automated Audit Criteria
+Intentional layering, masks, foreground occlusion, glass overlays and text over
+imagery are permitted. Report accidental collisions or obscured readable content;
+do not restore a global zero-overlap rule. Text-density guidance is contextual,
+not proof of correct motion. Inspect actual measured FPS rather than assuming 60.
 
-Every PMG presentation must satisfy the 5-point verification matrix:
-
-| Metric | Required Threshold | Verification Method |
-| :--- | :--- | :--- |
-| **Transition Coverage** | **100% of transitions orchestrated** | OpenXML parser verifies `<p159:morph>`, `<p:circle>`, `<p:fade>`, `<p:split>` |
-| **Traveling Entity Tracking** | **Verified '!!' continuous anchors** | Checks coordinate continuity across consecutive slides |
-| **Word Count (Visual-First)** | **$\le 25$ words/slide in 3D, $\le 35$ in Academic** | Text token counter across all shapes |
-| **Aspect Ratio Integrity** | **Zero distortion** | Verifies $W_2/W_1 = H_2/H_1$ across `!!` shapes |
-| **Zero Overlap** | **$0$ Collisions** | Bounding box spatial intersection check |
-
----
-
-## 2. Using `scripts/slide_inspector.py`
-
-Run the automated inspection tool against any generated `.pptx`:
-
-```bash
-python scripts/slide_inspector.py Deck_Output.pptx
-```
-
-### Sample Output:
 ```text
-======================================================================
-[*] RUNNING MOTION & TRANSITION QA AUDIT ON: Demo_Showcase.pptx
-======================================================================
-[+] Total slides detected: 5
-  Slide 01: Transition [PASS (None / Cover)  ] | Words: 12 [PASS]
-  Slide 02: Transition [PASS (Morph)         ] | Words: 18 [PASS]
-  Slide 03: Transition [PASS (Morph)         ] | Words: 21 [PASS]
-  Slide 04: Transition [PASS (Morph)         ] | Words: 19 [PASS]
-  Slide 05: Transition [PASS (Circle Wipe)   ] | Words: 14 [PASS]
-----------------------------------------------------------------------
-[+] Transition Choreography Coverage: 5/5 slides (100.0%)
-[+] Traveling Morph Anchors Detected: 2 ['!!Traveling_Hero', '!!prog_fill']
-[+] Visual-First Word Count Compliance: 5/5 slides (100.0%)
-[+] Average Words/Slide: 16.8 words
-======================================================================
-[RESULT: VERIFIED & ACCEPTED] Presentation meets PMG Motion Design standards!
-======================================================================
+python -m pmg inspect Deck.pptx --timeline-out expected_timeline.json
+python scripts/slide_inspector.py Deck.pptx
 ```
-
----
-
-## 3. High-Definition 60 FPS Video Export Protocol
-
-Never deliver static slide screenshots when reviewing motion graphics. Export full 60 FPS broadcast-grade MP4 video directly from PowerPoint:
 
 ```python
-from scripts.motion_graph_kit import export_deck_to_video
-
-# Automatically exports native 60 FPS MP4 video with full transitions
-video_file = export_deck_to_video(
-    pptx_path="examples/showcase.pptx",
-    video_path="examples/showcase_demo.mp4",
-    slide_duration=3.5,
-    fps=60,
-    resolution=1080
-)
+from pmg import StaticValidator
+audit = StaticValidator().validate("Deck.pptx")
+print(audit["is_valid"], audit["status"], audit["defects"])
 ```
 
-PowerPoint's hardware rendering engine captures all 60 FPS Morph interpolations, 3D rotations, and traveling entity flights in crisp 1080p video.
+`is_valid=True` in a static audit is NOT_VERIFIED for real playback. The legacy
+slide_inspector and motion_validator inspection APIs delegate here and cannot
+certify delivery. Package compatibility defects are critical; a repair prompt,
+missing native effects or absent evidence must reach the orchestrator's gate.

@@ -55,6 +55,8 @@ class WorkerJobResult:
     video_analysis: Dict[str, Any] = field(default_factory=dict)
     error: Optional[str] = None
     elapsed_sec: float = 0.0
+    clean_open: Dict[str, Any] = field(default_factory=dict)
+    validated_pptx_sha256: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

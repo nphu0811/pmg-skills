@@ -10,10 +10,12 @@ import shutil
 import platform
 import subprocess
 import importlib
+import json
+from importlib import metadata
 from datetime import datetime, timezone
 from typing import Dict, Any, List
 
-VERSION = "1.5.1"
+VERSION = "1.5.2"
 
 
 def get_repo_root() -> str:
@@ -22,6 +24,9 @@ def get_repo_root() -> str:
 
 def get_git_commit() -> str:
     """Returns the current Git commit SHA or 'unknown' if outside a git worktree."""
+    installed = _installed_vcs_info()
+    if installed.get("commit_id"):
+        return installed["commit_id"]
     try:
         res = subprocess.run(
             ["git", "rev-parse", "HEAD"],
@@ -39,6 +44,9 @@ def get_git_commit() -> str:
 
 def get_git_branch() -> str:
     """Returns the current Git branch name."""
+    installed = _installed_vcs_info()
+    if installed.get("commit_id"):
+        return installed.get("requested_revision", "installed")
     try:
         res = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
@@ -52,6 +60,21 @@ def get_git_branch() -> str:
     except Exception:
         pass
     return "unknown"
+
+
+def _installed_vcs_info() -> Dict[str, Any]:
+    """Read pip's actual pinned VCS origin when running an installed package."""
+    if os.path.isdir(os.path.join(get_repo_root(), ".git")):
+        return {}
+    try:
+        distribution = metadata.distribution("pmg-skills")
+        installed_module = distribution.locate_file("pmg/version.py")
+        if os.path.realpath(installed_module) != os.path.realpath(__file__):
+            return {}
+        direct_url = json.loads(distribution.read_text("direct_url.json") or "{}")
+        return direct_url.get("vcs_info", {})
+    except (metadata.PackageNotFoundError, ValueError, OSError, TypeError):
+        return {}
 
 
 def verify_runtime_dependencies(require_windows_com: bool = False) -> Dict[str, Any]:

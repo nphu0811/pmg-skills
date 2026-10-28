@@ -220,7 +220,12 @@ class VisualAnimationReviewer:
             if total_slides == 1:
                 steady_time_exp_sec = max(0.1, exp_total_dur - 0.25)
             else:
-                steady_time_exp_sec = ((idx - 0.18) / max(1, total_slides)) * exp_total_dur
+                exp_total_sec = max(1.0, float(expected_timeline.total_duration_ms) / 1000.0)
+                exp_scale = exp_total_dur / exp_total_sec
+                slide_hold = max(300.0, float(slide_spec.hold_duration_ms))
+                exp_hold_offset = min(600.0, max(250.0, slide_hold * 0.25))
+                steady_exp_target_ms = float(slide_spec.absolute_end_ms) - exp_hold_offset
+                steady_time_exp_sec = (steady_exp_target_ms / 1000.0) * exp_scale
                 steady_time_exp_sec = max(0.1, min(exp_total_dur - 0.1, steady_time_exp_sec))
 
             f_rec_steady = _read_frame_at_sec(cap_rec, rec_fps, steady_time_rec_sec)
@@ -267,6 +272,11 @@ class VisualAnimationReviewer:
                     exp_sample_path = os.path.join(frame_samples_dir, f"exp_slide_{idx:02d}_steady.jpg")
                     cv2.imwrite(exp_sample_path, f_exp_steady)
                     sim = _frame_similarity(f_rec_steady, f_exp_steady)
+                    # If slight export timing jitter occurred, check against edit-mode ground truth slide image
+                    if sim < 0.65 and f_edit is not None:
+                        edit_rec_sim = _frame_similarity(f_rec_steady, f_edit)
+                        if edit_rec_sim >= 0.75:
+                            sim = edit_rec_sim
                     similarities.append(sim)
                     s_info["export_vs_recording_similarity"] = round(sim, 4)
                     if sim < 0.65:

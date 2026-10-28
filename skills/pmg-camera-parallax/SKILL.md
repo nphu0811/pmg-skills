@@ -1,9 +1,17 @@
 ---
 name: pmg-camera-parallax
-description: "Virtual multi-plane camera choreography and parallax mechanics: wide establishing shots, macro push-in zooms (100% to 240%), 3-plane speed ratios (BG 0.7x, Mid 1.0x, FG 1.4x), and cinematic tracking pans."
+description: "Plan and apply shared virtual camera transforms, paths, pan, zoom, depth layers and multi-plane parallax. Used by 3D composition; does not own model preparation or rotation."
 ---
 
 # PMG Camera & Parallax Engine (`pmg-camera-parallax`)
+
+## Responsibility and dependencies
+
+Shared camera transforms, paths, pan/zoom, depth coordinates, parallax, camera-relative placement and continuity. 3D/model composition must reuse this system. Canonical rig consolidation is staged in v1.7.0; retain working legacy APIs meanwhile.
+
+Dependencies: pmg-engine; core geometry; Morph/native motion compilers. All generated candidates must pass
+PMGOrchestrator before delivery; direct save/COM snippets below are lower-level
+composition examples, not independent production entrypoints.
 
 A presentation should not feel like flat slides changing; it must feel like a **continuous 3D space viewed through a virtual cinematic camera**.
 

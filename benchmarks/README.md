@@ -1,4 +1,4 @@
-# PMG Animation Benchmark Suite (`v1.5.1`)
+# PMG Animation Benchmark Suite (24-case baseline)
 
 The **PMG Animation Benchmark Suite** evaluates PMG's native PowerPoint animation generation, OpenXML `<p:timing>` compilation, Morph choreography, reverse engineering, visibility-aware validation, and 3-loop self-healing across **24 canonical benchmark cases**.
 
@@ -43,4 +43,15 @@ pmg benchmark run --all
 pmg benchmark run --case 21
 pmg benchmark report
 ```
+
+Use `--worker static` for structural checks. Those cases remain NOT_VERIFIED for
+real playback, even when the structural benchmark assertion succeeds. A critical
+package/compatibility/playback defect blocks orchestrator certification regardless
+of aggregate metrics. Compatible technical fallback is inside the same maximum
+three repair attempts; the benchmark runner never creates another repair loop.
+
+The [continued roadmap](../docs/development-roadmap.md) extends this existing suite
+with decomposition, shared graphs, cinematic and creative cases in their owning
+releases. It does not create another benchmark infrastructure or claim subjective
+creative quality from code tests.
 

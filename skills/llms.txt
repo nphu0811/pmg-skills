@@ -1,51 +1,64 @@
-# PowerPoint Motion Graphics (PMG) AI Skills Index (v1.1.0)
+# PMG Skills Index
 
-> Modular AI Skills & Canonical Native Engine for creating broadcast-grade Motion Graphics PowerPoint presentations (.pptx).
-> Modeled after Agent Skills standard (agentskills.io). Compatible with Claude Code, Cursor, Copilot, Antigravity, Windsurf.
+Skill/runtime version: v1.5.2. Published tags require exact-commit reinstall and playback retesting.
+Release status: https://github.com/nphu0811/pmg-skills/releases
+Future releases: v1.6.0, v1.7.0, v1.8.0, then v2.0.1; each is gated.
 
-## Skills
+Use the canonical pmg engine for production. Install its Python runtime
+separately from SKILL.md files, pinned to the same verified published commit.
+Do not assume host agents automatically load dependent skills. Explicitly
+load relevant installed guidance and use actual available engine APIs.
 
-### pmg-engine (Canonical Entrypoint)
-- **Summary:** Main Engine-First entrypoint (`python -m pmg` / `PMGOrchestrator`). Enforces canonical engine execution, native editable PowerPoint objects, real PowerPoint slideshow playback recording, AI video review, 3-loop self-healing, and final PPTX delivery gating.
-- **Triggers:** "use pmg skills", "pmg build", "create powerpoint with pmg", "animated powerpoint", "motion graphics presentation"
-- **Path:** skills/pmg-engine/SKILL.md
+## pmg-engine
+- Responsibility: Create or validate animated PPTX through the canonical PMG engine. Routes professional presentation, logo-to-PPTX and reference-animation requests to installed capabilities, real PowerPoint playback and the final delivery gate.
+- Triggers: professional animated PPTX; presentation from a logo; recreate slide animation from video; PMG build/validate
+- Path: skills/pmg-engine/SKILL.md
 
-### pmg-core
-- **Summary:** Core 16:9 widescreen canvas (13.333" x 7.5"), bright modern light palettes, typographic hierarchy, and anti-overlap bounding box geometry.
-- **Triggers:** "create powerpoint", "pptx setup", "presentation canvas", "pptx layout", "typography scale", "pptx colors"
-- **Path:** skills/pmg-core/SKILL.md
+## pmg-core
+- Responsibility: Plan native PPTX layout, typography, geometry and readable layered composition. Allows intentional overlap; delegates production and animation compilation to the canonical PMG engine.
+- Triggers: canvas, layout, typography, hierarchy, readable layers
+- Path: skills/pmg-core/SKILL.md
 
-### pmg-morph
-- **Summary:** Hardware-accelerated 60 FPS PowerPoint Morph engine, OpenXML <p159:morph> injection, "!!" identifier naming invariants, and aspect-ratio locks.
-- **Triggers:** "morph transition", "smooth transition pptx", "!! naming", "openxml morph", "60fps animation", "shape transform"
-- **Path:** skills/pmg-morph/SKILL.md
+## pmg-morph
+- Responsibility: Compile technical cross-slide PowerPoint Morph, persistent !! identity matching and anchor compatibility. Used by choreography for Morph; does not own narrative sequencing or camera direction.
+- Triggers: Morph XML, persistent identifiers, cross-slide object matching, anchor compatibility
+- Path: skills/pmg-morph/SKILL.md
 
-### pmg-glassmorphism
-- **Summary:** Authentic frosted glass scrims, OpenXML alpha blending (a:alpha), glowing hairline borders (0.75pt - 1.5pt), multi-tier translucent depth, and contrast systems.
-- **Triggers:** "glassmorphism", "frosted glass", "transparent card", "glowing border", "hud card"
-- **Path:** skills/pmg-glassmorphism/SKILL.md
+## pmg-choreography
+- Responsibility: Direct narrative motion, choose effects and coordinate objects and cinematic timing. Reuses shared Morph, camera, native animation and preset engines; becomes Motion Director through the gated roadmap.
+- Triggers: motion direction, narrative sequence, coordinated animation, cinematic timing, scene transitions
+- Path: skills/pmg-choreography/SKILL.md
 
-### pmg-camera-parallax
-- **Summary:** Virtual multi-plane camera choreography, establishing wide shots, macro push-in zooms (100% -> 240%), 3-plane speed ratios (BG 0.7x, Mid 1.0x, FG 1.4x), and tracking pans.
-- **Triggers:** "camera zoom", "parallax", "push in zoom", "camera pan", "multi-plane", "spatial presentation"
-- **Path:** skills/pmg-camera-parallax/SKILL.md
+## pmg-camera-parallax
+- Responsibility: Plan and apply shared virtual camera transforms, paths, pan, zoom, depth layers and multi-plane parallax. Used by 3D composition; does not own model preparation or rotation.
+- Triggers: camera paths, pan, zoom, depth, parallax, camera-relative positioning
+- Path: skills/pmg-camera-parallax/SKILL.md
 
-### pmg-3d-cinematic
-- **Summary:** Visual-First 3D explainer engine for technical, industrial, and scientific decks: cutaway models, ultra-minimal text (<= 25 words/slide), leader lines, and target dots.
-- **Triggers:** "3d cutaway", "industrial explainer", "visual first", "leader line callout", "target dot", "minimal text slide"
-- **Path:** skills/pmg-3d-cinematic/SKILL.md
+## pmg-3d-cinematic
+- Responsibility: Prepare and compose 3D assets, model orientation, technical cutaways, exploded views and annotations. Reuses the shared camera system; requires actual PowerPoint model compatibility evidence.
+- Triggers: 3D models, orientation, cutaways, exploded views, model annotations
+- Path: skills/pmg-3d-cinematic/SKILL.md
 
-### pmg-choreography
-- **Summary:** Opening & ending cinematic choreography: Spotify UI shell unlock, 3D orbiting carousels, native transitions (Morph, Circle Wipe, Split Curtain, Fade), and thematic traveling motion.
-- **Triggers:** "opening slide", "intro animation", "outro slide", "ending animation", "aperture burst", "credits showcase"
-- **Path:** skills/pmg-choreography/SKILL.md
+## pmg-glassmorphism
+- Responsibility: Compose translucent acrylic PowerPoint surfaces, borders and readable overlays with intentional layering. Uses shared native shape helpers and delegates animation to the PMG engine.
+- Triggers: acrylic surfaces, translucent panels, alpha, borders, readable overlays
+- Path: skills/pmg-glassmorphism/SKILL.md
 
-### pmg-qa-audit
-- **Summary:** Automated QA audit engine: slide inspection, 100% transition coverage, word count limits, FFprobe video inspection, and live slideshow recording.
-- **Triggers:** "inspect slide", "verify pptx", "qa audit", "check morph", "word count limit", "export video"
-- **Path:** skills/pmg-qa-audit/SKILL.md
+## pmg-qa-audit
+- Responsibility: Inspect PPTX integrity, geometry, Morph anchors, native timing, assets, compatibility and playback evidence without modifying the presentation. Produces shared structured defects; does not repair or certify delivery.
+- Triggers: inspect PPTX, detect defects, inspect compatibility, audit playback evidence
+- Path: skills/pmg-qa-audit/SKILL.md
 
-### pmg-review-validation
-- **Summary:** Automated deck review, real playback video validation, and self-healing engine: 3-loop auto-repair of missing transitions/anchors, fallback skill substitution, and mandatory delivery certification gate.
-- **Triggers:** "review pptx", "validate motion", "check animations", "auto repair slides", "quality gate", "final delivery check"
-- **Path:** skills/pmg-review-validation/SKILL.md
+## pmg-review-validation
+- Responsibility: Consume PMG audit defects, choose repair strategies and request fresh validation through PMGOrchestrator. Owns repair policy and certification decisions using one maximum-three-attempt technical repair budget.
+- Triggers: repair PPTX, review defects, delivery gate, final certification
+- Path: skills/pmg-review-validation/SKILL.md
+
+## Future skill routing (not yet implemented in this release)
+- v1.6.0 pmg-visual-assets: image/icon/video research, licenses, attribution, selection and preparation; no animation compiler.
+- v1.6.0 pmg-image-decomposer: semantic/geometric/depth layers, masks, vectors and reassembly; no completed PPTX generation.
+- v1.7.0 pmg-storyboard: narrative, scene choice, hierarchy, pacing and asset needs; passes plan to Motion Director, no XML.
+- v1.7.0 shared Scene Graph/Motion Graph and Motion Director are APIs, not separate skills.
+- v2.0.1 extends choreography/storyboard after v1.8.0; no competing director/compiler skills.
+- Existing pmg.animations, cinematic_builder, reverse_engineer, video_reconstructor, worker and benchmarks are reused.
+- Full ownership and release acceptance: docs/architecture.md and docs/development-roadmap.md.

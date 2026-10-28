@@ -12,8 +12,9 @@ import shutil
 import threading
 from typing import Dict, Any, Optional
 
-from pmg.models import ValidationStatus, VideoMetadata, ReviewReport
-from pmg.validator import StaticValidator, extract_expected_timeline
+from pmg.models import ValidationStatus, VideoMetadata, ReviewReport, ReviewDefect
+from pmg.validator import StaticValidator, extract_expected_timeline, inspect_powerpoint_compatibility
+from pmg.worker.powerpoint_probe import verify_clean_powerpoint_open, file_sha256
 from pmg.visual_reviewer import VisualAnimationReviewer
 from pmg.worker.result_schema import WorkerJobRequest, WorkerJobResult
 from pmg.worker.security import (
@@ -127,6 +128,15 @@ class WorkerJobManager:
             # 2. Static validation & ExpectedTimeline extraction
             result.state = "validating"
             static_val = self.validator.validate(staged_pptx)
+            result.static_validation = static_val
+            if not static_val["is_valid"]:
+                result.state = "failed"
+                result.validation_status = ValidationStatus.FAIL.value
+                result.review_report = ReviewReport(
+                    status=ValidationStatus.FAIL,
+                    defects=[ReviewDefect(**d) for d in static_val.get("defects", [])],
+                    summary="Read-only package audit failed; worker never repairs uploads.").to_dict()
+                return result
             timeline = extract_expected_timeline(staged_pptx, hold_duration_ms=hold_duration_ms)
             timeline.save(os.path.join(qa_dir, "expected_timeline.json"))
             result.static_validation = static_val
@@ -151,6 +161,14 @@ class WorkerJobManager:
                     result.state = "timed_out"
                     result.validation_status = ValidationStatus.BLOCKED.value
                     result.error = f"Job timed out waiting for COM lock ({timeout_sec}s)."
+                    return result
+
+                before_hash = file_sha256(staged_pptx)
+                result.clean_open = verify_clean_powerpoint_open(staged_pptx)
+                if not result.clean_open.get("is_clean"):
+                    result.state = "failed"
+                    result.validation_status = ValidationStatus.FAIL.value
+                    result.error = result.clean_open.get("error", "Worker PowerPoint opening was not clean.")
                     return result
 
                 # 3. Native PowerPoint Video Export (+ Edit-Mode Reference Slide PNGs)
@@ -183,6 +201,8 @@ class WorkerJobManager:
                 )
                 result.recording_video = rec_meta.to_dict()
                 result.recording_telemetry = telemetry
+                result.clean_open = verify_clean_powerpoint_open(staged_pptx)
+                result.validated_pptx_sha256 = file_sha256(staged_pptx)
 
             # 5. AI & Computer Vision Visual Review
             result.state = "analyzing"
@@ -195,6 +215,14 @@ class WorkerJobManager:
                 qa_dir=qa_dir,
             )
             result.review_report = report.to_dict()
+            compatibility_defects = inspect_powerpoint_compatibility(static_val, result.clean_open)
+            if result.validated_pptx_sha256 != before_hash:
+                compatibility_defects.append(ReviewDefect("powerpoint_compatibility", "critical", 0, None,
+                                                          "Uploaded PPTX bytes changed during worker validation."))
+            if compatibility_defects:
+                report.defects.extend(compatibility_defects)
+                report.status = ValidationStatus.FAIL
+                result.review_report = report.to_dict()
             result.video_analysis = video_analysis
             result.validation_status = report.status.value
             result.state = "completed"

@@ -17,6 +17,8 @@ When writing, suggesting, or modifying PMG presentation code:
   - `fade`: Reflective mood shifts and problem-to-solution transitions.
 - **Frosted Glassmorphism:** Implement frosted acrylic cards using 90%–94% alpha fill scrims (`<a:alpha val="92000"/>`), subtle glowing hairline borders (`0.75pt - 1.25pt`), and multi-tier translucent layering.
 - **Word Count Limits:** Enforce Visual-First principles: maximum 25–35 words per slide. Avoid walls of bullet points; use HUD callout boxes, target dots, and metric badges instead.
-- **Validation Gate:** Every generated presentation must pass `pmg-review-validation` (or `scripts/motion_validator.py`) with 3-loop auto-repair before delivery.
+- **Validation Gate:** Every generated presentation must pass PMGOrchestrator, including real playback and final clean reopen. QA is read-only; review selects repairs. Only the orchestrator owns the maximum-three-attempt budget; legacy scripts delegate and cannot independently certify delivery.
 
 **More detail:** The `skills/` directory contains full `SKILL.md` specifications (`pmg-core`, `pmg-morph`, `pmg-choreography`, `pmg-glassmorphism`, `pmg-camera-parallax`, `pmg-3d-cinematic`, `pmg-qa-audit`, `pmg-review-validation`). Install this repository as an Agent Skill for the complete reference.
+
+Use [architecture boundaries](../docs/architecture.md) and the [continued roadmap](../docs/development-roadmap.md). Choreography invokes shared Morph/camera/native compilers; 3D reuses the camera system. Allow intentional layering and protect readable regions.

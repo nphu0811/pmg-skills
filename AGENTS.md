@@ -35,14 +35,14 @@ Agents should route user requests to the appropriate modular skill:
 | Skill | Directory | When to Activate |
 | :--- | :--- | :--- |
 | **`pmg-engine`** | `skills/pmg-engine/` | **Canonical Engine-First Entrypoint:** Mandatory whenever PMG Skills is requested. Executes `pmg` engine, real PowerPoint playback recording, AI video review, 3-loop repair, and final `.pptx` delivery gate. |
-| **`pmg-core`** | `skills/pmg-core/` | Base layout, 16:9 canvas geometry (`13.333" x 7.5"`), **bright modern light palettes as primary default**, zero-overlap math. |
+| **`pmg-core`** | `skills/pmg-core/` | Base layout, 16:9 canvas geometry (`13.333" x 7.5"`), **bright modern light palettes as primary default**, readability and intentional layering. |
 | **`pmg-morph`** | `skills/pmg-morph/` | PowerPoint Morph transitions, OpenXML `<p159:morph>`, `!!` identifier invariants, **thematic cross-slide traveling entities**. |
-| **`pmg-choreography`** | `skills/pmg-choreography/` | Native transitions suite (Morph, Circle, Split, Fade), **Spotify Radial Morph App Shell unlock**, and **3D Orbiting Carousels**. |
+| **`pmg-choreography`** | `skills/pmg-choreography/` | High-level motion direction, selection, narrative sequencing and timing; invokes shared Morph, camera and native animation compilers. |
 | **`pmg-glassmorphism`** | `skills/pmg-glassmorphism/` | Frosted acrylic glass cards (90%-94% alpha), subtle glowing hairline borders (`0.75pt - 1.25pt`), multi-tier depth. |
 | **`pmg-camera-parallax`** | `skills/pmg-camera-parallax/` | Multi-plane parallax speeds (BG 0.7x, Mid 1.0x, FG 1.4x), macro push-in zooms ($100\% \to 400\%$), tracking pans. |
-| **`pmg-3d-cinematic`** | `skills/pmg-3d-cinematic/` | Visual-First explainers for science & industry. Native `.glb` 3D models (`<am3d:model3d>`), Extreme Macro Dolly Zoom ($100\% \to 400\%$), Target Dots + Leader lines. |
-| **`pmg-qa-audit`** | `skills/pmg-qa-audit/` | Running `scripts/slide_inspector.py`, verifying transition coverage, **60 FPS MP4 video export via PowerPoint COM**. |
-| **`pmg-review-validation`** | `skills/pmg-review-validation/` | Mandatory delivery gate: review deck, validate motion/transitions, **3-loop auto-repair cycle**, fallback skill substitution, and final completion seal. |
+| **`pmg-3d-cinematic`** | `skills/pmg-3d-cinematic/` | Model preparation, placement/orientation, cutaways and annotations; reuses the camera system. Verify actual host model support. |
+| **`pmg-qa-audit`** | `skills/pmg-qa-audit/` | Read-only structured inspection of package, layout, anchors, timing, media, compatibility and playback evidence; no repairs or certification. |
+| **`pmg-review-validation`** | `skills/pmg-review-validation/` | Consumes shared audit reports, chooses repairs and certification policy; orchestrator owns one maximum-three-attempt loop and final authority. |
 
 ---
 
@@ -63,12 +63,14 @@ Agents should route user requests to the appropriate modular skill:
 ### D. Zero Static Image Clutter in `examples/`
 - Deliver demonstration artifacts as **high-definition 60 FPS MP4 videos** in `examples/`, capturing actual motion and transitions in real time.
 
-### E. The Mandatory Review & Auto-Healing Delivery Gate
+### E. The Mandatory Review, OPC Compliance & Zero-Repair Delivery Gate
 - **Mandatory Engine-First Execution:** Always execute the canonical `pmg` engine (`pmg.orchestrator.PMGOrchestrator` or `python -m pmg`). Do not bypass the engine with ad-hoc `python-pptx` code, and never flatten slides into screenshots or video backgrounds.
 - **Real Playback & Video Review:** Every presentation must undergo static validation, native PowerPoint video export (`powerpoint_export.mp4`), actual Microsoft PowerPoint Desktop Slide Show recording (`actual_slideshow_recording.mp4`), and AI/CV visual review against `expected_timeline.json`.
-- **Never deliver unverified decks:** An AI agent is strictly forbidden from declaring a presentation complete without passing `pmg-review-validation` and `PMGOrchestrator` (`status == "PASS"`).
-- **3-Loop Auto-Repair:** Automatically diagnose and heal missing transitions, bridge broken `!!` anchors, and correct timing anomalies up to 3 cycles, re-rendering and re-recording after every repair.
-- **Fallback Skill Substitution:** If an effect remains unresolved after 3 repair loops, substitute with an alternative compatible native effect, re-loop validation, and certify only upon 100% pass.
+- **OPC ContentType Declaration:** When embedding manifest JSON in PPTX (`ppt/pmg_execution_manifest.json`), always declare a valid ContentType in `[Content_Types].xml` (`<Default Extension="json" ContentType="application/json"/>`) and write a companion manifest (`<pptx_path>.manifest.json`) outside the package. Unmapped parts that trigger the PowerPoint Repair dialog are strictly prohibited.
+- **Zero Modifications Post-Validation:** NEVER modify a `.pptx` file after marking validation `PASS` without re-running full verification. The deliverable is frozen and verified in its final byte state.
+- **Mandatory Clean COM Open Verification:** The final packaged deliverable must be opened in Microsoft PowerPoint Desktop COM with `DisplayAlerts = ppAlertsAll` (`2`; `1` suppresses alerts), with `OpenAndRepair=False` to ensure zero "Repair presentation" prompts or corruption warnings.
+- **One Repair Budget:** Only PMGOrchestrator orchestrates up to three technical repair attempts using pmg.self_healing operations and shared audit reports. QA never repairs. Repackage, re-render and re-record after every repair.
+- **Fallback Within Budget:** Use compatible native effect substitution inside attempt three; do not start extra repair loops or reset the budget. Unresolved defects block delivery.
 - **Final Delivery Policy:** Deliver **ONLY** the final validated `.pptx` file to the user. Keep `internal_qa/<run_id>/` videos, keyframes, and JSON reports internal unless explicitly requested by the user.
 
 ---
@@ -77,7 +79,39 @@ Agents should route user requests to the appropriate modular skill:
 
 - `pmg/` (`pmg.orchestrator`, `pmg.engine`, `pmg.validator`, `pmg.video_pipeline`, `pmg.visual_reviewer`, `pmg.self_healing`, `pmg.cli`): Canonical Python package and CLI (`pmg build`, `pmg validate`, `pmg render`, `pmg record`, `pmg review`, `pmg inspect`, `pmg reconstruct`).
 - `scripts/motion_graph_kit.py`: Core presentation builder with light themes, frosted cards, multi-transition suite, traveling entities, and video export.
-- `scripts/motion_validator.py`: Automated review, validation, 3-loop auto-repair, and fallback skill substitution engine.
-- `scripts/slide_inspector.py`: Automated QA audit engine checking transitions, traveling anchors, and word counts.
+- `scripts/motion_validator.py`: Backward compatible adapter to shared read-only QA and canonical orchestrator repair/certification; no separate validator or loop.
+- `scripts/slide_inspector.py`: Read-only adapter to pmg.validator.StaticValidator structured reports.
 - `scripts/pptx_morph_injector.py`: Standalone CLI transition injector.
 
+
+## 5. Distinct ownership and continued roadmap
+
+Follow [docs/architecture.md](docs/architecture.md) for primary responsibility and
+dependencies. Morph owns technical cross-slide compilation; choreography decides
+what/why/when and invokes Morph. Camera owns transforms/paths/depth/continuity;
+3D owns models/cutaways/orientation/annotations and reuses camera. QA detects
+defects read-only; review chooses repairs; orchestrator remains final authority.
+All use pmg.models audit/defect/review records. Do not create competing compilers,
+segmentation systems, validators, benchmark suites or repair loops.
+
+Allow intentional overlap, masks, translucent overlays and text over imagery.
+Protect readable regions and report accidental collisions; no global zero-overlap
+rule. Keep object identity, hierarchy, geometry/units, mask references, z-order,
+layer IDs, pivots and animation targets consistent in shared interfaces.
+
+Runtime installation is required after copying skills. Verify `python -m pmg
+--version` and install the same published commit as the skill when missing.
+Explicitly load dependencies on hosts without automatic discovery. Never assume
+SKILL.md installation includes the Python package.
+
+Continue [docs/development-roadmap.md](docs/development-roadmap.md) without
+restarting existing work: v1.5.2 → v1.6.0 → v1.7.0 → v1.8.0 → v2.0.1. Only begin
+the next implementation after the prior release passes publish/install/retest
+and real playback gates. v2.0.1 upgrades existing choreography/storyboard into
+Creative Motion Intelligence; it adds no competing director/graph/compiler skills.
+Do not claim future roadmap interfaces as working functionality.
+
+The responsibility audit baseline was v1.5.1; reliability work is v1.5.2. Publication
+requires the recorded release gates, including a published-commit reinstall. Packaging
+precedes full validation. Embedded provenance is NOT_VERIFIED and points to the
+external companion containing final status/hash. Never modify the certified PPTX.

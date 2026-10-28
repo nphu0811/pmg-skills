@@ -581,4 +581,6 @@ def record_actual_slideshow(
         requested_fps=target_fps,
         dropped_frames=telemetry.get("dropped_frames", 0),
     )
+    with open(os.path.join(os.path.dirname(abs_video), "recording_telemetry.json"), "w", encoding="utf-8") as stream:
+        json.dump(telemetry, stream, indent=2)
     return meta, telemetry

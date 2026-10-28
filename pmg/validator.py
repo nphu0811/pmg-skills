@@ -17,8 +17,11 @@ Verifies:
 
 import os
 import re
+import posixpath
 import zipfile
 import xml.etree.ElementTree as ET
+from collections import Counter
+from urllib.parse import unquote, urlsplit
 from typing import Dict, List, Any, Tuple, Optional
 
 from pptx import Presentation
@@ -30,6 +33,7 @@ from pmg.models import (
     SlideTimelineSpec,
     ExpectedTimeline,
     ReviewDefect,
+    AuditReport,
 )
 from pmg.animations import parse_slide_timing_openxml
 
@@ -42,6 +46,118 @@ NS = {
     "p14": "http://schemas.microsoft.com/office/powerpoint/2010/main",
     "p159": "http://schemas.microsoft.com/office/powerpoint/2015/09/main",
 }
+
+
+def inspect_package_integrity(package: zipfile.ZipFile) -> List[ReviewDefect]:
+    """Read all OPC declarations, XML and relationships without writing a part."""
+    defects: List[ReviewDefect] = []
+
+    def defect(part, message, hint="repair_pptx_openxml"):
+        defects.append(ReviewDefect("openxml_structure", "critical", 0, part, message, hint))
+
+    names = set(package.namelist())
+    for part, count in Counter(package.namelist()).items():
+        if count > 1:
+            defect(part, f"Duplicate package part '{part}' ({count} copies).")
+    for part in ("[Content_Types].xml", "_rels/.rels", "ppt/presentation.xml"):
+        if part not in names:
+            defect(part, f"Missing required package part '{part}'.")
+    xml_roots = {}
+    for part in sorted(names):
+        if part.endswith((".xml", ".rels")):
+            try:
+                xml_roots[part] = ET.fromstring(package.read(part))
+            except ET.ParseError as exc:
+                defect(part, f"Invalid XML in '{part}': {exc}")
+    ct = xml_roots.get("[Content_Types].xml")
+    ct_ns = "http://schemas.openxmlformats.org/package/2006/content-types"
+    if ct is not None:
+        if ct.tag != f"{{{ct_ns}}}Types":
+            defect("[Content_Types].xml", "Invalid Content Types root element or namespace.")
+        defaults, overrides = {}, {}
+        for node in ct:
+            if node.tag == f"{{{ct_ns}}}Default":
+                key = node.get("Extension", "").lower()
+                target = defaults
+            elif node.tag == f"{{{ct_ns}}}Override":
+                key = unquote(node.get("PartName", "")).lstrip("/")
+                target = overrides
+                if key not in names:
+                    defect(key, f"ContentType override references missing part '{key}'.")
+            else:
+                defect("[Content_Types].xml", f"Unknown ContentType declaration '{node.tag}'.")
+                continue
+            mime = node.get("ContentType", "")
+            if key in target or not key or "/" not in mime:
+                defect(key, f"Duplicate or invalid ContentType declaration for '{key}'.")
+            target[key] = mime
+        for part in sorted(names):
+            if part.endswith("/") or part == "[Content_Types].xml":
+                continue
+            extension = part.rsplit(".", 1)[-1].lower() if "." in part else ""
+            mime = overrides.get(part, defaults.get(extension))
+            if not mime:
+                defect(part, f"Package part '{part}' has no registered ContentType in [Content_Types].xml.",
+                       "declare_part_content_type")
+            elif part == "ppt/pmg_execution_manifest.json" and mime != "application/json":
+                defect(part, "Execution manifest must have ContentType application/json.", "declare_part_content_type")
+
+    rel_ns = "http://schemas.openxmlformats.org/package/2006/relationships"
+    relationships_by_owner = {}
+    for rel_path, root in xml_roots.items():
+        if not rel_path.endswith(".rels"):
+            continue
+        if root.tag != f"{{{rel_ns}}}Relationships":
+            defect(rel_path, f"Invalid Relationships namespace/root in '{rel_path}'.")
+            continue
+        if rel_path == "_rels/.rels":
+            owner = ""
+        elif "/_rels/" in rel_path:
+            directory, filename = rel_path.rsplit("/_rels/", 1)
+            owner = posixpath.join(directory, filename[:-5])
+            if owner not in names:
+                defect(rel_path, f"Relationships owner '{owner}' is missing.")
+        else:
+            defect(rel_path, f"Invalid relationships part location '{rel_path}'.")
+            continue
+        ids = set()
+        for rel in root:
+            rel_id, target = rel.get("Id", ""), rel.get("Target", "")
+            if not rel_id or rel_id in ids or not rel.get("Type") or not target:
+                defect(rel_path, f"Invalid or duplicate relationship '{rel_id}' in '{rel_path}'.")
+            ids.add(rel_id)
+            if rel.get("TargetMode") == "External":
+                continue
+            parsed = urlsplit(target)
+            path = unquote(parsed.path)
+            resolved = posixpath.normpath(path.lstrip("/") if path.startswith("/") else
+                                         posixpath.join(posixpath.dirname(owner), path))
+            if parsed.scheme or resolved.startswith("../") or resolved not in names:
+                defect(rel_path, f"Relationship '{rel_id}' references missing/invalid package part '{resolved}'.")
+        relationships_by_owner[owner] = ids
+    for owner, owner_root in xml_roots.items():
+        ids = relationships_by_owner.get(owner, set())
+        for element in owner_root.iter():
+            for attribute, reference in element.attrib.items():
+                if attribute.startswith(f"{{{NS['r']}}}") and reference not in ids:
+                    defect(owner, f"Object references undefined relationship '{reference}' in '{owner}'.")
+    return defects
+
+
+def inspect_powerpoint_compatibility(audit: Dict[str, Any], clean_open: Dict[str, Any]) -> List[ReviewDefect]:
+    """Compare read-only COM observations with native XML effects."""
+    if not clean_open.get("is_clean") or clean_open.get("skipped"):
+        return [ReviewDefect("powerpoint_compatibility", "critical", 0, None,
+                             clean_open.get("error", "Clean PowerPoint opening was not verified."))]
+    defects = []
+    for slide in audit.get("slides", []):
+        number = slide["slide_number"]
+        actual = clean_open.get("animation_counts", {}).get(str(number))
+        if actual != slide["native_animation_count"]:
+            defects.append(ReviewDefect("powerpoint_compatibility", "critical", number, None,
+                                        f"PowerPoint recognized {actual} effects; XML declares {slide['native_animation_count']}.",
+                                        "rebuild_timing_tree"))
+    return defects
 
 
 def _classify_semantic_role(
@@ -178,14 +294,23 @@ def extract_slide_objects(xml_bytes: bytes) -> List[Dict[str, Any]]:
         f"{{{NS['p']}}}graphicFrame": "diagram",
     }
 
-    for child in spTree:
-        obj_type = tag_map.get(child.tag)
-        if obj_type:
+    def visit(parent, parent_id=None):
+        for z_order, child in enumerate(parent):
+            obj_type = tag_map.get(child.tag)
+            if not obj_type:
+                continue
             parsed = _parse_shape_node(child, obj_type)
             if parsed:
+                parsed.update(parent_id=parent_id, z_order=z_order)
                 if obj_type == "shape" and parsed["text"]:
                     parsed["type"] = "textbox" if "TextBox" in parsed["name"] else "shape"
+                if obj_type == "group":
+                    parsed["text"] = ""  # Children are inspected separately.
                 objects.append(parsed)
+                if obj_type == "group":
+                    visit(child, parsed["id"])
+
+    visit(spTree)
     return objects
 
 
@@ -439,13 +564,19 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
     )
 
 
+def verify_clean_powerpoint_open(pptx_path: str, timeout_sec: float = 30.0) -> Dict[str, Any]:
+    """Backward compatible facade for the shared read-only worker probe."""
+    from pmg.worker.powerpoint_probe import verify_clean_powerpoint_open as probe
+    return probe(pptx_path, timeout_sec=timeout_sec)
+
+
 class StaticValidator:
     """
     Performs static OpenXML, geometry, media, transition, intra-slide animation timing,
     disappearing-object root-cause detection, and anti-shortcut validation.
     """
 
-    def validate(self, pptx_path: str) -> Dict[str, Any]:
+    def validate(self, pptx_path: str, verify_com_open: bool = False) -> Dict[str, Any]:
         defects: List[ReviewDefect] = []
         slide_summaries: List[Dict[str, Any]] = []
         traveling_anchors: Dict[str, List[int]] = {}
@@ -463,15 +594,13 @@ class StaticValidator:
                     description=f"Presentation file does not exist: {pptx_path}",
                 )
             )
-            return {
-                "is_valid": False,
-                "total_slides": 0,
-                "defects": [d.to_dict() for d in defects],
-            }
+            return AuditReport(defects, {"total_slides": 0}).to_dict()
 
         try:
             with zipfile.ZipFile(pptx_path, "r") as z:
                 namelist = set(z.namelist())
+                defects.extend(inspect_package_integrity(z))
+
                 if "ppt/presentation.xml" not in namelist:
                     defects.append(
                         ReviewDefect(
@@ -482,11 +611,7 @@ class StaticValidator:
                             description="Missing ppt/presentation.xml in package.",
                         )
                     )
-                    return {
-                        "is_valid": False,
-                        "total_slides": 0,
-                        "defects": [d.to_dict() for d in defects],
-                    }
+                    return AuditReport(defects, {"total_slides": 0}).to_dict()
 
                 pres_xml = z.read("ppt/presentation.xml").decode("utf-8", errors="ignore")
                 sldSz = re.search(r'<p:sldSz[^>]*cx="(\d+)"[^>]*cy="(\d+)"', pres_xml)
@@ -848,20 +973,27 @@ class StaticValidator:
                     description=f"Failed to parse PPTX package: {str(e)}",
                 )
             )
-            return {
-                "is_valid": False,
-                "total_slides": 0,
-                "defects": [d.to_dict() for d in defects],
-            }
+            return AuditReport(defects, {"total_slides": 0}).to_dict()
 
-        blocking = [d for d in defects if d.severity in ("critical", "major")]
-        return {
-            "is_valid": len(blocking) == 0,
+        if verify_com_open and not any(d.severity == "critical" for d in defects):
+            clean_res = verify_clean_powerpoint_open(pptx_path)
+            if not clean_res.get("is_clean", False):
+                defects.append(
+                    ReviewDefect(
+                        category="openxml_structure",
+                        severity="critical",
+                        slide_number=0,
+                        object_id=None,
+                        description=clean_res.get("error", "PowerPoint Repair or Open failure"),
+                        remediation_hint="repair_pptx_openxml",
+                    )
+                )
+
+        return AuditReport(defects=defects, details={
             "total_slides": len(slide_summaries),
             "total_native_animations": total_native_animations,
             "missing_transitions": missing_transitions,
             "traveling_anchors": traveling_anchors,
             "discontinuous_anchors": discontinuous_anchors,
             "slides": slide_summaries,
-            "defects": [d.to_dict() for d in defects],
-        }
+        }).to_dict()

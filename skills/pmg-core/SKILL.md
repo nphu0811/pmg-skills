@@ -1,9 +1,17 @@
 ---
 name: pmg-core
-description: "Core foundation for PowerPoint Motion Graphics (PMG): 16:9 widescreen canvas, bright modern light color systems as primary defaults, typographic scale hierarchy, bounded container geometry, and anti-overlap layout grids."
+description: "Plan native PPTX layout, typography, geometry and readable layered composition. Allows intentional overlap; delegates production and animation compilation to the canonical PMG engine."
 ---
 
 # PMG Core (`pmg-core`)
+
+## Responsibility and dependencies
+
+Layout, typography, readable regions and intentional layered composition. Uses existing layout helpers; does not compile motion XML.
+
+Dependencies: pmg-engine; style helpers; shared scene geometry as released. All generated candidates must pass
+PMGOrchestrator before delivery; direct save/COM snippets below are lower-level
+composition examples, not independent production entrypoints.
 
 The architectural foundation of **PowerPoint Motion Graphics (PMG)**. It establishes strict spatial geometry, aspect-ratio constraints, high-contrast luminescence tokens, and typographic hierarchy.
 
@@ -72,9 +80,11 @@ Use clean, geometric modern sans-serif typefaces (`Montserrat`, `Segoe UI`, `Int
 
 ---
 
-## 4. Zero-Overlap Grid Formula
+## 4. Readability and intentional overlap
 
-Every text box placed in PMG must have **explicitly calculated boundaries**:
+Protect readable regions with calculated boundaries. Intentionally overlapping
+images, masks, cards, glass surfaces and foreground layers are supported. For
+separate text blocks, use spacing such as:
 $$\text{Top}_{N+1} \ge \text{Top}_N + \text{Height}_N + \text{Gap}$$
 Where $\text{Gap} \ge 0.15 \text{ inches}$.
 

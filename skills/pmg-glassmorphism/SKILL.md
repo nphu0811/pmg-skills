@@ -1,9 +1,17 @@
 ---
 name: pmg-glassmorphism
-description: "Authentic frosted glassmorphism architecture for PowerPoint: light-mode acrylic surfaces, OpenXML alpha scrims (a:alpha), glowing hairline borders (0.75pt - 1.25pt), and multi-tier translucent depth."
+description: "Compose translucent acrylic PowerPoint surfaces, borders and readable overlays with intentional layering. Uses shared native shape helpers and delegates animation to the PMG engine."
 ---
 
 # PMG Glassmorphism (`pmg-glassmorphism`)
+
+## Responsibility and dependencies
+
+Acrylic surfaces, alpha, borders, contrast and layered composition. Supports intentional overlap, moving background layers and masks when implemented; does not own camera or animation compilation.
+
+Dependencies: pmg-engine; pmg-core; existing add_glass_card/theme helpers. All generated candidates must pass
+PMGOrchestrator before delivery; direct save/COM snippets below are lower-level
+composition examples, not independent production entrypoints.
 
 Glassmorphism in PMG creates high-end, tactile telemetry surfaces. It allows underlying motion, 3D elements, or photography to subtly reveal depth while maintaining 100% text readability.
 
@@ -85,6 +93,7 @@ For aerospace and late-night tech keynotes:
 from scripts.motion_graph_kit import MotionDeck
 
 deck = MotionDeck()
+slide = deck.add_slide(transition="none")
 deck.add_glass_card(
     slide,
     left=6.6,

@@ -1,11 +1,19 @@
 ---
 name: pmg-morph
-description: "Master PowerPoint 60 FPS Morph transition engine: OpenXML <p159:morph> injection, '!!' persistent identifier naming invariants, dynamic thematic traveling entities (satellite, vinyl, leaf, arrow, core), shape deformation rules, and aspect-ratio locks."
+description: "Compile technical cross-slide PowerPoint Morph, persistent !! identity matching and anchor compatibility. Used by choreography for Morph; does not own narrative sequencing or camera direction."
 ---
 
 # PMG Morph Engine (`pmg-morph`)
 
-PowerPoint Morph is the hardware-accelerated motion interpolation engine of PMG. When configured with strict OpenXML attributes, it produces broadcast-grade 60 FPS continuous animations matching Adobe After Effects and Apple Keynote.
+## Responsibility and dependencies
+
+Technical cross-slide Morph compilation: XML, object matching, persistent !! identities, geometry compatibility, anchor validation and Morph parameters. Choreography invokes these helpers and owns narrative motion choices.
+
+Dependencies: pmg-engine; motion_graph_kit transition APIs; shared object identities. All generated candidates must pass
+PMGOrchestrator before delivery; direct save/COM snippets below are lower-level
+composition examples, not independent production entrypoints.
+
+PowerPoint Morph is the hardware-accelerated motion interpolation engine of PMG. When configured with strict OpenXML attributes, it produces continuous animations whose actual playback frame rate must be measured.
 
 ---
 
@@ -22,9 +30,9 @@ To morph **Shape A** on Slide 1 into **Shape B** on Slide 2, both shapes must sh
 ```
 
 When PowerPoint detects matching `!!` prefixes:
-1. It bypasses default cross-fade.
-2. It linearly interpolates coordinates: `(x1, y1, w1, h1, rot1) -> (x2, y2, w2, h2, rot2)`.
-3. It smoothly blends fills, outlines, and opacity channels across 60 FPS.
+1. Compatible objects can be matched explicitly; unsupported pairs can still cross-fade.
+2. PowerPoint interpolates coordinates: `(x1, y1, w1, h1, rot1) -> (x2, y2, w2, h2, rot2)`.
+3. It smoothly blends fills, outlines, and opacity channels subject to PowerPoint compatibility and measured playback.
 
 ---
 
@@ -42,7 +50,7 @@ A persistent traveling entity must **match the specific topic** of the presentat
 
 ```
 Slide 1 (Entry / Launch):
-[ !!Traveling_Hero ] at (x: -1.5", y: 4.2", rot: +20°) ---> Enters from left margin
+[ !!Traveling_Hero ] at (x: -2.5", y: 4.2", rot: +20°) ---> Enters from left margin
            ↓  (Morph 1.6s)
 Slide 2 (Ascent & Survey):
                  [ !!Traveling_Hero ] at (x: 5.8", y: 1.8", rot: -10°) ---> Glides above Hero Title
@@ -107,7 +115,7 @@ from scripts.motion_graph_kit import MotionDeck
 
 deck = MotionDeck()
 s1 = deck.add_slide(transition="none")
-deck.add_thematic_traveling_entity(s1, "assets/satellite.png", left=-1.5, top=4.0, rot_deg=20)
+deck.add_thematic_traveling_entity(s1, "assets/satellite.png", left=-2.5, top=4.0, rot_deg=20)
 
 s2 = deck.add_slide(transition="morph", duration_ms=1600)
 deck.add_thematic_traveling_entity(s2, "assets/satellite.png", left=6.0, top=1.8, rot_deg=-10)

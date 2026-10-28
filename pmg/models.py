@@ -196,6 +196,23 @@ class ReviewDefect:
 
 
 @dataclass
+class AuditReport:
+    """Read-only findings shared by inspectors, reviewers and repair consumers.
+
+    A successful static audit is NOT_VERIFIED for playback. Keep the dictionary
+    interface used by existing callers, including their detailed slide summaries.
+    """
+    defects: List[ReviewDefect] = field(default_factory=list)
+    details: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        valid = not any(d.severity in ("critical", "major") for d in self.defects)
+        return dict(self.details, is_valid=valid,
+                    status=(ValidationStatus.NOT_VERIFIED if valid else ValidationStatus.FAIL).value,
+                    defects=[d.to_dict() for d in self.defects])
+
+
+@dataclass
 class ReviewReport:
     status: ValidationStatus
     defects: List[ReviewDefect] = field(default_factory=list)
@@ -258,6 +275,7 @@ class ExecutionManifest:
     repair_history: List[Dict[str, Any]] = field(default_factory=list)
     validation_method: str = "local_powerpoint"
     worker_identity: str = "local"
+    final_verification: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -275,6 +293,7 @@ class ExecutionManifest:
             "review_summary": self.review_summary,
             "repair_loops_executed": self.repair_loops_executed,
             "repair_history": self.repair_history,
+            "final_verification": self.final_verification,
         }
 
     def save(self, path: str) -> str:

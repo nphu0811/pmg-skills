@@ -25,6 +25,26 @@ R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 
 NSMAP = {"p": P_NS, "a": A_NS, "r": R_NS}
 
+EFFECT_ALIASES = {
+    "fade_in": "fade", "zoom_in": "zoom", "spin": "rotate",
+    "grow_shrink": "scale", "linear_motion_path": "motion_path",
+    "bezier_motion_path": "motion_path",
+}
+SUPPORTED_EFFECTS = frozenset((
+    "appear", "fade", "fly_in", "wipe", "zoom", "scale", "rotate",
+    "transparency", "pulse", "motion_path", "disappear", "fade_out",
+    "fly_out", "wipe_out",
+))
+
+
+def normalize_effect(effect_type: str) -> str:
+    """Resolve documented aliases; never emit an empty/unknown effect."""
+    name = effect_type.strip().lower() if isinstance(effect_type, str) else ""
+    name = EFFECT_ALIASES.get(name, name)
+    if name not in SUPPORTED_EFFECTS:
+        raise ValueError(f"Unsupported native PowerPoint animation effect: {effect_type!r}")
+    return name
+
 
 @dataclass
 class AnimationStep:
@@ -49,6 +69,9 @@ class AnimationStep:
     computed_end_ms: int = 800
     sequence_index: int = 0
 
+    def __post_init__(self):
+        self.effect_type = normalize_effect(self.effect_type)
+
     @property
     def preset_class(self) -> str:
         if self.effect_type in ("appear", "fade", "fly_in", "wipe", "zoom"):
@@ -59,7 +82,7 @@ class AnimationStep:
             return "path"
         if self.effect_type in ("disappear", "fade_out", "fly_out", "wipe_out"):
             return "exit"
-        return "entr"
+        raise ValueError(f"Unsupported native PowerPoint animation effect: {self.effect_type!r}")
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
@@ -109,6 +132,9 @@ class SlideAnimationTimeline:
         auto_reverse: bool = False,
         trigger_shape=None,
     ) -> AnimationStep:
+        effect_type = normalize_effect(effect_type)
+        if trigger not in ("with_previous", "after_previous", "on_click", "on_shape_click"):
+            raise ValueError(f"Unsupported animation trigger: {trigger!r}")
         if isinstance(shape, (tuple, list)):
             shape = shape[0]
         if isinstance(trigger_shape, (tuple, list)):
@@ -116,15 +142,6 @@ class SlideAnimationTimeline:
         spid = self.register_shape(shape)
         trig_spid = trigger_shape.shape_id if trigger_shape is not None else None
         geom = self._shape_geom[spid]
-        alias_map = {
-            "fade_in": "fade",
-            "zoom_in": "zoom",
-            "spin": "rotate",
-            "grow_shrink": "scale",
-            "linear_motion_path": "motion_path",
-            "bezier_motion_path": "motion_path",
-        }
-        effect_type = alias_map.get((effect_type or "fade").lower(), (effect_type or "fade").lower())
         step = AnimationStep(
             target_shape_name=shape.name or f"Shape_{spid}",
             target_spid=spid,
@@ -297,6 +314,13 @@ class SlideAnimationTimeline:
         Compile the declarative timeline into a valid native PowerPoint <p:timing> XML tree
         and attach it to the slide so all effects appear in PowerPoint's native Animation Pane.
         """
+        valid_ids = {int(node.get("id")) for node in slide._element.iter(f"{{{P_NS}}}cNvPr")}
+        for step in self.steps:
+            step.effect_type = normalize_effect(step.effect_type)
+            if step.target_spid not in valid_ids:
+                raise ValueError(f"Animation target {step.target_spid} does not exist on this slide")
+            if step.trigger_shape_spid is not None and step.trigger_shape_spid not in valid_ids:
+                raise ValueError(f"Animation trigger {step.trigger_shape_spid} does not exist on this slide")
         self._recompute_schedule()
         sld = slide._element
 
@@ -626,7 +650,7 @@ class SlideAnimationTimeline:
             return (2, "exit", sub)
         if et == "wipe_out":
             return (22, "exit", sub)
-        return (10, "entr", 0)
+        raise ValueError(f"Unsupported native PowerPoint animation effect: {et!r}")
 
     @staticmethod
     def _fly_formulas(direction: str) -> Tuple[str, str]:

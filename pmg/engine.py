@@ -727,3 +727,10 @@ def build_v1_2_single_slide_animation_showcase(output_path: str) -> str:
 
     deck.save(output_path)
     return os.path.abspath(output_path)
+
+
+from pmg.cinematic_showcase import (
+    SpotifyAppShellBuilder,
+    EarthSpaceMotionBuilder,
+    UniversityBloomBuilder,
+)

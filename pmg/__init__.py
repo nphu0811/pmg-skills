@@ -1,5 +1,5 @@
 """
-PMG Skills — Native PowerPoint Motion Graphics Engine (v1.5.1)
+PMG Skills — Native PowerPoint Motion Graphics Engine (v1.5.2)
 ==============================================================
 Canonical Python API, Windows Validation Worker, Animation Benchmark Suite,
 and Orchestration Engine for PowerPoint Motion Graphics.
@@ -18,6 +18,7 @@ from pmg.models import (
     ExpectedTimeline,
     VideoMetadata,
     ReviewDefect,
+    AuditReport,
     ReviewReport,
     ExecutionManifest,
 )
@@ -44,6 +45,9 @@ from pmg.engine import (
     add_editable_kite,
     build_environmental_protection_deck,
     build_v1_2_single_slide_animation_showcase,
+    SpotifyAppShellBuilder,
+    EarthSpaceMotionBuilder,
+    UniversityBloomBuilder,
 )
 from pmg.cinematic_builder import (
     MotionChoreographyDecision,
@@ -66,7 +70,7 @@ from pmg.video_reconstructor import (
     VideoMotionReconstructor,
     generate_controlled_reference_video,
 )
-from pmg.validator import StaticValidator, extract_expected_timeline
+from pmg.validator import StaticValidator, extract_expected_timeline, verify_clean_powerpoint_open
 from pmg.video_pipeline import (
     is_powerpoint_available,
     probe_video_metadata,
@@ -100,6 +104,7 @@ __all__ = [
     "ExpectedTimeline",
     "VideoMetadata",
     "ReviewDefect",
+    "AuditReport",
     "ReviewReport",
     "ExecutionManifest",
     "AnimationStep",
@@ -122,6 +127,9 @@ __all__ = [
     "add_editable_kite",
     "build_environmental_protection_deck",
     "build_v1_2_single_slide_animation_showcase",
+    "SpotifyAppShellBuilder",
+    "EarthSpaceMotionBuilder",
+    "UniversityBloomBuilder",
     "MotionChoreographyDecision",
     "MotionPresetRegistry",
     "CinematicMotionBuilder",
@@ -139,6 +147,7 @@ __all__ = [
     "generate_controlled_reference_video",
     "StaticValidator",
     "extract_expected_timeline",
+    "verify_clean_powerpoint_open",
     "is_powerpoint_available",
     "probe_video_metadata",
     "export_edit_mode_slide_images",

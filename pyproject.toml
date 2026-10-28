@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pmg-skills"
-version = "1.5.1"
+version = "1.5.2"
 description = "PowerPoint Motion Graphics (PMG) Native Engine, Animation Timeline, Windows QA Worker, Benchmark Suite, Real Playback Validation & Self-Healing System"
 readme = "README.md"
 requires-python = ">=3.8"

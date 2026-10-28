@@ -20,13 +20,14 @@ from urllib.parse import urlparse, parse_qs
 from typing import Optional, Tuple
 
 from pmg.models import ValidationStatus
+from pmg.version import VERSION
 from pmg.worker.jobs import WorkerJobManager
 from pmg.worker.powerpoint_runner import check_worker_health
 from pmg.worker.security import verify_bearer_token, DEFAULT_MAX_PPTX_BYTES
 
 
 class _WorkerRequestHandler(BaseHTTPRequestHandler):
-    server_version = "PMGValidationWorker/1.5.1"
+    server_version = f"PMGValidationWorker/{VERSION}"
 
     def log_message(self, format: str, *args) -> None:
         # Quiet structured logging without leaking headers or tokens

@@ -1,7 +1,7 @@
 {
   "name": "pmg-skills",
-  "version": "1.5.1",
-  "description": "Official PowerPoint Motion Graphics (PMG) skills for Cursor, Claude and other AI agents — 60 FPS Morph transitions, Windows PowerPoint QA Worker, 24-case animation benchmark suite, visibility-aware validation, and 3-loop self-healing",
+  "version": "1.5.2",
+  "description": "Official PowerPoint Motion Graphics (PMG) skills for Cursor, Claude and other AI agents \u2014 60 FPS Morph transitions, Windows PowerPoint QA Worker, 24-case animation benchmark suite, visibility-aware validation, and 3-loop self-healing",
   "author": {
     "name": "Mergi (nphu0811)",
     "email": "duongngocphu134@gmail.com",
@@ -20,5 +20,7 @@
     "pptx",
     "agent-skills"
   ],
-  "skills": ["skills"]
+  "skills": [
+    "skills"
+  ]
 }

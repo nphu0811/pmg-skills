@@ -1,5 +1,47 @@
 # Changelog — PMG Skills
 
+## [v1.5.2] - 2026-10-29
+
+Reliability release; publication requires exact-commit reinstall and playback
+retesting. The existing showcase work is retained; asset research remains v1.6.0.
+
+### Added
+- Read-only shared AuditReport/ReviewDefect inspection with complete OPC XML,
+  ContentType and relationship checks, including duplicate/undefined parts.
+- Legacy audit/repair scripts now forward to one shared validator/orchestrator;
+  compatible fallback remains inside the maximum-three-attempt repair budget.
+- Strict effect alias normalization, unknown-effect rejection and compilation
+  checks against actual native PowerPoint target IDs.
+- Metadata packaging before complete playback review; exact final byte hash and
+  destination reopen verification; existing output retained on a failed gate.
+- Bounded read-only worker probe with alerts enabled, repair disabled, modal and
+  Protected View detection, source hashes and native Animation Pane counts.
+  Remote evidence must bind to the exact uploaded PPTX; missing evidence blocks.
+- Actual recording telemetry required by CLI review; expected timestamps can no
+  longer masquerade as recorded events.
+- Responsibility audit retained internally; synchronized ownership/routing/API
+  guidance and gated roadmap through v2.0.1. Intentional overlap is supported.
+- **OPC-Compliant Manifest Embedding & Companion Manifest Output:**
+  - Added explicit OPC registration (`<Default Extension="json" ContentType="application/json"/>` in `[Content_Types].xml`) when embedding execution manifests in `.pptx` (`ppt/pmg_execution_manifest.json`), eliminating PowerPoint's "PowerPoint found a problem... Repair presentation" dialog.
+  - Automatically exports companion external manifest `<pptx_path>.manifest.json` alongside the delivered presentation for external tool and audit consumption.
+  - Enhanced `StaticValidator` to scan all parts in the ZIP package against `[Content_Types].xml` and flag unmapped parts as critical `openxml_structure` defects (`remediation_hint="declare_part_content_type"`).
+- **Post-Validation Freeze & PowerPoint COM Clean Open Verification Gate:**
+  - Strict delivery gate invariant: The `.pptx` deliverable is NEVER modified after marking validation `PASS`. Packaging and manifest embedding occur before final validation.
+  - Added `verify_clean_powerpoint_open(pptx_path)`: Opens the final packaged presentation in Microsoft PowerPoint Desktop with `DisplayAlerts = ppAlertsAll` (`2`, not `1`) to verify zero repair dialogs or corruption warnings.
+  - Awards official `status == "PASS"` only after the exact final deliverable has passed the complete static, playback, AI visual review, and COM open inspection suite, sealed externally with its SHA-256 fingerprint. Embedded provenance remains NOT_VERIFIED until interpreted with that external certificate.
+- **Iconic Reference Cinematic Showcase Engine (`pmg.cinematic_showcase`):**
+  - Reverse-engineered and recreated iconic slide patterns from `DataPowerPoint`:
+    - **`SpotifyAppShellBuilder` (`--preset spotify`):** Spotify UI Shell & Radial Morph unlock from `MAC-LENIN.pptx` (ambient orb monolith -> lateral title convergence -> macOS 3-dot left sidebar + top bar + action pills -> in-frame viewport stream -> team grid).
+    - **`EarthSpaceMotionBuilder` (`--preset earth_space`):** Earth & Space 21-slide cinematic sequence from `EARTH AND SPACE.pptx` (cosmic establishing shot -> Moon orbit pan -> targeting reticle / viewfinder corner brackets `[ ]` target lock -> expansion into 3 framed highlight cards -> "BUT SOMETHING IS MISSING" focal zoom -> 4-quadrant rotating segmented radar wheel).
+    - **`UniversityBloomBuilder` (`--preset university_bloom`):** Concentric rings blooming into 8 radial bezier petals and 8-item two-column Mục Lục from `PROMPT.pdf` / `PROMPT-CHUYỂN-NỘI-DUNG.docx`.
+  - Enforced **Universal Topic Adaptability**: All presets dynamically adapt to any user topic, title, subtitle, author, and color theme (light modern defaults or deep obsidian modes), strictly rejecting rigid single-row or single-domain layout constraints.
+- **Proportional Timeline Video Review Alignment:**
+  - Upgraded `pmg.visual_reviewer` to compute steady-state sampling in `powerpoint_export.mp4` via proportional timeline scaling (`exp_scale = exp_total_dur / expected_total_sec`) rather than naive linear splits, eliminating false capture-quality defects when slide transition durations vary.
+  - Added fallback comparison against PowerPoint's native edit-mode slide PNG exports (`edit_mode_refs/edit_slide_XX.png`).
+- **Preserved Delivery and Showcase Tests:**
+  - Added `tests/test_delivery_and_showcase.py` verifying OPC ContentType registration, companion manifests, COM clean open, and showcase builders.
+
+
 ## [v1.5.1] - 2026-10-28
 ### Added
 - **Upgrade A — Windows PowerPoint Validation Worker (`pmg.worker`):**
