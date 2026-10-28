@@ -1,5 +1,13 @@
 # Changelog — PMG Skills
 
+## [v1.5.0] - 2026-10-28
+### Added
+- **Video-to-Editable-PowerPoint Motion Reconstruction Engine (`pmg.video_reconstructor`):**
+  - Implemented `VideoMotionReconstructor`, `VideoReconstructionReport`, `VideoSceneSpec`, `TrackedVideoObject`, and `generate_controlled_reference_video`.
+  - 12-stage CV & motion graphics pipeline: video decoding (`cv2.VideoCapture`), HSV histogram scene boundary detection, keyframe extraction, foreground contour & connected-component segmentation, multi-frame centroid & bounding-box trajectory tracking, scale/rotation/opacity estimation, timing & trigger extraction, cubic Bezier motion path curve fitting (`M 0 0 C ... E`), easing estimation, 100% native editable PowerPoint shape synthesis, and native `<p:timing>` Animation Pane compilation.
+  - Strictly prohibits frame-flattening or video-background shortcuts; every reconstructed slide contains independent editable PowerPoint objects and native Animation Pane sequences verified via COM.
+  - Explicit engineering-honesty reporting (`directly_observed_motion`, `estimated_motion`, `inferred_visual_properties`, `unsupported_effects`, and `approximate_reconstructions`).
+
 ## [v1.4.0] - 2026-10-28
 ### Added
 - **PPTX Motion Reverse Engineering & Animation Style Transfer (`pmg.reverse_engineer`):**

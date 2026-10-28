@@ -32,6 +32,7 @@ from pmg.reverse_engineer import (
     PPTXMotionReverseEngineer,
     build_v1_4_reference_smartphone_slide,
 )
+from pmg.video_reconstructor import VideoMotionReconstructor
 from pmg.validator import StaticValidator, extract_expected_timeline
 from pmg.video_pipeline import (
     export_video_with_powerpoint,
@@ -184,8 +185,8 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 def cmd_reconstruct(args: argparse.Namespace) -> int:
     """
     Reverse-engineers object hierarchy, geometry, z-order, transitions, and native <p:timing>
-    animations from a reference PPTX (v1.4) or video (v1.5) and reconstructs/transfers
-    them onto an editable PowerPoint presentation.
+    animations from a reference PPTX (v1.4) or reference MP4 video (v1.5) and reconstructs
+    an editable PowerPoint presentation.
     """
     source = args.source
     output = args.output
@@ -220,7 +221,25 @@ def cmd_reconstruct(args: argparse.Namespace) -> int:
         }, indent=2, ensure_ascii=False))
         return 0
 
-    print(f"[!] Unsupported source format for v1.4 reconstruct: {source}", file=sys.stderr)
+    if source.lower().endswith((".mp4", ".mov", ".avi", ".mkv")):
+        vid_recon = VideoMotionReconstructor(
+            max_duration_sec=getattr(args, "max_duration_sec", 8.0) or 8.0,
+            max_scenes=getattr(args, "max_scenes", 2) or 2,
+        )
+        rep = vid_recon.reconstruct_from_video(source, output)
+        if getattr(args, "compare_out", None):
+            rep.save(args.compare_out)
+        print(json.dumps({
+            "reconstructed_pptx": rep.reconstructed_pptx,
+            "scenes_detected": rep.scenes_detected,
+            "total_editable_objects_reconstructed": rep.total_editable_objects_reconstructed,
+            "total_native_animations_reconstructed": rep.total_native_animations_reconstructed,
+            "com_animation_pane_verified": rep.com_animation_pane_verified,
+            "com_animation_pane_count": rep.com_animation_pane_count,
+        }, indent=2, ensure_ascii=False))
+        return 0
+
+    print(f"[!] Unsupported source format for reconstruct: {source}", file=sys.stderr)
     return 1
 
 
@@ -305,12 +324,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_ins.set_defaults(func=cmd_inspect)
 
     # 7. pmg reconstruct
-    p_recon = sub.add_parser("reconstruct", help="Reconstruct editable PowerPoint slides from reference source")
+    p_recon = sub.add_parser("reconstruct", help="Reconstruct editable PowerPoint slides from reference source (.pptx or .mp4)")
     p_recon.add_argument("source", help="Reference .pptx or .mp4 file")
     p_recon.add_argument("-o", "--output", required=True, help="Output reconstructed .pptx path")
     p_recon.add_argument("--spec-out", help="Optional path to save extracted PresentationMotionSpec JSON")
-    p_recon.add_argument("--compare-out", help="Optional path to save comparison report JSON")
+    p_recon.add_argument("--compare-out", help="Optional path to save comparison/reconstruction report JSON")
     p_recon.add_argument("--transfer-title", help="Optional new title text for style transfer")
+    p_recon.add_argument("--max-duration-sec", type=float, default=8.0, help="Max video duration in sec to reconstruct (default: 8.0)")
+    p_recon.add_argument("--max-scenes", type=int, default=2, help="Max scenes to reconstruct from video (default: 2)")
     p_recon.set_defaults(func=cmd_reconstruct)
 
     return parser
