@@ -1,5 +1,22 @@
 # Changelog — PMG Skills
 
+## [v1.2.0] - 2026-10-28
+### Added
+- **Native Intra-Slide Object Animation & Declarative Timeline Engine (`pmg.animations`):**
+  - Implemented `AnimationStep` and `SlideAnimationTimeline` supporting native PowerPoint Animation Pane effects:
+    - Entrances: `appear`, `fade`, `fly_in`, `wipe`, `zoom`
+    - Emphasis: `scale` / `grow_shrink` (`<p:animScale>`), `rotate` / `spin` (`<p:animRot>`), `transparency` (`style.opacity`), `pulse`
+    - Motion Paths: linear and curved Bezier (`<p:animMotion path="M ... C ... E">`)
+    - Exits: `disappear`, `fade_out`, `fly_out`, `wipe_out`
+    - Timing & Triggers: `delay_ms`, `duration_ms`, `with_previous` (`withEffect`), `after_previous` (`afterEffect`), `on_click` (`clickEffect`), `on_shape_click` (`interactiveSeq`), `repeat_count`, `auto_reverse`, and multiple sequential/simultaneous effects targeting a single object.
+  - Added `parse_slide_timing_openxml` and `verify_animation_pane_com` to verify all effects in PowerPoint's native `slide.TimeLine.MainSequence`.
+- **Single-Slide Native Animation Showcase Builder (`build_v1_2_single_slide_animation_showcase`):**
+  - 12 independent editable objects and 19 native PowerPoint Animation Pane effects (`pmg build --preset v1_2_showcase`).
+- **Enhanced Video Pipeline, Reviewer & Self-Healing (`pmg.video_pipeline`, `pmg.visual_reviewer`, `pmg.self_healing`):**
+  - Synchronized `GotoSlide(1, -1)` and timed `on_click` progression during live Slide Show capture.
+  - Sub-frame intra-slide motion sampling (`anim_start`, `anim_mid`, `steady`) and per-object ROI delta tracking.
+  - Automated repair for broken `<p:spTgt>` references, invalid `<p:animMotion>` paths, and missing `mainSeq` nodes.
+
 ## [v1.1.0] - 2026-10-28
 ### Added
 - **Canonical Python Package (`pmg`) & CLI (`python -m pmg` / `pmg`):**
@@ -27,4 +44,3 @@
 - Added `add_traveling_entity` alias on `MotionDeck` fixing `scripts/build_showcase_deck.py` and `scripts/create_camau_deck.py`.
 - Added `Cinematic3DDeck` in `scripts/forge_lib.py` referenced by `skills/pmg-camera-parallax/SKILL.md`.
 - Fixed PowerPoint COM cleanup to avoid closing unrelated user presentations.
-

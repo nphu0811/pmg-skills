@@ -22,6 +22,7 @@ from pmg.version import VERSION, get_engine_provenance
 from pmg.models import ValidationStatus
 from pmg.engine import (
     build_environmental_protection_deck,
+    build_v1_2_single_slide_animation_showcase,
     LightThemeCraftDeck,
     MotionDeck,
     Themes,
@@ -41,7 +42,9 @@ def cmd_build(args: argparse.Namespace) -> int:
 
     def _builder(target_path: str) -> str:
         preset = (args.preset or "environment").lower()
-        if preset in ("environment", "eco", "kite", "earth"):
+        if preset in ("v1_2_showcase", "timeline", "animation"):
+            return build_v1_2_single_slide_animation_showcase(target_path)
+        elif preset in ("environment", "eco", "kite", "earth"):
             return build_environmental_protection_deck(target_path, num_slides=args.slides)
         elif preset == "camau":
             from scripts.create_camau_deck import build_camau_presentation
@@ -59,14 +62,12 @@ def cmd_build(args: argparse.Namespace) -> int:
             return target_path
 
     if args.skip_playback:
-        # Static build & validation only (marked NOT_VERIFIED in manifest)
         manifest = orchestrator.run_pipeline(
             output_pptx_path=args.output,
             builder_fn=_builder,
             hold_duration_ms=args.hold_ms,
             require_video_playback=False,
         )
-        # Copy candidate for local dev inspection when --skip-playback is explicitly passed
         shutil.copyfile(manifest.source_pptx, os.path.abspath(args.output))
         print(json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False))
         return 0 if manifest.static_validation.get("is_valid") else 1
@@ -173,7 +174,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
 
 def cmd_reconstruct(args: argparse.Namespace) -> int:
     """
-    Base reconstruction entrypoint in v1.1 (extracts timeline & reconstructs editable deck
+    Base reconstruction entrypoint in v1.1-v1.3 (extracts timeline & reconstructs editable deck
     from a reference PPTX; full motion transfer in v1.4 and video reconstruction in v1.5).
     """
     source = args.source
@@ -222,7 +223,12 @@ def build_parser() -> argparse.ArgumentParser:
     # 1. pmg build
     p_build = sub.add_parser("build", help="Build and validate a presentation through the canonical PMG engine")
     p_build.add_argument("-o", "--output", required=True, help="Output .pptx file path")
-    p_build.add_argument("--preset", default="environment", choices=["environment", "eco", "kite", "earth", "camau", "craft"], help="Presentation preset")
+    p_build.add_argument(
+        "--preset",
+        default="environment",
+        choices=["environment", "eco", "kite", "earth", "camau", "craft", "v1_2_showcase", "timeline", "animation"],
+        help="Presentation preset",
+    )
     p_build.add_argument("--title", default="Protecting Our Living Earth", help="Presentation title")
     p_build.add_argument("--slides", type=int, default=10, help="Number of slides (default: 10)")
     p_build.add_argument("--hold-ms", type=int, default=1200, help="Per-slide hold duration in ms (default: 1200)")
@@ -289,4 +295,3 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

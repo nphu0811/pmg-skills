@@ -513,3 +513,217 @@ def build_environmental_protection_deck(output_path: str, num_slides: int = 10) 
     deck.save(output_path)
     return os.path.abspath(output_path)
 
+
+
+def build_v1_2_single_slide_animation_showcase(output_path: str) -> str:
+    """
+    Canonical v1.2.0 Acceptance Presentation Builder:
+    Creates a single 16:9 widescreen slide containing:
+    - 12 independent editable PowerPoint objects (>= 8)
+    - 18 native PowerPoint Animation Pane effects (>= 15)
+    - Multiple simultaneous (with_previous) and sequential (after_previous, on_click) animations
+    - Curved Bezier motion paths (M ... C ... E)
+    - Rotating elements (<p:animRot>)
+    - Scaling elements (<p:animScale>)
+    - Timed entrance and exit animations
+    """
+    from pmg.animations import SlideAnimationTimeline
+
+    deck = MotionDeck(theme=Themes.LIGHT_ECO_EMERALD)
+    slide = deck.add_slide(transition="none")
+
+    # 1. Sky Horizon Band (Object 1)
+    sky = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.0), Inches(0.0), Inches(13.333), Inches(4.5))
+    sky.name = "Sky_Horizon_Band"
+    sky.fill.solid()
+    sky.fill.fore_color.rgb = RGBColor(224, 242, 254)
+    sky.line.fill.background()
+
+    # 2. Meadow Terrain Base (Object 2)
+    meadow = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(-1.0), Inches(4.4), Inches(15.5), Inches(4.2))
+    meadow.name = "Meadow_Terrain_Base"
+    meadow.fill.solid()
+    meadow.fill.fore_color.rgb = RGBColor(167, 243, 208)
+    meadow.line.fill.background()
+
+    # 3. Header Badge (Object 3)
+    badge = deck.add_badge(
+        slide,
+        "PMG v1.2 · NATIVE ANIMATION TIMELINE",
+        left=0.85,
+        top=0.55,
+        width=4.0,
+        height=0.38,
+        bg_color=RGBColor(5, 150, 105),
+        text_color=RGBColor(255, 255, 255),
+        name="Header_Badge",
+    )
+
+    # 4. Hero Title Banner (Object 4)
+    title_box = deck.add_hero_title(
+        slide,
+        "Autonomous Clean Energy Microgrid",
+        subtitle="Synchronized solar harvesting, grid storage, and zero-carbon distribution.",
+        left=0.85,
+        top=1.05,
+        width=7.5,
+        height=1.35,
+        title_size=24,
+        subtitle_size=11.5,
+        title_color=RGBColor(6, 78, 59),
+        name="Title_Banner",
+    )
+
+    # 5. Solar Sun Orb (Object 5 - scales & glows)
+    sun = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(10.8), Inches(0.65), Inches(1.35), Inches(1.35))
+    sun.name = "Solar_Sun_Orb"
+    sun.fill.solid()
+    sun.fill.fore_color.rgb = RGBColor(250, 204, 21)
+    sun.line.color.rgb = RGBColor(254, 240, 138)
+    sun.line.width = Pt(2.5)
+
+    # 6. Wind Turbine Rotor (Object 6 - rotates 360 deg)
+    rotor = slide.shapes.add_shape(MSO_SHAPE.STAR_4_POINT, Inches(9.0), Inches(0.8), Inches(1.25), Inches(1.25))
+    rotor.name = "Wind_Turbine_Rotor"
+    rotor.fill.solid()
+    rotor.fill.fore_color.rgb = RGBColor(2, 132, 199)
+    rotor.line.color.rgb = RGBColor(255, 255, 255)
+    rotor.line.width = Pt(1.5)
+
+    # 7. Solar Array Card (Object 7)
+    card_solar = deck.add_metric_card(
+        slide,
+        title="SOLAR ARRAY",
+        value="4.8 MW",
+        desc="High-efficiency photovoltaic collectors.",
+        left=0.85,
+        top=2.95,
+        width=3.6,
+        height=2.2,
+        accent_color=RGBColor(245, 158, 11),
+        name="Solar_Array_Card",
+    )
+
+    # 8. Battery Hub Card (Object 8 - scales when energy arrives)
+    card_battery = deck.add_metric_card(
+        slide,
+        title="STORAGE MATRIX",
+        value="12.4 MWh",
+        desc="Grid-scale solid-state battery buffer.",
+        left=4.85,
+        top=2.95,
+        width=3.6,
+        height=2.2,
+        accent_color=RGBColor(2, 132, 199),
+        name="Battery_Hub_Card",
+    )
+
+    # 9. Eco Village Card (Object 9)
+    card_village = deck.add_metric_card(
+        slide,
+        title="ECO COMMUNITY",
+        value="100% CLEAN",
+        desc="Zero-emission residential microgrid.",
+        left=8.85,
+        top=2.95,
+        width=3.6,
+        height=2.2,
+        accent_color=RGBColor(5, 150, 105),
+        name="Eco_Village_Card",
+    )
+
+    # 10. Energy Packet Node (Object 10 - travels along curved Bezier motion paths)
+    packet = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2.35), Inches(2.32), Inches(0.52), Inches(0.52))
+    packet.name = "Energy_Packet_Node"
+    packet.fill.solid()
+    packet.fill.fore_color.rgb = RGBColor(14, 165, 233)
+    packet.line.color.rgb = RGBColor(255, 255, 255)
+    packet.line.width = Pt(2.0)
+
+    # 11. Smog Warning Alert (Object 11 - timed entrance then timed exit)
+    smog_alert = deck.add_badge(
+        slide,
+        "PEAK FOSSIL LOAD DETECTED — REROUTING TO CLEAN GRID",
+        left=4.5,
+        top=5.45,
+        width=4.6,
+        height=0.42,
+        bg_color=RGBColor(239, 68, 68),
+        text_color=RGBColor(255, 255, 255),
+        name="Smog_Warning_Alert",
+    )
+
+    # 12. Telemetry Status Bar (Object 12)
+    status_bar = deck.add_badge(
+        slide,
+        "GRID TELEMETRY: 100% SYNCHRONIZED · ZERO CARBON DISPATCH ACTIVE",
+        left=0.85,
+        top=6.25,
+        width=11.6,
+        height=0.52,
+        bg_color=RGBColor(6, 78, 59),
+        text_color=RGBColor(255, 255, 255),
+        name="Telemetry_Status_Bar",
+    )
+
+    # Build Declarative Animation Timeline with 18 native PowerPoint effects
+    tl = SlideAnimationTimeline(slide_number=1)
+
+    # Group 1: Simultaneous opening reveal (3 parallel effects)
+    tl.add_effect(badge, "appear", trigger="with_previous", duration_ms=150, delay_ms=50)
+    tl.add_effect(title_box, "fade", trigger="with_previous", duration_ms=350, delay_ms=80)
+    tl.add_effect(sun, "zoom", trigger="with_previous", duration_ms=400, delay_ms=100)
+
+    # Group 2: Sequential card array deployment (3 staggered parallel effects)
+    tl.add_effect(card_solar, "fly_in", trigger="after_previous", direction="up", duration_ms=400)
+    tl.add_effect(card_battery, "fly_in", trigger="with_previous", direction="up", duration_ms=400, delay_ms=80)
+    tl.add_effect(card_village, "wipe", trigger="with_previous", direction="right", duration_ms=400, delay_ms=140)
+
+    # Group 3: Turbine & Solar generation activation (3 parallel effects: entrance + rotation + scale)
+    tl.add_effect(rotor, "fade", trigger="after_previous", duration_ms=250)
+    tl.add_effect(rotor, "rotate", trigger="with_previous", rotation_deg=360.0, duration_ms=550)
+    tl.add_effect(sun, "scale", trigger="with_previous", scale_factor=(1.22, 1.22), duration_ms=350, auto_reverse=True)
+
+    # Group 4: Timed entrance of transient load alert (2 parallel effects)
+    tl.add_effect(smog_alert, "fade", trigger="after_previous", duration_ms=250)
+    tl.add_effect(smog_alert, "fly_in", trigger="with_previous", direction="left", duration_ms=300)
+
+    # Group 5: Energy packet dispatch along Curved Bezier Motion Path 1 (2 parallel effects)
+    tl.add_effect(packet, "appear", trigger="after_previous", duration_ms=100)
+    tl.add_effect(
+        packet,
+        "motion_path",
+        trigger="with_previous",
+        motion_path="M 0 0 C 0.10 -0.11 0.20 0.11 0.30 0 E",
+        duration_ms=650,
+    )
+
+    # Group 6: Storage matrix pulse & second curved Bezier path to Eco Village (2 parallel effects)
+    tl.add_effect(
+        card_battery,
+        "scale",
+        trigger="after_previous",
+        scale_factor=(1.10, 1.10),
+        duration_ms=300,
+        auto_reverse=True,
+    )
+    tl.add_effect(
+        packet,
+        "motion_path",
+        trigger="with_previous",
+        motion_path="M 0 0 C 0.10 -0.09 0.20 0.09 0.30 0 E",
+        duration_ms=550,
+    )
+
+    # Group 7: Timed exit of warning alert + simultaneous status bar reveal (2 parallel effects)
+    tl.add_effect(smog_alert, "fade_out", trigger="after_previous", duration_ms=300)
+    tl.add_effect(status_bar, "fly_in", trigger="with_previous", direction="up", duration_ms=350)
+
+    # Group 8: Click-triggered final turbine spin + fly_out of transient warning (2 effects)
+    tl.add_effect(rotor, "rotate", trigger="on_click", rotation_deg=360.0, duration_ms=500)
+    tl.add_effect(smog_alert, "fly_out", trigger="with_previous", direction="down", duration_ms=350)
+
+    tl.compile_to_openxml(slide)
+
+    deck.save(output_path)
+    return os.path.abspath(output_path)

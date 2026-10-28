@@ -6,6 +6,7 @@ Verifies:
 - Valid ZIP / OpenXML package structure
 - Unique shape identifiers per slide
 - Valid transition XML and duration attributes
+- Valid intra-slide <p:timing> animation trees, spTgt references, and motion paths (v1.2+)
 - Continuous '!!' Morph anchors across active sequences
 - Valid media relationships (ppt/media/*)
 - Native editable PowerPoint objects check (blocks flattened screenshot shortcuts)
@@ -18,6 +19,8 @@ import zipfile
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Any, Tuple, Optional
 
+from pptx import Presentation
+
 from pmg.version import VERSION
 from pmg.models import (
     ValidationStatus,
@@ -26,6 +29,7 @@ from pmg.models import (
     ExpectedTimeline,
     ReviewDefect,
 )
+from pmg.animations import parse_slide_timing_openxml
 
 EMU_PER_INCH = 914400.0
 
@@ -148,12 +152,14 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
     """
     Constructs a deterministic ExpectedTimeline from a PPTX file, capturing:
     - Inter-slide Morph object movements (initial/final pos, size, rotation, opacity)
-    - Intra-slide native animations (if present in <p:timing>)
+    - Intra-slide native animations (in <p:timing>)
     - Absolute, slide-relative, and click-triggered playback script
     """
     deck_title = os.path.splitext(os.path.basename(pptx_path))[0]
     slides_spec: List[SlideTimelineSpec] = []
     playback_script: List[Dict[str, Any]] = []
+
+    prs = Presentation(pptx_path)
 
     with zipfile.ZipFile(pptx_path, "r") as z:
         slide_files = [n for n in z.namelist() if re.match(r"^ppt/slides/slide\d+\.xml$", n)]
@@ -218,7 +224,6 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
                         )
                     )
                 else:
-                    # Static or newly introduced object on this slide
                     motion_specs.append(
                         ObjectMotionSpec(
                             object_id=name or f"shape_{obj['id']}",
@@ -243,41 +248,26 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
                         )
                     )
 
-            # 2. Check for intra-slide <p:timing> animations (expanded in v1.2)
+            # 2. Parse intra-slide <p:timing> animations using pmg.animations
             clicks: List[Dict[str, Any]] = []
-            root = ET.fromstring(xml_bytes)
-            timing = root.find("p:timing", NS)
-            if timing is not None:
-                # Parse any click-triggered or auto-triggered cTn nodes
-                sp_tgts = timing.findall(".//p:spTgt", NS)
-                for anim_i, sp_tgt in enumerate(sp_tgts, 1):
-                    spid = sp_tgt.attrib.get("spid", "")
-                    target_obj = next((o for o in objects if o["id"] == spid), None)
-                    obj_name = target_obj["name"] if target_obj else f"spid_{spid}"
-                    pos = (target_obj["x"], target_obj["y"]) if target_obj else (0.0, 0.0)
-                    sz = (target_obj["w"], target_obj["h"]) if target_obj else (1.0, 1.0)
+            max_anim_end_rel = trans_dur
+            if idx <= len(prs.slides):
+                intra_specs, intra_clicks = parse_slide_timing_openxml(
+                    prs.slides[idx - 1],
+                    slide_number=idx,
+                    slide_abs_start_ms=slide_start_ms,
+                    transition_offset_ms=trans_dur,
+                )
+                for ispec in intra_specs:
                     seq_idx += 1
-                    motion_specs.append(
-                        ObjectMotionSpec(
-                            object_id=obj_name,
-                            slide_number=idx,
-                            object_type=target_obj["type"] if target_obj else "shape",
-                            initial_position=pos,
-                            final_position=pos,
-                            initial_size=sz,
-                            final_size=sz,
-                            start_time_ms=trans_dur + (anim_i - 1) * 300,
-                            duration_ms=800,
-                            trigger_type="with_previous",
-                            animation_sequence=seq_idx,
-                            easing="native_powerpoint",
-                            time_reference="slide_relative",
-                            absolute_start_ms=slide_start_ms + trans_dur + (anim_i - 1) * 300,
-                            absolute_end_ms=slide_start_ms + trans_dur + (anim_i - 1) * 300 + 800,
-                        )
-                    )
+                    ispec.animation_sequence = seq_idx
+                    motion_specs.append(ispec)
+                    rel_end = ispec.absolute_end_ms - slide_start_ms
+                    if rel_end > max_anim_end_rel:
+                        max_anim_end_rel = rel_end
+                clicks.extend(intra_clicks)
 
-            slide_end_ms = slide_start_ms + trans_dur + hold_duration_ms
+            slide_end_ms = slide_start_ms + max_anim_end_rel + hold_duration_ms
 
             if idx > 1:
                 playback_script.append({
@@ -289,10 +279,19 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
                     "transition_duration_ms": trans_dur,
                 })
 
+            for cl in clicks:
+                playback_script.append({
+                    "event": "click_trigger",
+                    "slide_number": idx,
+                    "sequence_index": cl["sequence_index"],
+                    "target_object": cl["target_object"],
+                    "time_ms": cl["absolute_ms"],
+                })
+
             playback_script.append({
                 "event": "hold_slide",
                 "slide_number": idx,
-                "start_ms": slide_start_ms + trans_dur,
+                "start_ms": slide_start_ms + max_anim_end_rel,
                 "end_ms": slide_end_ms,
                 "hold_duration_ms": hold_duration_ms,
             })
@@ -330,7 +329,8 @@ def extract_expected_timeline(pptx_path: str, hold_duration_ms: int = 2000) -> E
 
 class StaticValidator:
     """
-    Performs static OpenXML, geometry, media, transition, and anti-shortcut validation.
+    Performs static OpenXML, geometry, media, transition, intra-slide animation timing,
+    and anti-shortcut validation.
     """
 
     def validate(self, pptx_path: str) -> Dict[str, Any]:
@@ -339,6 +339,7 @@ class StaticValidator:
         traveling_anchors: Dict[str, List[int]] = {}
         discontinuous_anchors: Dict[str, List[int]] = {}
         missing_transitions: List[int] = []
+        total_native_animations = 0
 
         if not os.path.exists(pptx_path):
             defects.append(
@@ -477,12 +478,74 @@ class StaticValidator:
                             )
                         )
 
-                    # 4. Track !! Morph anchors
+                    # 4. Validate Intra-Slide <p:timing> Native Animations
+                    root = ET.fromstring(xml_bytes)
+                    timing = root.find("p:timing", NS)
+                    slide_anim_count = 0
+                    if timing is not None:
+                        main_seq = timing.find('.//p:cTn[@nodeType="mainSeq"]', NS)
+                        if main_seq is None:
+                            defects.append(
+                                ReviewDefect(
+                                    category="openxml_structure",
+                                    severity="major",
+                                    slide_number=idx,
+                                    object_id=None,
+                                    description=f"Slide {idx} has <p:timing> without a valid mainSeq node.",
+                                    remediation_hint="rebuild_timing_tree",
+                                )
+                            )
+                        for ctn in timing.findall(".//p:cTn", NS):
+                            p_cls = ctn.attrib.get("presetClass")
+                            if p_cls in ("entr", "emph", "path", "exit"):
+                                slide_anim_count += 1
+                                sp_tgts = ctn.findall(".//p:spTgt", NS)
+                                if not sp_tgts:
+                                    defects.append(
+                                        ReviewDefect(
+                                            category="animation_behavior",
+                                            severity="major",
+                                            slide_number=idx,
+                                            object_id=None,
+                                            description=f"Animation effect on slide {idx} is missing a <p:spTgt> target.",
+                                            remediation_hint="repair_animation_target",
+                                        )
+                                    )
+                                else:
+                                    for st in sp_tgts:
+                                        tgt_spid = st.attrib.get("spid", "")
+                                        if tgt_spid not in seen_ids:
+                                            defects.append(
+                                                ReviewDefect(
+                                                    category="animation_behavior",
+                                                    severity="major",
+                                                    slide_number=idx,
+                                                    object_id=f"spid_{tgt_spid}",
+                                                    description=f"Animation effect on slide {idx} targets nonexistent shape spid={tgt_spid}.",
+                                                    remediation_hint="repair_animation_target",
+                                                )
+                                            )
+                                for am in ctn.findall(".//p:animMotion", NS):
+                                    path_attr = am.attrib.get("path", "").strip()
+                                    if not path_attr or not path_attr.upper().startswith("M"):
+                                        defects.append(
+                                            ReviewDefect(
+                                                category="animation_behavior",
+                                                severity="major",
+                                                slide_number=idx,
+                                                object_id=None,
+                                                description=f"Invalid motion path syntax '{path_attr}' on slide {idx}.",
+                                                remediation_hint="repair_motion_path",
+                                            )
+                                        )
+                    total_native_animations += slide_anim_count
+
+                    # 5. Track !! Morph anchors
                     for o in objects:
                         if o["name"].startswith("!!"):
                             traveling_anchors.setdefault(o["name"], []).append(idx)
 
-                    # 5. Check Media Relationships
+                    # 6. Check Media Relationships
                     rels_path = f"ppt/slides/_rels/slide{idx}.xml.rels"
                     if rels_path in namelist:
                         rels_xml = z.read(rels_path).decode("utf-8", errors="ignore")
@@ -500,7 +563,7 @@ class StaticValidator:
                                     )
                                 )
 
-                    # 6. Word count
+                    # 7. Word count
                     word_count = sum(len(o["text"].split()) for o in objects if o["text"])
 
                     slide_summaries.append({
@@ -510,13 +573,12 @@ class StaticValidator:
                         "picture_count": len(pictures),
                         "transition_type": trans_type,
                         "transition_duration_ms": trans_dur,
+                        "native_animation_count": slide_anim_count,
                         "word_count": word_count,
                         "morph_anchors": [o["name"] for o in objects if o["name"].startswith("!!")],
                     })
 
                 # Check Traveling Entity Continuity for primary traveling entities
-                # Note: Layout cards (e.g., !!card_left) may only appear on specific pairs of slides,
-                # whereas traveling hero entities (!!Traveling_*) should be continuous across their flight span.
                 for tag, s_list in traveling_anchors.items():
                     s_list.sort()
                     if len(s_list) > 1 and ("Traveling" in tag or "prog_" in tag):
@@ -557,10 +619,10 @@ class StaticValidator:
         return {
             "is_valid": len(blocking) == 0,
             "total_slides": len(slide_summaries),
+            "total_native_animations": total_native_animations,
             "missing_transitions": missing_transitions,
             "traveling_anchors": traveling_anchors,
             "discontinuous_anchors": discontinuous_anchors,
             "slides": slide_summaries,
             "defects": [d.to_dict() for d in defects],
         }
-

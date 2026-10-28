@@ -21,16 +21,14 @@ from pmg.models import VideoMetadata, ExpectedTimeline, ValidationStatus
 
 
 def is_powerpoint_available() -> bool:
-    """Checks if Windows + pywin32 + Microsoft PowerPoint Desktop COM are available."""
+    """Checks if Windows + pywin32 + Microsoft PowerPoint Desktop COM are installed and available."""
     if sys.platform != "win32":
         return False
     try:
-        import win32com.client
-        ppt = win32com.client.Dispatch("PowerPoint.Application")
-        _ = ppt.Version
-        if ppt.Presentations.Count == 0:
-            ppt.Quit()
-        return True
+        import winreg
+        import win32com.client  # noqa: F401
+        with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"PowerPoint.Application\CLSID"):
+            return True
     except Exception:
         return False
 
@@ -181,7 +179,7 @@ def export_video_with_powerpoint(
                 pass
         if ppt is not None:
             try:
-                if ppt.Presentations.Count == 0:
+                if ppt.Presentations.Count == 0 and ppt.SlideShowWindows.Count == 0:
                     ppt.Quit()
             except Exception:
                 pass
@@ -230,6 +228,7 @@ def record_actual_slideshow(
         "duplicated_frames": 0,
         "dropped_frames": 0,
         "slide_events": [],
+        "click_events": [],
     }
 
     if sys.platform != "win32":
@@ -282,8 +281,7 @@ def record_actual_slideshow(
         if not hwnd:
             raise RuntimeError("Could not locate PowerPoint Slide Show window (screenClass).")
 
-        # Wait briefly for Slide 1 initial render
-        time.sleep(0.4)
+        time.sleep(0.35)
 
         l, t, r, b = win32gui.GetWindowRect(hwnd)
         w = (r - l) - ((r - l) % 2)
@@ -343,7 +341,6 @@ def record_actual_slideshow(
                             unique_frames += 1
 
                         if last_bgr_bytes is not None and ffmpeg_proc.stdin:
-                            # Catch up to real-time frame count so video timeline matches wall-clock
                             catchup = max(1, target_frame_idx - frames_written + 1)
                             for c_i in range(catchup):
                                 ffmpeg_proc.stdin.write(last_bgr_bytes)
@@ -371,10 +368,17 @@ def record_actual_slideshow(
         grab_thread.start()
 
         # Execute the expected timeline playback script
-        total_slides = len(expected_timeline.slides)
         for s_idx, slide_spec in enumerate(expected_timeline.slides, 1):
             ev_start = round((time.perf_counter() - rec_start_perf) * 1000.0, 1)
-            if s_idx > 1:
+            if s_idx == 1:
+                has_intra = any(o.trigger_type not in ("static", "slide_transition") for o in slide_spec.objects)
+                if has_intra:
+                    try:
+                        # Reset Slide 1 animations right after grab_thread starts so t=0 is captured
+                        ss_win.View.GotoSlide(1, -1)
+                    except Exception:
+                        pass
+            else:
                 ss_win.View.Next()
 
             # Wait for transition duration
@@ -382,13 +386,31 @@ def record_actual_slideshow(
             if trans_wait_sec > 0:
                 time.sleep(trans_wait_sec)
 
-            # Execute any intra-slide click triggers
+            elapsed_on_slide_ms = slide_spec.transition_duration_ms if s_idx > 1 else 0
+
+            # Execute any intra-slide click triggers according to expected slide_relative_ms
             for click_ev in slide_spec.clicks:
-                delay_sec = click_ev.get("delay_ms", 400) / 1000.0
-                time.sleep(delay_sec)
+                target_rel_ms = click_ev.get("slide_relative_ms", elapsed_on_slide_ms + 500)
+                wait_ms = max(100, target_rel_ms - elapsed_on_slide_ms)
+                time.sleep(wait_ms / 1000.0)
+                click_actual_ms = round((time.perf_counter() - rec_start_perf) * 1000.0, 1)
                 ss_win.View.Next()
-                dur_sec = click_ev.get("duration_ms", 600) / 1000.0
-                time.sleep(dur_sec)
+                telemetry["click_events"].append({
+                    "slide_number": s_idx,
+                    "sequence_index": click_ev.get("sequence_index", 0),
+                    "target_object": click_ev.get("target_object", ""),
+                    "expected_slide_relative_ms": target_rel_ms,
+                    "actual_ms": click_actual_ms,
+                })
+                elapsed_on_slide_ms = target_rel_ms
+
+            # Wait for any remaining automatic or click-triggered animations on the slide
+            expected_slide_span_ms = max(
+                0, slide_spec.absolute_end_ms - slide_spec.absolute_start_ms - slide_spec.hold_duration_ms
+            )
+            rem_anim_ms = max(0, expected_slide_span_ms - elapsed_on_slide_ms)
+            if rem_anim_ms > 0:
+                time.sleep(rem_anim_ms / 1000.0)
 
             # Hold steady state on slide
             hold_sec = max(0.8, slide_spec.hold_duration_ms / 1000.0)
@@ -440,7 +462,7 @@ def record_actual_slideshow(
                 pass
         if ppt is not None:
             try:
-                if ppt.Presentations.Count == 0:
+                if ppt.Presentations.Count == 0 and ppt.SlideShowWindows.Count == 0:
                     ppt.Quit()
             except Exception:
                 pass
@@ -451,4 +473,3 @@ def record_actual_slideshow(
         dropped_frames=telemetry.get("dropped_frames", 0),
     )
     return meta, telemetry
-
