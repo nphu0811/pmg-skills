@@ -57,6 +57,12 @@ class WorkerJobResult:
     elapsed_sec: float = 0.0
     clean_open: Dict[str, Any] = field(default_factory=dict)
     validated_pptx_sha256: str = ""
+    powerpoint_version: str = ""
+    validation_level: str = "Level 3 Native Playback"
+    checks_performed: List[str] = field(default_factory=list)
+    created_timestamp: str = ""
+    completed_timestamp: str = ""
+    retry_count: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

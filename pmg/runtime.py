@@ -20,6 +20,7 @@ print(result.validation_report)
 
 import os
 import json
+import hashlib
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional, Union, Callable
 
@@ -47,6 +48,8 @@ class PMGBuildResult:
     can_deliver: bool = False
     execution_mode: ExecutionMode = ExecutionMode.LOCAL_DESKTOP
     summary: str = ""
+    artifact_sha256: str = ""
+    repair_report: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -55,6 +58,8 @@ class PMGBuildResult:
             "can_deliver": self.can_deliver,
             "execution_mode": self.execution_mode.value,
             "summary": self.summary,
+            "artifact_sha256": self.artifact_sha256,
+            "repair_report": self.repair_report,
             "validation_report": self.validation_report.to_dict() if self.validation_report else None,
             "compiler_report": self.compiler_report.to_dict() if self.compiler_report else None,
         }
@@ -183,6 +188,11 @@ class PMGRuntime:
         else:
             summary += "Validation skipped."
 
+        art_hash = ""
+        if os.path.exists(abs_output):
+            with open(abs_output, "rb") as f:
+                art_hash = hashlib.sha256(f.read()).hexdigest()
+
         return PMGBuildResult(
             output_path=abs_output,
             validation_report=val_report,
@@ -191,6 +201,7 @@ class PMGRuntime:
             can_deliver=can_deliver,
             execution_mode=self.capabilities.execution_mode,
             summary=summary,
+            artifact_sha256=art_hash,
         )
 
     def validate(

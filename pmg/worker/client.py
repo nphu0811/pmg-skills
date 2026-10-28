@@ -200,3 +200,22 @@ class PMGWorkerClient:
             return False
         except Exception:
             return False
+
+
+    def cancel_remote(self, job_id: str) -> bool:
+        """Sends POST /jobs/<job_id>/cancel to the remote worker."""
+        if not self.worker_url:
+            return False
+        url = f"{self.worker_url}/jobs/{job_id}/cancel"
+        req = urllib.request.Request(
+            url,
+            data=b"{}",
+            headers=self._headers({"Content-Type": "application/json"}),
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                return data.get("cancelled", False)
+        except Exception:
+            return False

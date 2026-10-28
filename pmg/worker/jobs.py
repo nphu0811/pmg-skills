@@ -9,6 +9,7 @@ import os
 import time
 import uuid
 import shutil
+import datetime
 import threading
 from typing import Dict, Any, Optional
 
@@ -48,6 +49,24 @@ class WorkerJobManager:
         self._com_lock = threading.Lock()
         self.validator = StaticValidator()
         self.reviewer = VisualAnimationReviewer()
+        self._hash_cache: Dict[str, WorkerJobResult] = {}
+        self._job_timestamps: Dict[str, float] = {}
+
+    def get_cached_by_hash(self, sha256_hash: str) -> Optional[WorkerJobResult]:
+        with self._lock:
+            return self._hash_cache.get(sha256_hash)
+
+    def cleanup_stale_jobs(self, max_age_sec: float = 3600) -> int:
+        now = time.time()
+        to_del = []
+        with self._lock:
+            for jid, t_created in self._job_timestamps.items():
+                if (now - t_created) > max_age_sec:
+                    to_del.append(jid)
+            for jid in to_del:
+                self._jobs.pop(jid, None)
+                self._job_timestamps.pop(jid, None)
+        return len(to_del)
 
     def active_job_count(self) -> int:
         with self._lock:
@@ -81,6 +100,7 @@ class WorkerJobManager:
         timeout_sec: int = 240,
         job_id: Optional[str] = None,
         output_qa_dir: Optional[str] = None,
+        allow_cache: bool = True,
     ) -> WorkerJobResult:
         """
         Runs a complete validation job (Security Check -> Static Validation ->
@@ -89,14 +109,23 @@ class WorkerJobManager:
         """
         jid = job_id or f"job_{uuid.uuid4().hex[:10]}"
         t0 = time.perf_counter()
+        input_hash = file_sha256(pptx_source_path) if os.path.exists(pptx_source_path) else ""
+        if allow_cache and input_hash:
+            cached = self.get_cached_by_hash(input_hash)
+            if cached is not None and cached.state == "completed":
+                return cached
         result = WorkerJobResult(
             job_id=jid,
             state="queued",
             validation_status=ValidationStatus.NOT_VERIFIED.value,
             worker_identity=self.worker_identity,
+            validated_pptx_sha256=input_hash,
+            created_timestamp=datetime.datetime.utcnow().isoformat() + "Z",
         )
         with self._lock:
             self._jobs[jid] = result
+            self._job_timestamps[jid] = time.time()
+        result.checks_performed.append("security_scan")
 
         # 1. Security validation before opening in PowerPoint
         is_safe, sec_msg = validate_safe_pptx_upload(
@@ -109,6 +138,12 @@ class WorkerJobManager:
             result.validation_status = ValidationStatus.FAIL.value
             result.error = sec_msg
             result.elapsed_sec = round(time.perf_counter() - t0, 3)
+            result.completed_timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+            if result.clean_open and result.clean_open.get("version"):
+                result.powerpoint_version = str(result.clean_open.get("version"))
+            if input_hash and result.validation_status == ValidationStatus.PASS.value:
+                with self._lock:
+                    self._hash_cache[input_hash] = result
             return result
 
         with IsolatedJobWorkspace(jid, cleanup_on_exit=self.cleanup_artifacts) as ws_dir:
@@ -151,6 +186,12 @@ class WorkerJobManager:
                     summary=result.error,
                 ).to_dict()
                 result.elapsed_sec = round(time.perf_counter() - t0, 3)
+            result.completed_timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+            if result.clean_open and result.clean_open.get("version"):
+                result.powerpoint_version = str(result.clean_open.get("version"))
+            if input_hash and result.validation_status == ValidationStatus.PASS.value:
+                with self._lock:
+                    self._hash_cache[input_hash] = result
                 return result
 
             export_mp4 = os.path.join(qa_dir, "powerpoint_export.mp4")
@@ -227,6 +268,12 @@ class WorkerJobManager:
             result.validation_status = report.status.value
             result.state = "completed"
             result.elapsed_sec = round(time.perf_counter() - t0, 3)
+            result.completed_timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+            if result.clean_open and result.clean_open.get("version"):
+                result.powerpoint_version = str(result.clean_open.get("version"))
+            if input_hash and result.validation_status == ValidationStatus.PASS.value:
+                with self._lock:
+                    self._hash_cache[input_hash] = result
 
         return result
 

@@ -226,3 +226,12 @@ class PMGValidationWorkerServer:
         if self._thread is not None:
             self._thread.join(timeout=3.0)
 
+
+    def start(self, background: bool = False) -> str:
+        if background:
+            return self.start_background()
+        self.serve_forever()
+        return self.url
+
+    def stop(self) -> None:
+        self.shutdown()
