@@ -15,7 +15,7 @@ from importlib import metadata
 from datetime import datetime, timezone
 from typing import Dict, Any, List
 
-VERSION = "2.1.0"
+VERSION = "2.4.0"
 
 
 def get_repo_root() -> str:

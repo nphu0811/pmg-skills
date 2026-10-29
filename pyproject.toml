@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pmg-skills"
-version = "2.1.0"
+version = "2.4.0"
 description = "PowerPoint Motion Graphics (PMG) Universal Runtime: Cross-Platform Native PowerPoint Engine, Offline-First Architecture, Animation Timeline, Multi-Level Validation & Self-Healing System"
 readme = "README.md"
 requires-python = ">=3.8"

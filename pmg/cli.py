@@ -83,6 +83,7 @@ def cmd_build(args: argparse.Namespace) -> int:
             output=args.output,
             validate=not args.skip_playback,
             validate_levels=[1] if (args.skip_playback or getattr(args, "worker", "auto") == "static") else [1, 2, 3],
+            repair=getattr(args, "repair", "safe"),
             preset=getattr(args, "preset", None),
             title=getattr(args, "title", None),
             slides=getattr(args, "slides", 4),
@@ -228,6 +229,48 @@ def cmd_validate(args: argparse.Namespace) -> int:
     )
     print(json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False))
     return 0 if manifest.status == ValidationStatus.PASS else 1
+
+
+def cmd_repair(args: argparse.Namespace) -> int:
+    from pmg.self_healing import TransactionalRepairManager, RepairSafety
+    mgr = TransactionalRepairManager(max_retries=args.max_retries)
+    safety = RepairSafety.SAFE_AUTOMATIC if args.safe else RepairSafety.REQUIRES_REVIEW
+    res = mgr.repair(args.pptx, safety_threshold=safety, output_path=args.output)
+    print(f"[*] PMG Self-Healing Transactional Repair: {args.pptx}")
+    print(f"    Success:         {res.success}")
+    print(f"    Validation:      {res.validation_status.value}")
+    print(f"    Actions Applied: {len(res.actions_applied)}")
+    for a in res.actions_applied:
+        print(f"      - {a}")
+    print(f"    Rolled Back:     {res.rolled_back}")
+    print(f"    Repaired SHA256: {res.repaired_sha256[:16]}...")
+    if getattr(args, "json", False):
+        print(json.dumps(res.to_dict(), indent=2, ensure_ascii=False))
+    return 0 if res.success else 1
+
+
+def cmd_qa(args: argparse.Namespace) -> int:
+    from pmg.worker.client import PMGWorkerClient
+    from pmg.validation import validate_presentation
+    from pmg.capabilities import detect_environment
+    caps = detect_environment(worker_url=getattr(args, "worker_url", None), worker_token=getattr(args, "worker_token", None))
+    if args.remote or caps.remote_worker_configured:
+        client = PMGWorkerClient(worker_url=args.worker_url or caps.remote_worker_url, worker_token=args.worker_token)
+        res = client.validate_remote(args.pptx, timeout_sec=args.timeout)
+        print(f"[*] PMG Distributed Remote QA: {args.pptx}")
+        print(f"    Job ID:     {res.job_id}")
+        print(f"    Status:     {res.validation_status}")
+        print(f"    Worker:     {res.worker_identity}")
+        print(f"    SHA-256:    {res.validated_pptx_sha256[:16]}...")
+        if res.error:
+            print(f"    Error:      {res.error}")
+        return 0 if res.validation_status == "PASS" else 1
+    else:
+        rep = validate_presentation(args.pptx, levels=[1, 2, 3], capabilities=caps)
+        print(f"[*] PMG Local QA: {args.pptx}")
+        print(f"    Overall:    {rep.overall_status.value}")
+        print(f"    Summary:    {rep.summary}")
+        return 0 if rep.can_deliver else 1
 
 
 def cmd_render(args: argparse.Namespace) -> int:
@@ -490,6 +533,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_build.add_argument("--worker-url", help="Remote Windows worker URL (overrides PMG_QA_WORKER_URL)")
     p_build.add_argument("--worker-token", help="Remote Windows worker token (overrides PMG_QA_WORKER_TOKEN)")
+    p_build.add_argument("--repair", default="safe", choices=["safe", "none"], help="Automated repair mode: safe or none (default: safe)")
     p_build.set_defaults(func=cmd_build)
 
     # 2. pmg validate
@@ -510,6 +554,24 @@ def build_parser() -> argparse.ArgumentParser:
     p_val.add_argument("--no-video", action="store_true", help="Alias for --static-only (returns NOT_VERIFIED)")
     p_val.add_argument("--json", action="store_true", help="Print structured JSON report")
     p_val.set_defaults(func=cmd_validate)
+
+    # 2b. pmg repair
+    p_rep = sub.add_parser("repair", help="Run transactional safe self-healing on a PPTX presentation")
+    p_rep.add_argument("pptx", help="Path to input .pptx")
+    p_rep.add_argument("-o", "--output", help="Optional output path for repaired PPTX")
+    p_rep.add_argument("--safe", action="store_true", default=True, help="Apply only safe automatic repairs (default: True)")
+    p_rep.add_argument("--max-retries", type=int, default=3, help="Max repair iterations (default: 3)")
+    p_rep.add_argument("--json", action="store_true", help="Print structured JSON result")
+    p_rep.set_defaults(func=cmd_repair)
+
+    # 2c. pmg qa
+    p_qa = sub.add_parser("qa", help="Run distributed or local PowerPoint playback QA")
+    p_qa.add_argument("pptx", help="Path to input .pptx")
+    p_qa.add_argument("--remote", action="store_true", help="Force remote worker validation")
+    p_qa.add_argument("--worker-url", help="Remote worker endpoint")
+    p_qa.add_argument("--worker-token", help="Bearer auth token")
+    p_qa.add_argument("--timeout", type=int, default=240, help="Timeout in seconds")
+    p_qa.set_defaults(func=cmd_qa)
 
     # 3. pmg render
     p_ren = sub.add_parser("render", help="Export native MP4 video via Microsoft PowerPoint and inspect via FFprobe")

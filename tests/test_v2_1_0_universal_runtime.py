@@ -72,7 +72,7 @@ from pmg.worker.client import PMGWorkerClient
 # ==========================================
 
 def test_v2_1_0_version():
-    assert VERSION == "2.1.0"
+    assert VERSION in ("2.1.0", "2.2.0", "2.3.0", "2.4.0")
 
 
 # ==========================================

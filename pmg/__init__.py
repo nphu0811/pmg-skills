@@ -106,7 +106,23 @@ from pmg.reverse_engineer import (
     build_v1_4_reference_smartphone_slide,
 )
 from pmg.validator import StaticValidator, extract_expected_timeline, verify_clean_powerpoint_open
-from pmg.self_healing import execute_repair_loop
+from pmg.self_healing import (
+    execute_repair_loop,
+    repair_missing_content_types,
+    repair_duplicate_shape_ids,
+    repair_broken_animation_targets,
+    TransactionalRepairManager,
+    RepairSessionResult,
+    ImmutableValidationCertificate,
+    issue_validation_certificate,
+    verify_certificate,
+)
+from pmg.diagnostics import (
+    ErrorCode,
+    RepairSafety,
+    StructuredDiagnostic,
+    DiagnosticClassifier,
+)
 from pmg.orchestrator import PMGOrchestrator
 from pmg.worker import (
     WorkerHealthStatus,
@@ -331,4 +347,16 @@ __all__ = [
     "TimelineCompiler",
     "MorphReliabilityValidator",
     "get_effect_capability_status",
+    "ErrorCode",
+    "RepairSafety",
+    "StructuredDiagnostic",
+    "DiagnosticClassifier",
+    "repair_missing_content_types",
+    "repair_duplicate_shape_ids",
+    "repair_broken_animation_targets",
+    "TransactionalRepairManager",
+    "RepairSessionResult",
+    "ImmutableValidationCertificate",
+    "issue_validation_certificate",
+    "verify_certificate",
 ]

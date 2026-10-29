@@ -108,6 +108,7 @@ class PMGRuntime:
         validate: bool = True,
         validate_levels: Optional[List[int]] = None,
         preset: Optional[str] = None,
+        repair: Optional[str] = None,
         title: Optional[str] = None,
         slides: int = 4,
         **kwargs,
@@ -162,8 +163,9 @@ class PMGRuntime:
             }
             comp_report = self.compiler.compile_from_spec(default_spec, abs_output)
 
-        # Validation phase
+        # Validation & Self-Healing phase
         val_report: Optional[ComprehensiveValidationReport] = None
+        repair_res: Optional[Dict[str, Any]] = None
         is_valid = True
         can_deliver = True
 
@@ -177,6 +179,22 @@ class PMGRuntime:
             )
             is_valid = (val_report.overall_status == ValidationStatus.PASS)
             can_deliver = val_report.can_deliver
+
+            if not is_valid and repair in ("safe", "safe_automatic", "auto"):
+                from pmg.self_healing import TransactionalRepairManager, RepairSafety
+                repair_mgr = TransactionalRepairManager(max_retries=3)
+                session = repair_mgr.repair(abs_output, safety_threshold=RepairSafety.SAFE_AUTOMATIC)
+                repair_res = session.to_dict()
+                if session.success:
+                    val_report = validate_presentation(
+                        pptx_path=abs_output,
+                        levels=validate_levels,
+                        capabilities=self.capabilities,
+                        worker_url=self.worker_url,
+                        worker_token=self.worker_token,
+                    )
+                    is_valid = (val_report.overall_status == ValidationStatus.PASS)
+                    can_deliver = val_report.can_deliver
 
             # Companion manifest JSON
             report_out = f"{abs_output}.validation_report.json"
@@ -202,6 +220,7 @@ class PMGRuntime:
             execution_mode=self.capabilities.execution_mode,
             summary=summary,
             artifact_sha256=art_hash,
+            repair_report=repair_res,
         )
 
     def validate(
