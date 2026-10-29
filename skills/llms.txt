@@ -69,6 +69,36 @@ load relevant installed guidance and use actual available engine APIs.
 - Triggers: storyboard, narrative plan, scene planning, visual hierarchy, presentation flow
 - Path: skills/pmg-storyboard/SKILL.md
 
+## pmg-chart-motion
+- Responsibility: Quantitative chart and numerical motion intelligence (bar growth, line draw, doughnut slice reveal, synchronized value counters, and peak metric emphasis).
+- Triggers: chart animation, bar chart, line chart, doughnut chart, metric counter, animated numbers, quantitative motion
+- Path: skills/pmg-chart-motion/SKILL.md
+
+## pmg-kinetic-typography
+- Responsibility: Typographic motion intelligence (authoritative title unveiling, word-by-word reading cadence, keyword scale punches, typewriter rhythms, and kinetic headline morphs).
+- Triggers: kinetic typography, title animation, word stagger, keyword emphasis, typewriter text, animated headline
+- Path: skills/pmg-kinetic-typography/SKILL.md
+
+## pmg-image-motion
+- Responsibility: Photographic and visual composition motion intelligence (directional unmasking, 3-plane layered parallax, controlled macro dolly zooms, cinematic pans, and before/after comparisons).
+- Triggers: image animation, photo reveal, layered parallax, dolly zoom, panoramic pan, before after image, photo motion
+- Path: skills/pmg-image-motion/SKILL.md
+
+## pmg-diagram-motion
+- Responsibility: Diagram and process motion intelligence (directional causal process flow, node-by-node causality, vector connector drawing, hierarchical tree expansions, and data packet throughput).
+- Triggers: diagram animation, flowchart motion, process steps, connector animation, architecture flow, data pipeline motion
+- Path: skills/pmg-diagram-motion/SKILL.md
+
+## pmg-map-motion
+- Responsibility: Geospatial and map motion intelligence (region highlights, progressive route drawings, location marker pin drops, hub radar pulses, and multi-location itinerary storytelling).
+- Triggers: map animation, geographic motion, route drawing, location pin drop, radar pulse, territory highlight
+- Path: skills/pmg-map-motion/SKILL.md
+
+## pmg-infographic-motion
+- Responsibility: Infographic, timeline, and progress indicator motion intelligence (chronological timeline spines, milestone pin reveals, horizontal progress bars, circular progress gauges, and comparison matrices).
+- Triggers: infographic animation, timeline motion, milestone reveal, progress bar growth, circular gauge, feature comparison
+- Path: skills/pmg-infographic-motion/SKILL.md
+
 ## Future skill routing (not yet implemented in this release)
 - v1.7.0 shared Scene Graph/Motion Graph and Motion Director are APIs, not separate skills.
 - v2.0.1 extends choreography/storyboard after v1.8.0; no competing director/compiler skills.

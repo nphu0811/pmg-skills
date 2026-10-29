@@ -117,6 +117,35 @@ from pmg.self_healing import (
     issue_validation_certificate,
     verify_certificate,
 )
+from pmg.semantic_classifier import (
+    ObjectType,
+    SemanticRole,
+    NarrativeImportance,
+    AudienceFocus,
+    ObjectSemanticProfile,
+    SemanticClassifier,
+)
+from pmg.motion_planners import (
+    BaseMotionPlanner,
+    MotionIntent,
+    SharedMotionPrimitive,
+    ChartMotionPlanner,
+    KineticTypographyPlanner,
+    ImageMotionPlanner,
+    DiagramMotionPlanner,
+    MapMotionPlanner,
+    InfographicMotionPlanner,
+)
+from pmg.motion_decision import (
+    MotionDecision,
+    MotionDecisionReport,
+    ExplainableDecisionEngine,
+)
+from pmg.motion_quality import (
+    MotionQualityValidator,
+    MotionQualityReport,
+    ReducedMotionProfile,
+)
 from pmg.diagnostics import (
     ErrorCode,
     RepairSafety,
@@ -359,4 +388,25 @@ __all__ = [
     "ImmutableValidationCertificate",
     "issue_validation_certificate",
     "verify_certificate",
+    "ObjectType",
+    "SemanticRole",
+    "NarrativeImportance",
+    "AudienceFocus",
+    "ObjectSemanticProfile",
+    "SemanticClassifier",
+    "BaseMotionPlanner",
+    "MotionIntent",
+    "SharedMotionPrimitive",
+    "ChartMotionPlanner",
+    "KineticTypographyPlanner",
+    "ImageMotionPlanner",
+    "DiagramMotionPlanner",
+    "MapMotionPlanner",
+    "InfographicMotionPlanner",
+    "MotionDecision",
+    "MotionDecisionReport",
+    "ExplainableDecisionEngine",
+    "MotionQualityValidator",
+    "MotionQualityReport",
+    "ReducedMotionProfile",
 ]

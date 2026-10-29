@@ -1,9 +1,18 @@
-"""AI Motion Director for PMG Skills (v1.7.0).
-
-Transforms narrative storyboard plans into concrete Scene Graphs and Motion Graphs,
-and compiles them into native editable PowerPoint presentations.
 """
-from typing import Dict, Any, List, Optional
+pmg.motion_director
+===================
+Universal AI Motion Director for PMG Skills (v2.5.0).
+
+Upgraded with Universal Object-Specific Motion Intelligence:
+- Semantic object classification across charts, typography, images, diagrams, maps, and infographics.
+- 6 specialized object motion planners (`pmg-chart-motion`, `pmg-kinetic-typography`, `pmg-image-motion`,
+  `pmg-diagram-motion`, `pmg-map-motion`, `pmg-infographic-motion`).
+- Explainable Motion Decision System answering the 8 cognitive/pedagogical questions.
+- Cross-object choreography enforcing narrative synchronization.
+- Motion quality, accessibility, and performance validation with reduced-motion support.
+"""
+
+from typing import Dict, Any, List, Optional, Tuple, Set
 from pathlib import Path
 
 from pmg.storyboard import StoryboardPlan, StoryboardScene
@@ -12,11 +21,198 @@ from pmg.motion_graph import MotionGraph, AnimationAction, Dependency
 from pmg.animations import SlideAnimationTimeline
 from scripts.motion_graph_kit import MotionDeck, Themes
 
+from pmg.semantic_classifier import (
+    SemanticClassifier,
+    ObjectType,
+    SemanticRole,
+    NarrativeImportance,
+    ObjectSemanticProfile,
+)
+from pmg.motion_planners import (
+    ChartMotionPlanner,
+    KineticTypographyPlanner,
+    ImageMotionPlanner,
+    DiagramMotionPlanner,
+    MapMotionPlanner,
+    InfographicMotionPlanner,
+    MotionIntent,
+    SharedMotionPrimitive,
+)
+from pmg.motion_decision import (
+    MotionDecision,
+    MotionDecisionReport,
+    ExplainableDecisionEngine,
+)
+from pmg.motion_quality import (
+    MotionQualityValidator,
+    MotionQualityReport,
+    ReducedMotionProfile,
+)
+
 
 class MotionDirector:
-    """Intelligent Motion Director coordinating visual composition and motion design."""
-    def __init__(self, theme=Themes.LIGHT_ACADEMIC_CYAN):
+    """
+    Intelligent Motion Director coordinating visual composition, semantic classification,
+    object-specific motion planning, cross-object choreography, and quality audits.
+    """
+    def __init__(self, theme=Themes.LIGHT_ACADEMIC_CYAN, reduced_motion: bool = False):
         self.theme = theme
+        self.reduced_motion = reduced_motion
+        
+        # Specialized Object Motion Planners
+        self.chart_planner = ChartMotionPlanner()
+        self.typography_planner = KineticTypographyPlanner()
+        self.image_planner = ImageMotionPlanner()
+        self.diagram_planner = DiagramMotionPlanner()
+        self.map_planner = MapMotionPlanner()
+        self.infographic_planner = InfographicMotionPlanner()
+
+    def classify_scene_objects(self, sg: SceneGraph) -> List[ObjectSemanticProfile]:
+        """Classifies all nodes in a SceneGraph into semantic profiles."""
+        profiles = []
+        for idx, (node_id, node) in enumerate(sg.nodes.items()):
+            profile = SemanticClassifier.classify(node, index=idx)
+            profiles.append(profile)
+        return profiles
+
+    def choreograph_scene(
+        self,
+        sg: SceneGraph,
+        reduced_motion: Optional[bool] = None,
+    ) -> Tuple[MotionGraph, MotionDecisionReport, MotionQualityReport]:
+        """
+        Executes end-to-end universal motion choreography for a single SceneGraph.
+        Returns:
+          1. Native MotionGraph ready for OpenXML timeline compilation
+          2. Explainable MotionDecisionReport detailing why each motion was selected
+          3. MotionQualityReport verifying cognitive load and timing
+        """
+        use_reduced = self.reduced_motion if reduced_motion is None else reduced_motion
+        mg = MotionGraph(graph_id=f"motion_{sg.scene_id}")
+        profiles = self.classify_scene_objects(sg)
+        profile_map = {p.object_id: p for p in profiles}
+
+        all_intents: List[MotionIntent] = []
+        decisions: List[MotionDecision] = []
+
+        # Sort profiles by reading order and visual hierarchy
+        sorted_profiles = sorted(
+            profiles,
+            key=lambda p: (
+                0 if p.narrative_importance == NarrativeImportance.HERO else
+                1 if p.semantic_role in (SemanticRole.TITLE, SemanticRole.DATA_AXIS, SemanticRole.TIMELINE_SPINE) else
+                2 if p.narrative_importance == NarrativeImportance.PRIMARY else
+                3 if p.narrative_importance == NarrativeImportance.SECONDARY else 4,
+                p.reading_order,
+            )
+        )
+
+        # Plan motion per object profile using specialized planners
+        for prof in sorted_profiles:
+            intents: List[MotionIntent] = []
+            obj_type = prof.object_type
+
+            if obj_type == ObjectType.TRAVELING_HERO:
+                # Persistent cross-slide Morph hero
+                intents.append(
+                    MotionIntent(
+                        target_id=prof.object_id,
+                        primitive=SharedMotionPrimitive.FOCUS,
+                        semantic_purpose="Traveling hero orb establishes continuous visual focal point",
+                        duration_ms=750,
+                        delay_ms=50,
+                        trigger="after_previous",
+                        scale_factor=1.08,
+                        narrative_importance="hero",
+                    )
+                )
+
+            elif obj_type == ObjectType.TYPOGRAPHY:
+                style = "title_unveiling" if prof.semantic_role == SemanticRole.TITLE else "keyword_punch" if prof.semantic_role == SemanticRole.KEYWORD else "word_stagger"
+                intents = self.typography_planner.plan_motion({
+                    "style": style,
+                    "target_id": prof.object_id,
+                })
+
+            elif obj_type == ObjectType.CHART:
+                intents = self.chart_planner.plan_motion({
+                    "chart_type": "bar",
+                    "items": [{"id": prof.object_id, "role": prof.semantic_role.value}],
+                })
+
+            elif obj_type == ObjectType.DIAGRAM:
+                intents = self.diagram_planner.plan_motion({
+                    "pattern": "process_flow",
+                    "steps": [{"id": prof.object_id, "label": prof.object_id}],
+                })
+
+            elif obj_type == ObjectType.MAP:
+                intents = self.map_planner.plan_motion({
+                    "pattern": "route_progression",
+                    "locations": [{"id": prof.object_id}],
+                })
+
+            elif obj_type == ObjectType.INFOGRAPHIC:
+                intents = self.infographic_planner.plan_motion({
+                    "pattern": "timeline_progression",
+                    "milestones": [{"node_id": prof.object_id}],
+                })
+
+            elif obj_type == ObjectType.IMAGE:
+                intents = self.image_planner.plan_motion({
+                    "pattern": "directional_reveal",
+                    "target_id": prof.object_id,
+                })
+
+            else:
+                # Decorative / Background Cards settle softly
+                intents.append(
+                    MotionIntent(
+                        target_id=prof.object_id,
+                        primitive=SharedMotionPrimitive.REVEAL,
+                        semantic_purpose="Structural container card provides background framing",
+                        duration_ms=400,
+                        delay_ms=0,
+                        trigger="with_previous" if all_intents else "after_previous",
+                        narrative_importance="background",
+                    )
+                )
+
+            for intent in intents:
+                all_intents.append(intent)
+                decision = ExplainableDecisionEngine.evaluate(prof, intent, profiles)
+                decisions.append(decision)
+
+        # Apply reduced motion profile if requested
+        if use_reduced:
+            all_intents = ReducedMotionProfile.apply(all_intents)
+
+        # Build native MotionGraph actions and dependencies
+        prev_action_id: Optional[str] = None
+        for idx, intent in enumerate(all_intents):
+            act = intent.to_animation_action(f"act_{idx}_{intent.target_id}")
+            mg.add_action(act)
+            if prev_action_id and intent.trigger == "with_previous":
+                mg.add_dependency(prev_action_id, act.action_id, relationship="with_previous", lag_ms=intent.delay_ms)
+            prev_action_id = act.action_id
+
+        # Quality Validation
+        quality_report = MotionQualityValidator.validate(
+            all_intents,
+            known_target_ids=set(sg.nodes.keys()),
+            reduced_motion=use_reduced,
+        )
+
+        total_duration = sum(i.duration_ms for i in all_intents if i.trigger == "after_previous")
+        decision_report = MotionDecisionReport(
+            scene_id=sg.scene_id,
+            decisions=decisions,
+            narrative_flow_summary=f"Coordinated {len(profiles)} objects across {len(all_intents)} semantic motion intents.",
+            cognitive_load_level="low" if quality_report.metrics.get("max_simultaneous", 1) <= 2 else "moderate",
+            total_duration_ms=total_duration,
+        )
+
+        return mg, decision_report, quality_report
 
     def compile_plan_to_deck(self, plan: StoryboardPlan, output_path: str) -> str:
         """Compile an entire StoryboardPlan through SceneGraph and MotionGraph into native PPTX."""
@@ -32,7 +228,7 @@ class MotionDirector:
             # 2. Compile SceneGraph into native PowerPoint shapes
             mapping = sg.compile_to_slide(slide)
 
-            # 3. Build MotionGraph for this scene
+            # 3. Build MotionGraph using universal choreography
             mg = self.design_motion_graph(scene, sg)
 
             # 4. Compile MotionGraph into native OpenXML animation timeline
@@ -127,7 +323,6 @@ class MotionDirector:
             sg.add_node(col2)
         elif scene.composition_style == "radial_infographic":
             for k in range(4):
-                angle = k * (360.0 / 4.0)
                 rad = 1.8
                 cx = 6.666 + rad * 1.8 * (1 if k in (0, 1) else -1) * (0.6 if k in (0, 3) else 1.0)
                 cy = 4.2 + rad * (1 if k in (1, 2) else -1) * 0.7
@@ -160,46 +355,5 @@ class MotionDirector:
 
     def design_motion_graph(self, scene: StoryboardScene, sg: SceneGraph) -> MotionGraph:
         """Create coordinated MotionGraph for intra-slide native animations."""
-        mg = MotionGraph(graph_id=f"motion_{scene.scene_number}")
-
-        # Entrance for traveling hero
-        a1 = AnimationAction(
-            action_id="hero_entrance",
-            target_node_id="TravelingHero",
-            effect_type="zoom",
-            duration_ms=800,
-            delay_ms=100,
-            trigger="after_previous",
-        )
-        mg.add_action(a1)
-
-        # Simultaneous pulse/rotation
-        a2 = AnimationAction(
-            action_id="hero_spin",
-            target_node_id="TravelingHero",
-            effect_type="rotate",
-            duration_ms=1200,
-            rotation_deg=360.0,
-            trigger="with_previous",
-        )
-        mg.add_action(a2)
-        mg.add_dependency("hero_entrance", "hero_spin", relationship="with_previous")
-
-        # Animate secondary cards/nodes sequentially
-        secondary_nodes = [nid for nid in sg.nodes if nid not in ("Title", "Subtitle", "TravelingHero")]
-        prev_action = "hero_entrance"
-        for idx, nid in enumerate(secondary_nodes):
-            act_id = f"anim_{nid}"
-            act = AnimationAction(
-                action_id=act_id,
-                target_node_id=nid,
-                effect_type="fly_in",
-                direction="down" if idx % 2 == 0 else "up",
-                duration_ms=650,
-                delay_ms=idx * 80,
-                trigger="after_previous" if idx == 0 else "with_previous",
-            )
-            mg.add_action(act)
-            mg.add_dependency(prev_action, act_id, relationship="with_previous" if idx > 0 else "after_previous", lag_ms=idx * 80)
-
+        mg, _, _ = self.choreograph_scene(sg, reduced_motion=self.reduced_motion)
         return mg

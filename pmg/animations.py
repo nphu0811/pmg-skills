@@ -569,7 +569,13 @@ class SlideAnimationTimeline:
             attr.text = "r"
 
         elif step.effect_type in ("scale", "pulse"):
-            sx, sy = step.scale_factor if step.scale_factor != (1.0, 1.0) else (1.2, 1.2)
+            if isinstance(step.scale_factor, (int, float)):
+                sf = float(step.scale_factor)
+                sx, sy = (sf, sf) if sf != 1.0 else (1.2, 1.2)
+            elif isinstance(step.scale_factor, (tuple, list)) and len(step.scale_factor) >= 2:
+                sx, sy = step.scale_factor[0], step.scale_factor[1]
+            else:
+                sx, sy = (1.2, 1.2)
             asc = etree.SubElement(children, f"{{{P_NS}}}animScale")
             cBhvr = etree.SubElement(asc, f"{{{P_NS}}}cBhvr")
             etree.SubElement(cBhvr, f"{{{P_NS}}}cTn", id=alloc_id(), dur=dur_str, fill="hold")
