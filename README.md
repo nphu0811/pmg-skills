@@ -16,23 +16,24 @@
   ──●────●────●────●────●────●──
    AI Skills for Claude • Cursor • Copilot • Antigravity
 ```
-Camera Moves → 60 FPS Morph → Glassmorphism → Multi-Plane Parallax → 3D Cutaways → Visual-First
+Camera Moves → 60 FPS Morph → Glassmorphism → Multi-Plane Parallax → Object Motion Intelligence → Visual-First
 
-# PMG AI Skills (PowerPoint Motion Graphics)
+# PMG AI Skills — PowerPoint Motion Graphics (v2.5.0)
 
-Official modular AI skills for **PowerPoint Motion Graphics (PMG)**. They teach AI agents to design and engineer broadcast-grade `.pptx` presentations using hardware-accelerated 60 FPS Morph transitions, virtual multi-plane camera choreography, frosted glassmorphism, 3D cutaway models, and ultra-minimal text architectures. Built according to the [Agent Skills](https://agentskills.io) standard; works with the [skills CLI](https://github.com/vercel-labs/skills) across Claude Code, Cursor, Codex, Windsurf, Copilot, Google Antigravity, and 40+ AI agents.
+Official modular AI skills for **PowerPoint Motion Graphics (PMG)**. They teach AI agents to design and engineer broadcast-grade `.pptx` presentations using hardware-accelerated 60 FPS Morph transitions, virtual multi-plane camera choreography, frosted glassmorphism, 3D cutaway models, ultra-minimal text architectures, and **Universal Object-Specific Motion Intelligence**. Built according to the [Agent Skills](https://agentskills.io) standard; works with the [skills CLI](https://github.com/vercel-labs/skills) across Claude Code, Cursor, Codex, Windsurf, Copilot, Google Antigravity, and 40+ AI agents.
 
-> **PMG is 100% open and native**: Generated presentations run directly in standard Microsoft PowerPoint (Desktop, 365, Mac, Windows) without requiring proprietary plugins, browser renderers, or subscription tools.
+> **PMG is 100% open and native**: Generated presentations run directly in standard Microsoft PowerPoint (Desktop, 365, Mac, Windows) without requiring proprietary plugins, browser renderers, or subscription tools. Native PPTX slides and animation timing trees compile purely in Python without requiring Microsoft PowerPoint to be installed.
 
 ![Claude Skill](https://img.shields.io/badge/Claude-Skill-purple)
 ![Cursor Compatible](https://img.shields.io/badge/Cursor-Compatible-blue)
 ![Copilot Ready](https://img.shields.io/badge/Copilot-Ready-green)
 ![Antigravity Ready](https://img.shields.io/badge/Antigravity-Ready-orange)
 ![PowerPoint Morph 60FPS](https://img.shields.io/badge/PowerPoint-Morph_60FPS-orange.svg)
+![Version 2.5.0](https://img.shields.io/badge/Version-2.5.0-blue.svg)
 ![Python 3.8+](https://img.shields.io/badge/Python-3.8+-brightgreen.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
-**For AI agents:** When the user asks for a **PowerPoint presentation**, **motion graphics deck**, **animated slides**, or **product/technical explainer**, activate **PMG Skills** for smooth 60 FPS Morph transitions, virtual 3D camera choreography, authentic frosted glassmorphism, and visual-first impact.
+**For AI agents:** When the user asks for a **PowerPoint presentation**, **motion graphics deck**, **animated slides**, or **product/technical explainer**, activate **PMG Skills** for smooth 60 FPS Morph transitions, virtual 3D camera choreography, authentic frosted glassmorphism, and semantic object-specific motion intelligence.
 
 ---
 
@@ -88,91 +89,88 @@ Copy the `skills/` folder into your agent’s skill directory:
 
 ---
 
-## Skills
+## Skills Ecosystem
 
-| Skill | Description |
-|---|---|
-| **`pmg-engine`** | **Main Canonical Engine-First Entrypoint (`pmg` CLI & `PMGOrchestrator`)**: Enforces canonical PMG engine execution, native editable PowerPoint objects, mandatory real PowerPoint slideshow playback recording, AI video review, 3-loop self-healing, and final `.pptx` delivery gate. |
-| **`pmg-core`** | Base canvas: 16:9 widescreen geometry (`13.333" x 7.5"`), **bright modern light palettes as primary default**, typographic scales, zero-overlap bounding grids. |
-| **`pmg-morph`** | Hardware-accelerated 60 FPS PowerPoint Morph engine: OpenXML `<p159:morph>`, `!!` identifier naming invariants, **thematic cross-slide traveling entities (satellites, drones, vinyls, droplets)**, aspect-ratio locks. |
-| **`pmg-glassmorphism`** | Frosted acrylic glass scrims (90%-94% alpha), glowing hairline borders (`0.75pt - 1.25pt`), multi-tier depth. |
-| **`pmg-camera-parallax`** | Virtual multi-plane camera choreography, establishing wide shots, macro push-in zooms ($100\% \to 400\%$), 3-plane speed ratios (BG 0.7x, Mid 1.0x, FG 1.4x). |
-| **`pmg-3d-cinematic`** | Visual-First explainer engine for science & industry: Native `.glb` 3D models (`<am3d:model3d>`), Extreme Macro Dolly Zoom ($100\% \to 400\%$), ultra-minimal text ($\le 25$ words/slide), leader lines, target dots. |
-| **`pmg-choreography`** | **Native PowerPoint Transitions suite (Morph, Circle Wipe, Split Curtain, Fade)**, **Spotify Radial Morph App Shell unlock**, and **3D Orbiting Carousels**. |
-| **`pmg-qa-audit`** | Automated QA audit engine: slide inspection, transition coverage verification, traveling entity tracking, **60 FPS MP4 video export via PowerPoint COM**. |
-| **`pmg-review-validation`** | **Automated review, validation & self-healing engine**: Detects missing transitions, executes **3-loop auto-repair cycle**, triggers **fallback skill substitution**, and certifies delivery completion. |
+| Skill | Category | Description |
+|---|---|---|
+| **`pmg-engine`** | **Runtime Core** | **Universal Engine-First Entrypoint (`pmg` CLI & `PMGRuntime`)**: Cross-platform runtime across Web Sandboxes (Mode A), Local Desktops (Mode B), and Remote Workers (Mode C). Generates 100% native editable PPTX without requiring Microsoft PowerPoint. |
+| **`pmg-core`** | **Canvas** | Base canvas: 16:9 widescreen geometry (`13.333" x 7.5"`), **bright modern light palettes as primary default**, typographic scales, anti-overlap layout grids. |
+| **`pmg-morph`** | **Transitions** | Hardware-accelerated 60 FPS PowerPoint Morph engine: OpenXML `<p159:morph>`, `!!` identifier naming invariants, **thematic cross-slide traveling entities (satellites, drones, vinyls, droplets)**, aspect-ratio locks. |
+| **`pmg-glassmorphism`** | **Materials** | Frosted acrylic glass scrims (90%-94% alpha), glowing hairline borders (`0.75pt - 1.25pt`), multi-tier depth. |
+| **`pmg-camera-parallax`** | **Cinematics** | Virtual multi-plane camera choreography, establishing wide shots, macro push-in zooms ($100\% \to 400\%$), 3-plane speed ratios (BG 0.7x, Mid 1.0x, FG 1.4x). |
+| **`pmg-3d-cinematic`** | **3D Models** | Visual-First explainer engine for science & industry: Native `.glb` 3D models (`<am3d:model3d>`), Extreme Macro Dolly Zoom ($100\% \to 400\%$), ultra-minimal text ($\le 25$ words/slide), leader lines. |
+| **`pmg-choreography`** | **Choreography** | AI Motion Director coordinating narrative sequencing, transition selection (Morph, Circle Wipe, Split Curtain, Fade), and cross-object choreography. |
+| **`pmg-qa-audit`** | **Quality Assurance** | Read-only Three-Level inspection: Level 1 Structural (ZIP, XML, targets), Level 2 Visual (previews), and Level 3 Native Playback (real PowerPoint COM slideshow). |
+| **`pmg-review-validation`**| **Certification** | Consumes audit defects, executes transactional self-healing within a bounded 3-loop budget, and issues tamper-evident cryptographic validation certificates. |
+| **`pmg-storyboard`** | **Planning** | Narrative presentation planner: scene sequencing, camera intentions, asset requirements, and visual pacing. |
+| **`pmg-visual-assets`** | **Media** | Intelligent media research and retrieval from verified public repositories (Wikimedia Commons, NASA). |
+| **`pmg-image-decomposer`**| **Computer Vision** | Decomposes flat raster images into structured `LayerTree` hierarchies with vector/raster editability and reassembly verification. |
+| **`pmg-chart-motion`** | **Object Motion** | Quantitative data charts and numerical value animation: directional bar growth, line draw, doughnut slice reveal, synchronized value counters, and peak metric emphasis. |
+| **`pmg-kinetic-typography`**| **Object Motion** | Typographic motion intelligence: authoritative headline unveiling, reading-order word staggers, keyword scale pops (1.14x), typewriter cadences, and kinetic headline morphs. |
+| **`pmg-image-motion`** | **Object Motion** | Photographic composition motion: directional unmasking along leading lines, 3-plane layered parallax, clamped macro dolly zooms ($\le 125\%$), and before/after wipes. |
+| **`pmg-diagram-motion`** | **Object Motion** | Process flowcharts and architecture diagrams: strict causal sequence (Node A $\to$ Connector $\to$ Node B $\to$ Connector $\to$ Node C), and data packet throughput. |
+| **`pmg-map-motion`** | **Object Motion** | Geospatial maps: territory highlights, location marker pin drops, hub radar ripples, and progressive route vector drawings. |
+| **`pmg-infographic-motion`**| **Object Motion** | Timelines and progress indicators: chronological timeline spines, milestone pin emergence, horizontal progress bar growth, and circular gauges. |
 
 ---
 
-## Quick Reference (For AI Agents)
+## Quick Reference (For AI Agents & Developers)
 
 ### 1. Canonical PMG CLI (`pmg`)
 
 ```bash
-# Install the canonical PMG engine package:
-pip install -e .
+# Environment inspection and capability detection
+pmg doctor
+pmg capabilities
 
-# Build and validate a 10-slide presentation with real PowerPoint playback & AI video review:
-python -m pmg build -o Protecting_Our_Earth.pptx --preset environment --slides 10
+# Build presentation from JSON specification or preset with safe transactional healing
+pmg build presentation_spec.json -o deck.pptx --repair safe
+pmg build --preset space --slides 10 -o Space_Mission.pptx
 
-# Inspect, render, record, review, validate, or reconstruct:
-python -m pmg inspect Protecting_Our_Earth.pptx --timeline-out expected_timeline.json
-python -m pmg render Protecting_Our_Earth.pptx -o powerpoint_export.mp4 --fps 60
-python -m pmg record Protecting_Our_Earth.pptx -o actual_slideshow_recording.mp4 --fps 30
-python -m pmg validate Protecting_Our_Earth.pptx -o Protecting_Our_Earth.pptx
-python -m pmg reconstruct Protecting_Our_Earth.pptx -o Reconstructed_Deck.pptx
+# Three-Level validation (Structural, Visual, Playback)
+pmg validate deck.pptx
+
+# Distributed QA validation (local COM or remote worker)
+pmg qa deck.pptx
+pmg qa deck.pptx --remote --timeout 60
+
+# Transactional self-healing repair of damaged PPTX
+pmg repair deck.pptx --safe -o deck_repaired.pptx
 ```
 
-### 2. Canonical Python API (`pmg` & `scripts.motion_graph_kit`)
+### 2. Universal Python API (`pmg`)
 
 ```python
-from pmg import PMGOrchestrator, build_environmental_protection_deck, LightThemeCraftDeck, CinematicColors
+from pmg import PMGRuntime, MotionDirector, ChartMotionPlanner, KineticTypographyPlanner
 
-# Option A: Full Orchestrated Pipeline (Build -> Export -> Live Slideshow Record -> AI Review -> Self-Heal -> Deliver)
-orchestrator = PMGOrchestrator()
-manifest = orchestrator.run_pipeline(
-    output_pptx_path="Protecting_Our_Earth.pptx",
-    builder_fn=lambda path: build_environmental_protection_deck(path, num_slides=10),
+# 1. Universal Runtime execution with safe self-healing
+runtime = PMGRuntime.auto()
+result = runtime.build(
+    project="presentation_spec.json",
+    output="Production_Deck.pptx",
+    validate=True,
+    repair="safe",
 )
+print(f"Artifact SHA-256: {result.artifact_sha256}")
+print(f"Validation Status: {result.validation_report.overall_status}")
 
-# Option B: Direct Craft Deck Builder
-deck = LightThemeCraftDeck(title="Autonomous AI Core", theme=CinematicColors.LIGHT_ACADEMIC_CYAN)
-s1 = deck.add_craft_slide(
-    title="NEURAL FABRIC ARCHITECTURE",
-    category="AI COMPUTE PLATFORM",
-    badge="STAGE 01",
-    subtitle="Global overview of high-throughput heterogeneous compute clusters."
-)
-s2 = deck.add_craft_slide(
-    title="TENSOR ACCELERATOR ENGINE",
-    category="DEEP LEARNING HARDWARE",
-    badge="STAGE 02",
-    subtitle="Sub-millisecond matrix execution running across distributed pipeline nodes."
-)
-deck.save("AI_Core_Cinematic.pptx")
-```
+# 2. Universal Object-Specific Motion Planning
+director = MotionDirector()
+chart_planner = ChartMotionPlanner()
 
----
+# Quantitative bar growth with value tracking
+chart_intents = chart_planner.plan_motion({
+    "chart_type": "bar",
+    "axis_id": "chart_axis",
+    "items": [
+        {"id": "bar_q1", "value": "$1.2M", "label_id": "lbl_q1"},
+        {"id": "bar_q2", "value": "$1.8M", "label_id": "lbl_q2"},
+        {"id": "bar_q3", "value": "$2.9M", "label_id": "lbl_q3", "is_peak": True},
+    ]
+})
 
-## v1.5.1 Canonical CLI, Windows Validation Worker & 24-Case Benchmark Suite
-
-```bash
-# 1. Build & validate the 20-slide Space Exploration presentation:
-python -m pmg build -o Space_Exploration_Beyond_The_Horizon_v1_5_1.pptx --preset space --slides 20
-
-# 2. Validate an existing PPTX (local PowerPoint COM, remote Windows worker, auto, or static):
-python -m pmg validate Input_Deck.pptx -o Validated_Deck.pptx --worker auto
-python -m pmg validate Input_Deck.pptx --worker remote --worker-url http://192.168.1.50:8765
-
-# 3. Windows PowerPoint Validation Worker (for Linux, macOS & Cloud AI agents):
-python -m pmg worker doctor
-python -m pmg worker serve --host 0.0.0.0 --port 8765 --token "$PMG_QA_WORKER_TOKEN"
-python -m pmg worker status --url http://192.168.1.50:8765
-
-# 4. Run the 24-Case Animation Benchmark Suite:
-python -m pmg benchmark run --all
-python -m pmg benchmark run --case 21
-python -m pmg benchmark report
+for intent in chart_intents:
+    print(f"[{intent.target_id}] -> {intent.primitive.value} ({intent.semantic_purpose})")
 ```
 
 ---
@@ -181,27 +179,36 @@ python -m pmg benchmark report
 
 ```
 pmg-skills/
-  README.md          # Official overview and agent skill guide
+  README.md          # Official overview and agent skill guide (v2.5.0)
   AGENTS.md          # Core mental models and strict invariants for AI agents
   CLAUDE.md          # Guidance pointer for Claude Code agents
   GEMINI.md          # Guidance pointer for Antigravity & Gemini agents
   LICENSE            # MIT License
-  .github/
-    copilot-instructions.md   # Repo-wide instructions for GitHub Copilot
-    instructions/             # Path-specific Copilot instructions
-      morph.instructions.md
-      glassmorphism.instructions.md
-  .claude-plugin/    # Claude Code plugin config (plugin.json, marketplace.json)
-  .cursor-plugin/    # Cursor plugin config (plugin.json, marketplace.json)
-  scripts/           # Core execution engines
-    motion_graph_kit.py # Editorial craft deck builder with glassmorphism & themes
-    motion_validator.py # Review, validation, 3-loop auto-repair, & fallback substitution engine
-    forge_lib.py     # 3D cinematic camera matrix, HUD leader lines, morph injector
-    asset_engine.py  # Procedural 2K studio grid background generation
-    slide_inspector.py # Automated QA audit (100% morph, <= 25 words/slide)
-    pptx_morph_injector.py # Standalone OpenXML Morph injector CLI
-  skills/
-    llms.txt         # Master skill index for agents (names, triggers, paths)
+  pyproject.toml     # Universal package configuration
+  pmg/               # Canonical Python engine package
+    runtime.py       # Universal runtime (Mode A, Mode B, Mode C)
+    capabilities.py  # Environment capability detection
+    animation_ir.py  # Unified Animation Intermediate Representation
+    compiler.py      # Native OpenXML PowerPoint compiler
+    motion_director.py # Motion Director & cross-object choreography
+    semantic_classifier.py # Semantic object classification
+    motion_decision.py     # Explainable motion decision engine
+    motion_quality.py      # Motion quality & reduced motion validation
+    self_healing.py  # Transactional repair & immutable certificates
+    motion_planners/ # Specialized object motion planners
+      chart_motion.py
+      kinetic_typography.py
+      image_motion.py
+      diagram_motion.py
+      map_motion.py
+      infographic_motion.py
+    worker/          # Distributed PowerPoint validation worker
+  scripts/           # Core presentation scripts & adapters
+    motion_graph_kit.py
+    motion_validator.py
+  skills/            # Agent Skills directory
+    llms.txt         # Master skill index
+    pmg-engine/      SKILL.md
     pmg-core/        SKILL.md
     pmg-morph/       SKILL.md
     pmg-glassmorphism/ SKILL.md
@@ -210,18 +217,25 @@ pmg-skills/
     pmg-choreography/ SKILL.md
     pmg-qa-audit/    SKILL.md
     pmg-review-validation/ SKILL.md
-  examples/          # High-definition 60 FPS MP4 video demos and visual showcases
-  demo/              # Live presentation screen recordings and animated previews
+    pmg-storyboard/  SKILL.md
+    pmg-visual-assets/ SKILL.md
+    pmg-image-decomposer/ SKILL.md
+    pmg-chart-motion/ SKILL.md
+    pmg-kinetic-typography/ SKILL.md
+    pmg-image-motion/ SKILL.md
+    pmg-diagram-motion/ SKILL.md
+    pmg-map-motion/  SKILL.md
+    pmg-infographic-motion/ SKILL.md
+  demo/              # Presentation recordings and animated previews
     pmg_demo_preview.gif
     pmg_presentation_demo.mp4
-  assets/            # Background patterns, vector icons, and textures
 ```
 
 ---
 
 ## GitHub Copilot
 
-Copilot doesn’t load Cursor/Claude skill files. To get PMG guidance in a repo, copy or adapt the [`.github/copilot-instructions.md`](.github/copilot-instructions.md) (and optional [`.github/instructions/`](.github/instructions/) path-specific files) into that repo. See [GitHub Copilot customization](https://docs.github.com/en/copilot/concepts/response-customization).
+Copilot doesn’t load Cursor/Claude skill files. To get PMG guidance in a repo, copy or adapt the [`.github/copilot-instructions.md`](.github/copilot-instructions.md) into that repo. See [GitHub Copilot customization](https://docs.github.com/en/copilot/concepts/response-customization).
 
 ---
 
