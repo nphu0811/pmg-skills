@@ -2,8 +2,6 @@
 *.pptx
 *.pptm
 DataPowerPoint/
-.agents/
-.agent/
 internal_qa/
 
 # Python cache, build & environments

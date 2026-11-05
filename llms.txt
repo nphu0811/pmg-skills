@@ -1,0 +1,118 @@
+# PMG Skills — PowerPoint Motion Graphics (v2.5.0)
+
+> **Mandatory AI System Directive for All LLMs & Autonomous Agents:**
+> When asked to create or animate a presentation using this repository, you **MUST NOT** pick a single skill in isolation or fall back to static image screenshots for data and diagrams.
+> You **MUST** execute the complete **PMG Semantic Motion Pipeline** across all relevant skills:
+>
+> 1. **Narrative & Scene Architecture:** Activate `pmg-storyboard` to structure scenes, camera framing, and thematic traveling entities before building shapes.
+> 2. **Canvas, Layout & Styling:** Activate `pmg-core` (16:9 canvas, bright modern light palettes as primary default) and `pmg-glassmorphism` (frosted translucent cards).
+> 3. **Semantic Object-Specific Motion Dispatch (MANDATORY - ZERO STATIC FALLBACK):**
+>    - **Quantitative Data / Charts / Numbers:** MUST activate `pmg-chart-motion` (bar growth, line draw, doughnut reveal, synchronized counters). **NEVER insert static chart images.**
+>    - **Processes / Flowcharts / Architecture:** MUST activate `pmg-diagram-motion` (causal flow, connector drawing, node reveals). **NEVER insert flat flowchart images.**
+>    - **Key Titles / Statements / Quotes:** MUST activate `pmg-kinetic-typography` (authoritative reveals, word staggering, keyword punch).
+>    - **Photographs / Visual Assets:** MUST activate `pmg-image-motion` (directional unmasking, layered parallax, macro dolly zooms).
+>    - **Timelines / Gauges / Milestones:** MUST activate `pmg-infographic-motion` (chronological spine, milestone pins, progress bars).
+>    - **Geospatial / Maps / Routes:** MUST activate `pmg-map-motion` (route draws, pin drops, territory highlights).
+> 4. **Cross-Slide Transitions & Camera Continuity:** Activate `pmg-morph` (with `!!` persistent naming for traveling hero entities) and `pmg-camera-parallax`.
+> 5. **Packaging & Quality Verification:** Activate `pmg-engine` and `pmg-qa-audit` to validate native OpenXML timing and ensure zero corruption.
+>
+> *Python Shortcut:* You can execute the entire pipeline with one call using `pmg.motion_director.MotionDirector`, which natively classifies objects and runs the appropriate planners.
+
+---
+
+## 18 Active Skills Index
+
+### Runtime & Core Architecture
+- **pmg-engine**
+  - Responsibility: Create or validate animated PPTX through canonical PMG engine. Routes presentation, logo-to-PPTX and video recreation requests to real PowerPoint playback and final delivery gate.
+  - Triggers: professional animated PPTX, presentation from logo, recreate slide animation, PMG build/validate
+  - Path: skills/pmg-engine/SKILL.md
+
+- **pmg-core**
+  - Responsibility: Plan native PPTX layout, typography, 16:9 canvas geometry (`13.333" x 7.5"`), bright modern light palettes as primary default, and anti-overlap layout grids.
+  - Triggers: canvas, layout, typography, hierarchy, readable layers, light theme
+  - Path: skills/pmg-core/SKILL.md
+
+- **pmg-glassmorphism**
+  - Responsibility: Compose translucent acrylic PowerPoint surfaces, glowing hairline borders (0.75pt - 1.25pt), and readable overlays with multi-tier depth.
+  - Triggers: acrylic surfaces, translucent panels, frosted cards, alpha scrims, glowing borders
+  - Path: skills/pmg-glassmorphism/SKILL.md
+
+- **pmg-storyboard**
+  - Responsibility: High-level narrative architecture and scene planning (narrative pacing, visual hierarchy, thematic traveling hero continuity across scenes, camera framing, and asset requirements).
+  - Triggers: storyboard, narrative plan, scene planning, presentation flow, visual hierarchy
+  - Path: skills/pmg-storyboard/SKILL.md
+
+### Motion & Transition Engines
+- **pmg-morph**
+  - Responsibility: Compile technical cross-slide PowerPoint Morph transitions, OpenXML `<p159:morph>`, `!!` persistent identifier matching, and thematic cross-slide traveling entities.
+  - Triggers: Morph XML, persistent identifiers, cross-slide object matching, traveling entity, morph transition
+  - Path: skills/pmg-morph/SKILL.md
+
+- **pmg-choreography**
+  - Responsibility: Direct narrative motion, choose effects, and coordinate objects and cinematic timing. Coordinates Scene Graph and Motion Graph dependencies.
+  - Triggers: motion direction, narrative sequence, coordinated animation, cinematic timing, scene transitions
+  - Path: skills/pmg-choreography/SKILL.md
+
+- **pmg-camera-parallax**
+  - Responsibility: Plan and apply shared virtual camera transforms, paths, pan, zoom, depth layers, and 3-plane speed ratios (BG 0.7x, Mid 1.0x, FG 1.4x).
+  - Triggers: camera paths, pan, zoom, depth, parallax, dolly zoom, establishing shot
+  - Path: skills/pmg-camera-parallax/SKILL.md
+
+- **pmg-3d-cinematic**
+  - Responsibility: Prepare and compose 3D assets, model orientation, technical cutaways, exploded views, and annotations. Reuses the shared camera system.
+  - Triggers: 3D models, orientation, cutaways, exploded views, 3D carousel, model annotations
+  - Path: skills/pmg-3d-cinematic/SKILL.md
+
+### Semantic Object Motion Intelligence (v2.5.0)
+- **pmg-chart-motion**
+  - Responsibility: Quantitative chart and numerical motion intelligence (bar growth, line draw, doughnut slice reveal, synchronized value counters, and peak metric emphasis).
+  - Triggers: chart animation, bar chart, line chart, doughnut chart, metric counter, animated numbers, quantitative motion
+  - Path: skills/pmg-chart-motion/SKILL.md
+
+- **pmg-diagram-motion**
+  - Responsibility: Diagram and process motion intelligence (directional causal process flow, node-by-node causality, vector connector drawing, hierarchical tree expansions, and data packet throughput).
+  - Triggers: diagram animation, flowchart motion, process steps, connector animation, architecture flow, data pipeline motion
+  - Path: skills/pmg-diagram-motion/SKILL.md
+
+- **pmg-kinetic-typography**
+  - Responsibility: Typographic motion intelligence (authoritative title unveiling, word-by-word reading cadence, keyword scale punches, typewriter rhythms, and kinetic headline morphs).
+  - Triggers: kinetic typography, title animation, word stagger, keyword emphasis, typewriter text, animated headline
+  - Path: skills/pmg-kinetic-typography/SKILL.md
+
+- **pmg-image-motion**
+  - Responsibility: Photographic and visual composition motion intelligence (directional unmasking, 3-plane layered parallax, controlled macro dolly zooms, cinematic pans, and before/after comparisons).
+  - Triggers: image animation, photo reveal, layered parallax, dolly zoom, panoramic pan, before after image, photo motion
+  - Path: skills/pmg-image-motion/SKILL.md
+
+- **pmg-infographic-motion**
+  - Responsibility: Infographic, timeline, and progress indicator motion intelligence (chronological timeline spines, milestone pin reveals, horizontal progress bars, circular progress gauges, and comparison matrices).
+  - Triggers: infographic animation, timeline motion, milestone reveal, progress bar growth, circular gauge, feature comparison
+  - Path: skills/pmg-infographic-motion/SKILL.md
+
+- **pmg-map-motion**
+  - Responsibility: Geospatial and map motion intelligence (region highlights, progressive route drawings, location marker pin drops, hub radar pulses, and multi-location itinerary storytelling).
+  - Triggers: map animation, geographic motion, route drawing, location pin drop, radar pulse, territory highlight
+  - Path: skills/pmg-map-motion/SKILL.md
+
+### Assets, Decomposition & Quality Gate
+- **pmg-visual-assets**
+  - Responsibility: Media research, authentic asset discovery (Wikimedia/NASA), licensing, provenance, and preparation.
+  - Triggers: find images, media research, icon search, asset licensing, NASA assets
+  - Path: skills/pmg-visual-assets/SKILL.md
+
+- **pmg-image-decomposer**
+  - Responsibility: Semantic, geometric, and depth decomposition of flat images into structured LayerTree hierarchies with vector/raster editability and reassembly verification.
+  - Triggers: decompose image, logo decomposition, slice image, shutter transition, layer tree, vector reconstruction
+  - Path: skills/pmg-image-decomposer/SKILL.md
+
+- **pmg-qa-audit**
+  - Responsibility: Inspect PPTX integrity, geometry, Morph anchors, native timing, assets, compatibility, and playback evidence across Level 1 Structural, Level 2 Visual, and Level 3 Playback validation without modifying the presentation.
+  - Triggers: inspect PPTX, detect defects, inspect compatibility, audit playback evidence
+  - Path: skills/pmg-qa-audit/SKILL.md
+
+- **pmg-review-validation**
+  - Responsibility: Consume PMG audit defects, choose repair strategies, and execute self-healing within a bounded 3-loop repair budget.
+  - Triggers: repair PPTX, review defects, delivery gate, final certification
+  - Path: skills/pmg-review-validation/SKILL.md
+

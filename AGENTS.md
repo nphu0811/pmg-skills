@@ -28,22 +28,29 @@ Do not rely exclusively on Morph. Select transitions that evoke the right narrat
 
 ---
 
-## 2. Skill Directory Layout
+## 2. Skill Directory Layout & Mandatory Dispatch
 
-Agents should route user requests to the appropriate modular skill:
+Agents MUST route user requests to the appropriate modular skills across the 18 active skills:
 
 | Skill | Directory | When to Activate |
 | :--- | :--- | :--- |
 | **`pmg-engine`** | `skills/pmg-engine/` | **Canonical Engine-First Entrypoint:** Mandatory whenever PMG Skills is requested. Executes `pmg` engine, real PowerPoint playback recording, AI video review, 3-loop repair, and final `.pptx` delivery gate. |
 | **`pmg-core`** | `skills/pmg-core/` | Base layout, 16:9 canvas geometry (`13.333" x 7.5"`), **bright modern light palettes as primary default**, readability and intentional layering. |
+| **`pmg-glassmorphism`** | `skills/pmg-glassmorphism/` | Frosted acrylic glass cards (90%-94% alpha), subtle glowing hairline borders (`0.75pt - 1.25pt`), multi-tier depth. |
+| **`pmg-storyboard`** | `skills/pmg-storyboard/` | High-level narrative architecture, scene planning, pacing, visual hierarchy, camera framing intentions, and traveling hero continuity before slide construction. |
 | **`pmg-morph`** | `skills/pmg-morph/` | PowerPoint Morph transitions, OpenXML `<p159:morph>`, `!!` identifier invariants, **thematic cross-slide traveling entities**. |
 | **`pmg-choreography`** | `skills/pmg-choreography/` | High-level motion direction, selection, narrative sequencing and timing; invokes shared Morph, camera and native animation compilers. |
-| **`pmg-glassmorphism`** | `skills/pmg-glassmorphism/` | Frosted acrylic glass cards (90%-94% alpha), subtle glowing hairline borders (`0.75pt - 1.25pt`), multi-tier depth. |
 | **`pmg-camera-parallax`** | `skills/pmg-camera-parallax/` | Multi-plane parallax speeds (BG 0.7x, Mid 1.0x, FG 1.4x), macro push-in zooms ($100\% \to 400\%$), tracking pans. |
 | **`pmg-3d-cinematic`** | `skills/pmg-3d-cinematic/` | Model preparation, placement/orientation, cutaways and annotations; reuses the camera system. Verify actual host model support. |
-| **`pmg-qa-audit`** | `skills/pmg-qa-audit/` | Read-only structured inspection of package, layout, anchors, timing, media, compatibility and playback evidence; no repairs or certification. |
+| **`pmg-chart-motion`** | `skills/pmg-chart-motion/` | **MANDATORY for all quantitative data:** Bar growth, line trace, doughnut reveals, synchronized counters, peak scale punch. **NEVER insert static chart screenshots.** |
+| **`pmg-diagram-motion`** | `skills/pmg-diagram-motion/` | **MANDATORY for flows/architecture:** Causal process flows, node-by-node causality, vector connector draws, tree reveals. **NEVER insert flat flowchart images.** |
+| **`pmg-kinetic-typography`**| `skills/pmg-kinetic-typography/` | **MANDATORY for key statements:** Authoritative title unveiling, word-by-word cadence, keyword scale punches, typewriter rhythms. |
+| **`pmg-image-motion`** | `skills/pmg-image-motion/` | **MANDATORY for photography:** Directional unmasking, 3-plane layered parallax, controlled macro dolly zooms ($100\% \to 240\%$), panoramic pans. |
+| **`pmg-infographic-motion`**| `skills/pmg-infographic-motion/`| **MANDATORY for timelines/metrics:** Chronological timeline spines, milestone pin reveals, horizontal progress bars, circular progress gauges. |
+| **`pmg-map-motion`** | `skills/pmg-map-motion/` | **MANDATORY for geospatial topics:** Region highlights, progressive route draws, marker pin drops, hub radar pulses. |
 | **`pmg-visual-assets`** | `skills/pmg-visual-assets/` | Media research, authentic asset discovery (Wikimedia/NASA), licensing, provenance, and preparation; does not compile animations. |
 | **`pmg-image-decomposer`** | `skills/pmg-image-decomposer/` | Semantic, geometric, and depth decomposition of flat images into structured `LayerTree` hierarchies with vector/raster editability and reassembly verification. |
+| **`pmg-qa-audit`** | `skills/pmg-qa-audit/` | Read-only structured inspection of package, layout, anchors, timing, media, compatibility and playback evidence; no repairs or certification. |
 | **`pmg-review-validation`** | `skills/pmg-review-validation/` | Consumes shared audit reports, chooses repairs and certification policy; orchestrator owns one maximum-three-attempt loop and final authority. |
 
 ---
@@ -79,16 +86,29 @@ Agents should route user requests to the appropriate modular skill:
 - **Fallback Within Budget:** Use compatible native effect substitution inside attempt three; do not start extra repair loops or reset the budget. Unresolved defects block delivery.
 - **Final Delivery Policy:** Deliver **ONLY** the final validated `.pptx` file to the user. Keep `internal_qa/<run_id>/` videos, keyframes, and JSON reports internal unless explicitly requested by the user.
 
+### F. Zero Static Fallback for Semantic Objects (STRICT INVARIANT)
+- **Zero Static Chart/Diagram Images:** Inserting static flat screenshot images or placeholder PNGs for quantitative charts, numerical metric callouts, architecture flowcharts, or headlines is strictly prohibited and constitutes a **Level 1 Critical Defect (REJECT)**.
+- **Mandatory Native Shape Construction:** All charts, diagrams, timelines, and typography must be constructed as native editable PowerPoint shapes and assigned explicit progressive motion via their specialized planners (`pmg-chart-motion`, `pmg-diagram-motion`, `pmg-kinetic-typography`, `pmg-infographic-motion`, `pmg-map-motion`, `pmg-image-motion`).
+
+### G. Mandatory Autonomous Multi-Skill Motion Pipeline
+When requested to build a presentation, the AI agent MUST NOT execute in isolation or skip specialized motion skills. The agent MUST follow the unified pipeline:
+1. **Scene Planning:** Plan scenes and hero traveling objects with `pmg-storyboard`.
+2. **Surface & Canvas:** Establish 16:9 canvas geometry with `pmg-core` and frosted glassmorphism with `pmg-glassmorphism`.
+3. **Semantic Dispatch:** Classify all slide contents and dispatch to the 6 specialized motion planners. (In Python, instantiate `pmg.motion_director.MotionDirector` to perform classification and motion planning automatically).
+4. **Transition & Continuity:** Connect slides via `pmg-morph` and camera depth via `pmg-camera-parallax`.
+5. **Quality & Validation:** Validate via `pmg-qa-audit` before final delivery.
+
 ---
 
 ## 4. Reusable Script & Package Engines
 
-- `pmg/` (`pmg.runtime`, `pmg.capabilities`, `pmg.compiler`, `pmg.validation`, `pmg.dependencies`, `pmg.orchestrator`, `pmg.engine`, `pmg.validator`, `pmg.video_pipeline`, `pmg.visual_reviewer`, `pmg.self_healing`, `pmg.cli`): Canonical Python package and CLI (`pmg doctor`, `pmg capabilities`, `pmg build`, `pmg validate`, `pmg render`, `pmg record`, `pmg review`, `pmg inspect`, `pmg reconstruct`).
+- `pmg/` (`pmg.motion_director.MotionDirector`, `pmg.semantic_classifier`, `pmg.motion_planners`, `pmg.runtime`, `pmg.capabilities`, `pmg.compiler`, `pmg.validation`, `pmg.dependencies`, `pmg.orchestrator`, `pmg.engine`, `pmg.validator`, `pmg.video_pipeline`, `pmg.visual_reviewer`, `pmg.self_healing`, `pmg.cli`): Canonical Python package and CLI (`pmg doctor`, `pmg capabilities`, `pmg build`, `pmg validate`, `pmg render`, `pmg record`, `pmg review`, `pmg inspect`, `pmg reconstruct`).
 - `scripts/motion_graph_kit.py`: Core presentation builder with light themes, frosted cards, multi-transition suite, traveling entities, and video export.
 - `scripts/motion_validator.py`: Backward compatible adapter to shared read-only QA and canonical orchestrator repair/certification; no separate validator or loop.
 - `scripts/slide_inspector.py`: Read-only adapter to pmg.validator.StaticValidator structured reports.
 - `scripts/pptx_morph_injector.py`: Standalone CLI transition injector.
 
+---
 
 ## 5. Distinct ownership and continued roadmap
 

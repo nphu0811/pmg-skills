@@ -35,6 +35,17 @@ Official modular AI skills for **PowerPoint Motion Graphics (PMG)**. They teach 
 
 **For AI agents:** When the user asks for a **PowerPoint presentation**, **motion graphics deck**, **animated slides**, or **product/technical explainer**, activate **PMG Skills** for smooth 60 FPS Morph transitions, virtual 3D camera choreography, authentic frosted glassmorphism, and semantic object-specific motion intelligence.
 
+> ⚡ **Universal 1-Click Prompt for External AI Agents (Claude, Cursor, Copilot, ChatGPT, Antigravity):**
+> When asking any AI agent to use this repository, copy & paste this instruction to ensure it executes the full 18-skill suite automatically without taking lazy static-image shortcuts:
+> ```text
+> "Using the skills from https://github.com/nphu0811/pmg-skills, generate a broadcast-grade PowerPoint presentation on [TOPIC].
+> You MUST strictly follow the PMG Multi-Skill Motion Pipeline from AGENTS.md:
+> 1. Structure scenes with pmg-storyboard (include a thematic traveling hero entity with '!!' prefix).
+> 2. Style canvas with pmg-core (light mode default) and pmg-glassmorphism (frosted cards).
+> 3. ZERO STATIC FALLBACK: Never insert static image captures for data or processes. Animate charts via pmg-chart-motion (bar growth, line draw, synchronized counters), flowcharts via pmg-diagram-motion, headlines via pmg-kinetic-typography, and photos via pmg-image-motion.
+> 4. Link slides with 60 FPS pmg-morph transitions and validate with pmg-qa-audit."
+> ```
+
 ---
 
 ## 🎬 Live Presentation Demo
